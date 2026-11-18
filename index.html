@@ -651,6 +651,11 @@
   .rpanel input[type=range]{width:100%; accent-color:var(--suit)}
   .presets{display:flex; flex-wrap:wrap; gap:6px; justify-content:center}
   .rpanel .btn{width:100%}
+  .rpanel .rrow{display:flex; align-items:center; gap:14px} .rpanel .rval{font-family:var(--display); font-size:1.6rem; min-width:4.5em; text-align:center}
+  .rpanel .cc-b{width:42px; height:42px}
+  .presets{flex-wrap:nowrap; overflow-x:auto; max-width:100%; scrollbar-width:none; padding:2px} .presets::-webkit-scrollbar{display:none} .presets .chipbtn{flex:none}
+  .rpanel .btn{position:sticky; bottom:0; z-index:1; box-shadow:0 -8px 12px var(--paper)}
+  .actbar{max-height:calc(100dvh - 120px); overflow-y:auto; overscroll-behavior:contain}
   .emotes{display:flex; gap:4px; flex-wrap:wrap; justify-content:center}
   .emo{border:0; background:var(--paper-2); border-radius:50%; width:38px; height:38px; font-size:1.2rem; cursor:pointer}
   .emo:active{transform:scale(.9)}
@@ -723,7 +728,7 @@
   .seat .cv.vis{display:block; position:absolute; left:50%; bottom:100%; width:78px; height:78px; transform:translate(-50%,-14px); border-radius:50%; object-fit:cover; border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111; z-index:5}
   .fp:not(.gl) .seat .cv.vis{bottom:auto; top:0; transform:translate(-50%,-60%)}
   .seat.micon .nm::after{content:' 🎙'} .gl .seat.micon .nm[data-mood]::after{content:' ' attr(data-mood) ' 🎙'}
-  .mebar .cv.self{position:absolute; left:0; bottom:calc(100% + 8px); width:84px; height:84px; border-radius:50%; object-fit:cover; transform:scaleX(-1); border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111}
+  .mebar .cv.self{position:absolute; left:4px; top:50%; margin-top:-24px; width:48px; height:48px; z-index:2; border-radius:50%; object-fit:cover; transform:scaleX(-1); border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111}
   .rbtn.on{background:#1E7A49; border-color:#1E7A49; color:#fff}
   .callbtns{display:contents}
   html, body{overflow-x:hidden}
@@ -812,7 +817,7 @@
   .room.full .ptable-wrap{height:auto; min-height:0; margin:0; border-radius:16px}
   .room.full .myhand{margin-top:-110px}
   .room.full .myhand .hole .hc{width:clamp(64px, 16vw, 104px)}
-  .room.full .actbar{position:static; max-height:42vh; overflow-y:auto}
+  .room.full .actbar{position:static; max-height:58dvh; overflow-y:auto; overscroll-behavior:contain}
   .room.full .ticker{max-height:4.6em; font-size:.78rem; padding:5px 10px}
   body.table-full{overflow:hidden}
   body.table-full .tabs, body.table-full header{visibility:hidden}
@@ -833,7 +838,17 @@
   .gl .center-msg.win{top:28%}
   .gl .center-msg .winline{display:grid; grid-template-columns:auto auto; column-gap:10px; align-items:center; text-align:left; padding:8px 16px}
   .gl .center-msg .winline .trophy{grid-row:span 2; margin:0}
-  .gl .center-msg.win{width:min(92%, 420px)}
+  .gl .center-msg.win{width:min(92%, 400px)}
+  .center-msg .wbox{display:grid; gap:6px; text-align:left; padding:10px 14px}
+  .center-msg .whead{display:grid; grid-template-columns:auto 1fr; column-gap:10px; align-items:center}
+  .center-msg .whead .trophy{grid-row:span 2; font-size:1.8rem; margin:0}
+  .center-msg .whead b{font-size:clamp(1.1rem,3.6vw,1.6rem)}
+  .center-msg .wrow{display:grid; grid-template-columns:1fr auto; column-gap:8px; align-items:center; border-top:1px solid rgba(243,216,145,.25); padding-top:6px}
+  .center-msg .wrow b{font-size:1rem !important} .center-msg .wrow span{grid-column:1; font-size:.8rem}
+  .center-msg .wrow .wcards{grid-row:1 / span 2; grid-column:2}
+  .center-msg .wcards{display:flex; gap:4px; justify-content:center} .center-msg .wcards .pc{width:30px}
+  .gl .center-msg .winline.wbox{grid-template-columns:1fr; padding:10px 14px}
+  .center-msg .wbeat{font-size:.78rem; color:#CFC5B6; text-align:center}
   .gl .center-msg .winline.split b{font-size:clamp(1rem,3.4vw,1.5rem)}
   .gl .center-msg.multi .winline{padding:5px 12px; margin:3px 0}
   .gl .center-msg.multi .winline b{font-size:clamp(1rem,3.2vw,1.4rem)}
@@ -2356,6 +2371,25 @@ function seatXY(i, r){
   return [50 + rx * Math.cos(a), 50 + ry * Math.sin(a)];
 }
 const betXY = i => seatXY(i, [30, 26]);
+const RW = {A:'Aces', K:'Kings', Q:'Queens', J:'Jacks', T:'Tens', 9:'Nines', 8:'Eights', 7:'Sevens', 6:'Sixes', 5:'Fives', 4:'Fours', 3:'Threes', 2:'Twos'};
+const RW1 = {A:'Ace', K:'King', Q:'Queen', J:'Jack', T:'Ten', 9:'Nine', 8:'Eight', 7:'Seven', 6:'Six', 5:'Five', 4:'Four', 3:'Three', 2:'Two'};
+function handWords(name, cards){
+  if(!cards || cards.length < 5) return name;
+  const ord = 'AKQJT98765432', cnt = {}; cards.forEach(c => cnt[c[0]] = (cnt[c[0]] || 0) + 1);
+  const g = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || ord.indexOf(a) - ord.indexOf(b));
+  const hi = /straight/i.test(name) && cnt.A && cnt[5] ? '5' : g.sort((a, b) => cnt[b] - cnt[a] || ord.indexOf(a) - ord.indexOf(b))[0];
+  const kick = k => k ? ', ' + RW1[k] + ' kicker' : '';
+  const n = name.toLowerCase();
+  if(n.includes('straight flush') || n.includes('royal')) return name + ', ' + RW1[hi] + ' high';
+  if(n.includes('four')) return 'Four ' + RW[g[0]] + kick(g[1]);
+  if(n.includes('full')) return RW[g[0]] + ' full of ' + RW[g[1]];
+  if(n.includes('flush')) return 'Flush, ' + RW1[g[0]] + ' high';
+  if(n.includes('straight')) return 'Straight, ' + RW1[hi] + ' high';
+  if(n.includes('three') || n.includes('trips') || n.includes('set')) return 'Three ' + RW[g[0]] + kick(g[1]);
+  if(n.includes('two pair')) return 'Two pair, ' + RW[g[0]] + ' and ' + RW[g[1]] + kick(g[2]);
+  if(n.includes('pair')) return 'Pair of ' + RW[g[0]] + kick(g[1]);
+  return RW1[g[0]] + ' high' + kick(g[1]);
+}
 function cardEl(c, cls){
   const el = h('div', {class:'pc ' + (cls || '')});
   if(!c || c === '??'){ el.classList.add('back'); return el; }
@@ -2375,7 +2409,7 @@ const MOOD_LABELS = [['😄', 'Cheery'], ['😌', 'Chill'], ['😴', 'Sleepy'], 
 const newLook = () => ((Math.random() * 4294967295) >>> 0) || 1;
 const PICK = {looks:null, imgs:{}, busy:false};
 function pickLooks(fresh){
-  const mine = +store('pokerLook') || 0;
+  let mine = +store('pokerLook') || 0; if(isReal(mine)) mine = 0;
   if(!PICK.looks || fresh){ PICK.looks = [mine || newLook()]; while(PICK.looks.length < 6) PICK.looks.push(newLook()); }
   if(!P.look) P.look = PICK.looks[0];
   return PICK.looks;
@@ -2409,7 +2443,7 @@ async function renderPicks(onDone){
   PICK.busy = false; if(onDone) onDone();
 }
 function characterPicker(){
-  if(!PICK.kind) PICK.kind = isReal(+store('pokerLook') || 0) ? 'real' : 'cute';
+  PICK.kind = 'cute';
   const real = PICK.kind === 'real' && glOK();
   const looks = real ? Array.from({length:REAL_N}, (_, k) => REAL_BASE + k + 1) : pickLooks();
   if(!P.look) pickLooks();
@@ -2429,7 +2463,7 @@ function characterPicker(){
   const shuffle = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🎲 Show me others'});
   shuffle.addEventListener('click', () => { const keep = P.look; PICK.looks = null; pickLooks(true); if(!isReal(keep)) PICK.looks[0] = keep; P.look = keep; characterPicker.re && characterPicker.re(); });
   const tab = (k, label) => { const b = h('button', {type:'button', class:'ptab', role:'tab', 'aria-selected':String(PICK.kind === k), text:label}); b.addEventListener('click', () => { PICK.kind = k; characterPicker.re && characterPicker.re(); }); return b; };
-  const tabs = glOK() ? h('div', {class:'ptabs', role:'tablist'}, tab('cute', '🧸 Cute'), tab('real', '🧑 Realistic')) : null;
+  const tabs = null;
   const box = h('div', {class:'picker'}, tabs, grid, real ? h('p', {class:'pick-note', text:'Realistic people load the first time you sit with them (about 2 MB each).'}) : shuffle);
   characterPicker.re = () => { box.replaceWith(characterPicker()); };
   return box;
@@ -2760,11 +2794,16 @@ function updateRoom(s){
   // center message
   const cm = $('#pMsg');
   if(sd){
-    const ws = sd.winners, nm = w => w.seat === s.me ? 'You' : w.name;
-    const same = ws.length > 1 && ws.every(w => w.amount === ws[0].amount && w.hand === ws[0].hand);
-    const lines = same ? [{t:'Split pot: ' + ws.map(nm).join(' and ') + ' each win ' + peso(ws[0].amount), hand:ws[0].hand}] : ws.map(w => ({t:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount), hand:w.hand, me:w.seat === s.me}));
-    cm.replaceChildren(...lines.map(l => h('div', {class:'winline' + (same ? ' split' : '')}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:l.t}), l.hand ? h('span', {text:l.hand}) : h('span', {class:'allfold', text:(l.me ? 'Everyone folded to you 🙌' : 'Everyone else folded')}))));
-    cm.className = 'center-msg show win' + (lines.length > 1 ? ' multi' : ''); }
+    const ws = sd.winners, nm = w => w.seat === s.me ? 'You' : w.name, total = ws.reduce((t, w) => t + w.amount, 0);
+    const desc = w => w.hand ? handWords(w.hand, w.cards) : (w.seat === s.me ? 'Everyone folded to you 🙌' : 'Everyone else folded');
+    const holes = w => { const c = sd.shown && sd.shown[w.seat]; return c ? h('div', {class:'wcards'}, c.map(x => { const e = cardEl(x, 'sm'); if(w.cards && w.cards.includes(x)) e.classList.add('win'); return e; })) : null; };
+    const split = ws.length > 1, sameHand = split && ws.every(w => w.hand && desc(w) === desc(ws[0]));
+    const head = split ? h('div', {class:'whead'}, h('div', {class:'trophy', text:'🤝'}), h('b', {text:'Split pot ' + peso(total)}), h('span', {text:sameHand ? 'Same best hand, so the pot is shared' : 'The pot was split between ' + ws.length + ' players'}))
+      : h('div', {class:'whead'}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:(ws[0].seat === s.me ? 'You win ' : ws[0].name + ' wins ') + peso(ws[0].amount)}), h('span', {class:ws[0].hand ? '' : 'allfold', text:desc(ws[0])}));
+    const rows = split ? ws.map(w => h('div', {class:'wrow'}, h('b', {text:nm(w) + ' +' + peso(w.amount)}), h('span', {text:desc(w)}), holes(w))) : [holes(ws[0])];
+    const beat = (sd.shown ? Object.keys(sd.shown).map(Number) : []).filter(i => !ws.some(w => w.seat === i) && s.seats[i]).map(i => i === s.me ? 'you' : s.seats[i].name);
+    cm.replaceChildren(h('div', {class:'winline wbox'}, head, ...rows, beat.length ? h('div', {class:'wbeat', text:'Beat ' + beat.join(', ')}) : null));
+    cm.className = 'center-msg show win'; }
   else if(!h_ && s.nextHandAt){ const sec = Math.max(0, Math.ceil((s.nextHandAt - (Date.now() + P.skew)) / 1000)); cm.replaceChildren(h('span', {class:'count', text:'Next hand in ' + sec})); cm.className = 'center-msg show soft'; }
   else if(!h_){ const n = s.seats.filter(x => x && (x.stack > 0 || x.pendingRebuy)).length; cm.replaceChildren(h('span', {text:n < 2 ? 'Waiting for one more player…' : 'Ready when you are'})); cm.className = 'center-msg show soft'; }
   else { cm.className = 'center-msg'; cm.replaceChildren(); }
@@ -3052,7 +3091,7 @@ const isReal = l => l > REAL_BASE && l <= REAL_BASE + REAL_N;
 const realIdx = l => l - REAL_BASE;
 const realMood = l => (realIdx(l) * 5 + 1) % 6;
 const REAL_COLORS = ['#9B3FB5', '#E7B8C0', '#222222', '#3A4A8C', '#49A877', '#5A4A50', '#B9AF9C', '#C8102E', '#2A2A2A', '#4B6E9E', '#4F78A8', '#1F4FA8'];
-const lookColor = x => isReal(x.look) ? REAL_COLORS[realIdx(x.look) - 1] : x.look ? 'hsl(' + (x.look % 360) + ' ' + (50 + (x.look >>> 9) % 30) + '% ' + (38 + (x.look >>> 15) % 18) + '%)' : avColor(x.name);
+const lookColor = x => x.look && !isReal(x.look) ? 'hsl(' + (x.look % 360) + ' ' + (50 + (x.look >>> 9) % 30) + '% ' + (38 + (x.look >>> 15) % 18) + '%)' : avColor(x.name);
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/+esm';
 let THREE_P = null;
 const loadThree = () => THREE_P || (THREE_P = import(THREE_URL));
@@ -3421,7 +3460,7 @@ function makeGL(T, host){
   const KIT = avatarKit(T, {col, hash, M});
   const {SKIN, MOODS} = KIT;
   const avs = {};
-  function makeAvatar(name, color, look){ const a = isReal(look) ? makeReal(name, look) : KIT.makeAvatar(name, color, look); scene.add(a.g); scene.add(a.hole); return a; }
+  function makeAvatar(name, color, look){ if(isReal(look)) look = (Math.imul(realIdx(look), 2654435761) >>> 0) % 4000000000; const a = KIT.makeAvatar(name, color, look); scene.add(a.g); scene.add(a.hole); return a; }
   // ---------- realistic people ----------
   const RK = realKit(T); const realCache = {};
   const loadReal = idx => realCache[idx] || (realCache[idx] = Promise.all([import(GLTF_URL), import(SKEL_URL)]).then(([G, SU]) => new G.GLTFLoader().loadAsync(AV_BASE + 'p' + String(idx).padStart(2, '0') + '.glb').then(gl => ({gl, SU}))));
@@ -3486,7 +3525,7 @@ function makeGL(T, host){
     const fa = new T.Mesh(new T.CapsuleGeometry(.055, .36, 4, 12), meCloth); fa.position.set(sx * .3, TY + .12, .02); fa.rotation.set(Math.PI / 2 - .25, 0, sx * .5); fa.castShadow = true; meArms.add(fa);
     const hd = new T.Mesh(new T.SphereGeometry(.06, 16, 12), meSkin); hd.scale.set(1, .85, 1); hd.position.set(sx * .21, TY + .09, -.15); hd.castShadow = true; meArms.add(hd);
   }
-  function setMe(x){ const k = x.name + (x.look || 0); if(isReal(x.look)){ meSkin.color.set(SKIN[(realIdx(x.look) * 3) % SKIN.length]); } if(meArms.userData.n === k) return; meArms.userData.n = k; meCloth.color.copy(col(lookColor(x))); meSkin.color.set(SKIN[((x.look || hash(x.name)) >>> 4) % SKIN.length]); }
+  function setMe(x){ const k = x.name + (x.look || 0); if(meArms.userData.n === k) return; meArms.userData.n = k; meCloth.color.copy(col(lookColor(x))); meSkin.color.set(SKIN[((x.look || hash(x.name)) >>> 4) % SKIN.length]); }
 
   // ---------- expressions & reactions ----------
   const camWorld = new T.Vector3();
