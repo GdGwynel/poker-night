@@ -770,11 +770,27 @@ function hostTally(){
 }
 function pollMessage(){
   const p = S.poll; if(!p) return '';
-  const link = location.href.split('#')[0] + '#schedule';
-  const lines = ['♠️ ' + p.title + ': are you in?', ''];
-  for(const s of p.slots){ const t = slotTally(s.id); lines.push(fmtWhen(s.when) + ': ' + t.yes.length + ' in' + (t.maybe.length ? ', ' + t.maybe.length + ' maybe' : '') + (t.yes.length ? ' (' + t.yes.join(', ') + ')' : '')); }
-  const host = topHost(); if(host) lines.push('Host so far: ' + host);
-  lines.push('', 'Vote here: ' + link);
+  const link = location.href.split('#')[0].split('?')[0] + '#schedule';
+  const long = w => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(w || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'}).replace(',', '') : w; };
+  const lines = [];
+  if(p.slots.length === 1){
+    const t = slotTally(p.slots[0].id);
+    lines.push('♠️ Poker night, ' + long(p.slots[0].when), '');
+    lines.push(t.yes.length ? 'In (' + t.yes.length + '): ' + t.yes.join(', ') : 'Nobody has said they’re in yet.');
+    if(t.maybe.length) lines.push('Maybe (' + t.maybe.length + '): ' + t.maybe.join(', '));
+  } else {
+    lines.push('♠️ Poker night: which day works?', '');
+    for(const s of p.slots){ const t = slotTally(s.id); lines.push(long(s.when) + ': ' + (t.yes.length ? t.yes.length + ' in (' + t.yes.join(', ') + ')' : 'nobody yet') + (t.maybe.length ? ', ' + t.maybe.length + ' maybe' : '')); }
+  }
+  if(p.hosts.length){
+    const tally = [...hostTally()].filter(([, w]) => w.length).sort((a, b) => b[1].length - a[1].length);
+    if(!tally.length) lines.push('Where: not decided yet');
+    else {
+      const top = tally[0][1].length; const lead = tally.filter(([, w]) => w.length === top).map(([n]) => n + '’s place');
+      lines.push('Where: ' + (lead.length > 1 ? lead.join(' or ') + ' (tied, ' : lead[0] + ' (') + top + ' vote' + (top === 1 ? '' : 's') + ' so far)');
+    }
+  }
+  lines.push('', 'Are you in? Tap to vote:', link);
   return lines.join('\n');
 }
 function renderHero(){
