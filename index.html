@@ -2134,7 +2134,7 @@ function updateRoom(s){
     h('b', {text:h_ ? 'Hand #' + h_.no : sd ? 'Hand #' + s.handNo + ' finished' : 'Between hands'}),
     h('span', {text:'Blinds ' + peso(s.blinds.sb) + ' / ' + peso(s.blinds.bb)}),
     h('span', {class:'conn ' + (P.open ? 'on' : 'off'), text:P.open ? 'Live' : 'Reconnecting…'}),
-    s.finishing ? h('span', {class:'conn off', text:'Last hand'}) : null);
+    s.finishing ? h('span', {class:'conn off', text:'Last hand'}) : '');
   $('#pLeave').hidden = me < 0;
   // seats
   const layer = $('#pSeats'); const bets = $('#pBets');
