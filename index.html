@@ -382,6 +382,47 @@
   .orow.editing input{background:#fff}
   .spot{outline:3px solid var(--gold); outline-offset:3px}
   @media (prefers-reduced-motion:no-preference){ .spot{animation:spot 1.6s ease-out forwards} @keyframes spot{0%,60%{outline-color:var(--gold)} 100%{outline-color:transparent}} }
+  .qlab{font-size:.8rem; font-weight:700; color:var(--ink-2); margin-bottom:-6px}
+  .sh-hint{font-size:.88rem; color:var(--ink-2); margin:0 0 8px; text-align:center}
+  .pad-lab{font-size:.8rem; font-weight:700; color:var(--ink-2); text-align:center; margin-top:4px}
+  .tile-btns{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .tile-btns.one{grid-template-columns:1fr}
+  dialog.sheet{border:0; padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px)); width:min(100%,460px); max-width:100%; max-height:94vh; overflow:auto;
+    margin:auto auto 0; border-radius:22px 22px 0 0; background:var(--paper); color:var(--ink); box-shadow:0 -20px 60px -10px rgba(10,0,3,.7)}
+  @media (min-width:700px){ dialog.sheet{margin:auto; border-radius:22px} }
+  dialog.sheet::backdrop{background:rgba(30,3,8,.62)}
+  @media (prefers-reduced-motion:no-preference){ dialog.sheet[open]{animation:sheetUp .22s ease-out} @keyframes sheetUp{from{transform:translateY(40px); opacity:0}} }
+  .sh-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+  .sh-head h2{font-family:var(--display); font-weight:700; font-size:1.45rem; margin:0}
+  .sh-res{font-size:.92rem; color:var(--ink-2); margin-top:2px}
+  .sh-x{background:var(--paper-2); color:var(--ink); border:0; width:36px; height:36px; border-radius:50%; font-size:1.4rem; cursor:pointer; flex:none; line-height:1}
+  .sh-big{font-family:var(--display); font-weight:700; font-size:2.4rem; line-height:1; text-align:center; margin:10px 0 8px; outline:none}
+  .sh-big.empty{color:#C9C2B6}
+  .sh-warn{background:#FFF1F2; color:#9E0C24; border:1.5px solid #F0BCC2; border-radius:12px; padding:8px 12px; font-weight:700; font-size:.9rem; margin-bottom:10px}
+  .sh-tabs{display:grid; grid-template-columns:1fr 1fr; background:var(--paper-2); border-radius:999px; padding:4px; margin-bottom:10px}
+  .sh-tabs button{border:0; background:transparent; color:var(--ink-2); border-radius:999px; padding:8px; font-weight:800; cursor:pointer; color:var(--ink-2)}
+  .sh-tabs button[aria-selected="true"]{background:#fff; color:var(--ink); box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  .sh-chips{display:grid; gap:4px; margin-bottom:8px}
+  .cc-row{display:grid; grid-template-columns:auto minmax(0,1fr) 40px 54px 40px 4.6em; gap:8px; align-items:center; padding:3px 8px; border-radius:14px; border:2px solid transparent; cursor:pointer}
+  .cc-row.sel{border-color:var(--ink); background:#fff}
+  .cc-row .chipdot{width:30px; height:30px; font-size:.68rem}
+  .cc-lab{font-weight:700; font-size:.92rem}
+  .cc-b{width:40px; height:40px; border-radius:50%; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:1.3rem; font-weight:700; cursor:pointer; line-height:1; padding:0}
+  .cc-b:active{background:var(--paper-2)}
+  .cc-n{height:40px; border-radius:10px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-weight:800; font-size:1.1rem; cursor:pointer; padding:0}
+  .cc-row.sel .cc-n{border-color:var(--ink)}
+  .cc-sub{text-align:right; font-size:.85rem; color:var(--ink-2); font-weight:600}
+  .keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 12px}
+  .key{height:48px; border-radius:14px; border:0; background:var(--paper-2); padding:0; font-size:1.35rem; font-weight:800; cursor:pointer; color:var(--ink); font-variant-numeric:tabular-nums}
+  .key.fn{font-size:1rem; color:var(--ink-2)}
+  .key:active{background:#E3DED3; transform:translateY(1px)}
+  .sh-foot{display:grid; gap:10px; justify-items:center}
+  .sh-ok{width:100%}
+  .where{display:flex; flex-wrap:wrap; gap:8px}
+  .where .chipbtn[aria-checked="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .where-help{margin:10px 0 14px; padding:10px 12px; background:var(--paper-2); border-radius:12px}
+  dialog.sheet h3{margin:6px 0 8px; font-family:var(--display); font-size:1.1rem}
+  @media (max-width:380px){ .cc-row{grid-template-columns:auto minmax(0,1fr) 36px 46px 36px; } .cc-sub{display:none} .key{height:46px} }
   .btn-danger{background:var(--suit); color:#fff}
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
@@ -1249,6 +1290,146 @@ function jumpBtn(label, sel, open, before){
   });
   return b;
 }
+// ===== Bottom sheets with a built-in number pad (no phone keyboard) =====
+function openSheet(build){
+  const d = h('dialog', {class:'sheet'});
+  const close = () => { d.close(); d.remove(); };
+  d.addEventListener('cancel', e => { e.preventDefault(); close(); });
+  d.addEventListener('click', e => { if(e.target === d) close(); });   // tap the dimmed area to close
+  build(d, close);
+  document.body.append(d); d.showModal();
+  const first = d.querySelector('[data-autofocus]'); if(first) first.focus();
+  return close;
+}
+// Keypad: calls onKey('0'-'9' | 'back' | 'clear'). Physical keyboards work too.
+function keypad(root, onKey){
+  const pad = h('div', {class:'keypad', role:'group', 'aria-label':'Number pad'});
+  for(const k of ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'clear', '0', 'back']){
+    const b = h('button', {type:'button', class:'key' + (k.length > 1 ? ' fn' : ''), text:k === 'back' ? '⌫' : k === 'clear' ? 'Clear' : k, 'aria-label':k === 'back' ? 'Delete' : k === 'clear' ? 'Clear' : k});
+    b.addEventListener('click', () => onKey(k));
+    pad.append(b);
+  }
+  root.addEventListener('keydown', e => {
+    if(/^[0-9]$/.test(e.key)){ onKey(e.key); e.preventDefault(); }
+    else if(e.key === 'Backspace'){ onKey('back'); e.preventDefault(); }
+    else if(e.key === 'Delete'){ onKey('clear'); e.preventDefault(); }
+  });
+  return pad;
+}
+const editNum = (str, k, max) => k === 'clear' ? '' : k === 'back' ? str.slice(0, -1) : (str + k).replace(/^0+(?=\d)/, '').slice(0, max);
+
+// Cash out: count chips by colour (default) or type the total
+function cashOutSheet(n, opts){
+  const L = S.live; const tin = sum(L.log.filter(e => key(e.name) === key(n)).map(e => e.amount));
+  const current = L.cashout[key(n)];
+  const others = sum(Object.entries(L.cashout).filter(([k]) => k !== key(n)).map(([, v]) => v));
+  const left = round(sum(L.log.map(e => e.amount)) - others);   // most this player could have
+  openSheet((d, close) => {
+    let mode = current != null ? 'total' : 'chips';
+    let totalStr = current != null ? String(current) : '';
+    const counts = CHIPS.map(() => ''); let sel = 0;
+    const value = () => mode === 'chips' ? sum(CHIPS.map(([v], i) => (+counts[i] || 0) * v)) : (+totalStr || 0);
+    const has = () => mode === 'chips' ? counts.some(x => x !== '') : totalStr !== '';
+
+    const big = h('div', {class:'sh-big num', 'aria-live':'polite'});
+    const res = h('div', {class:'sh-res'});
+    const warn = h('div', {class:'sh-warn', role:'alert'});
+    const ok = h('button', {type:'button', class:'btn btn-red btn-lg sh-ok'});
+    const tabs = h('div', {class:'sh-tabs', role:'tablist'});
+    const chipsBox = h('div', {class:'sh-chips'});
+    const rows = CHIPS.map(([v, c, lab], i) => {
+      const cnt = h('button', {type:'button', class:'cc-n num', 'aria-label':lab + ' chips count'});
+      const minus = h('button', {type:'button', class:'cc-b', text:'−', 'aria-label':'One less ' + lab});
+      const plus = h('button', {type:'button', class:'cc-b', text:'+', 'aria-label':'One more ' + lab});
+      const sub = h('span', {class:'cc-sub num'});
+      const row = h('div', {class:'cc-row'}, h('span', {class:'chipdot ' + c, 'aria-hidden':'true', text:String(v)}), h('span', {class:'cc-lab', text:lab}), minus, cnt, plus, sub);
+      row.addEventListener('click', () => { sel = i; paint(); });
+      minus.addEventListener('click', e => { e.stopPropagation(); sel = i; counts[i] = String(Math.max(0, (+counts[i] || 0) - 1)); paint(); });
+      plus.addEventListener('click', e => { e.stopPropagation(); sel = i; counts[i] = String((+counts[i] || 0) + 1); paint(); });
+      chipsBox.append(row);
+      return {row, cnt, sub, v};
+    });
+    const chipHint = h('p', {class:'sh-hint', text:'Tap + or − for each colour, or tap a count and type it on the pad.'});
+    const padLab = h('div', {class:'pad-lab'});
+    const totalBox = h('div', {class:'sh-total'}, h('p', {class:'sh-hint', text:'Type the value of ' + n + '’s chips in pesos on the pad.'}));
+    const setMode = m => { mode = m; paint(); };
+    const tChips = h('button', {type:'button', role:'tab', text:'Count chips'}); tChips.addEventListener('click', () => setMode('chips'));
+    const tTotal = h('button', {type:'button', role:'tab', text:'Type the total'}); tTotal.addEventListener('click', () => setMode('total'));
+    tabs.append(tChips, tTotal);
+    const pad = keypad(d, k => { if(mode === 'chips') counts[sel] = editNum(counts[sel], k, 3); else totalStr = editNum(totalStr, k, 7); paint(); });
+
+    function paint(){
+      tChips.setAttribute('aria-selected', String(mode === 'chips')); tTotal.setAttribute('aria-selected', String(mode === 'total'));
+      chipsBox.hidden = mode !== 'chips'; chipHint.hidden = mode !== 'chips'; totalBox.hidden = mode !== 'total';
+      padLab.textContent = mode === 'chips' ? 'Typing: number of ' + CHIPS[sel][2].toLowerCase() + ' chips (₱' + CHIPS[sel][0] + ' each)' : 'Typing: total in pesos';
+      rows.forEach((r, i) => { r.cnt.textContent = counts[i] === '' ? '0' : counts[i]; r.sub.textContent = peso((+counts[i] || 0) * r.v); r.row.classList.toggle('sel', i === sel); });
+      const v = value(); big.textContent = peso(v); big.classList.toggle('empty', !has());
+      const net = round(v - tin);
+      res.replaceChildren(document.createTextNode(n + ' cashed in ' + peso(tin) + '. '), has() ? h('b', {class:cls(net), text:net > 0 ? 'Up ' + peso(net) : net < 0 ? 'Down ' + peso(-net) : 'Breaks even'}) : '');
+      const over = has() && v > left + 0.004;
+      warn.textContent = over ? '⚠ That’s more than the ' + peso(Math.max(0, left)) + ' left on the table. Recount before saving.' : '';
+      warn.hidden = !over;
+      ok.disabled = !has();
+      ok.textContent = has() ? (over ? 'Cash out anyway, ' : 'Cash out ') + peso(v) : 'Enter ' + n + '’s chips';
+      ok.classList.toggle('btn-danger', over);
+    }
+    ok.addEventListener('click', async () => {
+      if(!has()) return;
+      const v = value(); close();
+      if(await liveDo({op:'cashout', name:n, amount:String(v)}, n)) liveNote(n + (current != null ? '’s cash-out is now ' : ' cashed out ') + peso(v) + '.', 'ok');
+    });
+    const head = h('div', {class:'sh-head'},
+      h('div', null, h('h2', {text:(current != null ? 'Edit cash-out: ' : 'Cash out ') + n}), res),
+      h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close}));
+    const extra = [];
+    if(current != null){
+      const back = h('button', {type:'button', class:'linkbtn', text:'Put ' + n + ' back in the game'});
+      back.addEventListener('click', () => { close(); liveDo({op:'cashout', name:n, amount:''}); });
+      extra.push(back);
+    }
+    d.append(head, big, warn, tabs, chipHint, chipsBox, totalBox, padLab, pad, h('div', {class:'sh-foot'}, ok, ...extra));
+    big.setAttribute('data-autofocus', ''); big.tabIndex = -1;
+    paint();
+  });
+}
+
+// Custom cash-in: any amount, and where the money went
+function cashInSheet(n){
+  const L = S.live;
+  openSheet((d, close) => {
+    let amt = ''; let to = '';
+    const big = h('div', {class:'sh-big num', 'aria-live':'polite', tabIndex:-1, 'data-autofocus':''});
+    const ok = h('button', {type:'button', class:'btn btn-red btn-lg sh-ok'});
+    const whereBox = h('div', {class:'where', role:'radiogroup', 'aria-label':'Where did the money go?'});
+    const help = h('p', {class:'note where-help'});
+    const opts = [['', 'Into the pot']].concat(L.players.filter(p => key(p) !== key(n)).map(p => [p, 'Handed to ' + p]));
+    const btns = opts.map(([v, lab]) => { const b = h('button', {type:'button', role:'radio', class:'chipbtn', text:lab}); b.addEventListener('click', () => { to = v; paint(); }); whereBox.append(b); return [v, b]; });
+    const pad = keypad(d, k => { amt = editNum(amt, k, 7); paint(); });
+    function paint(){
+      big.textContent = amt ? peso(+amt) : peso(0); big.classList.toggle('empty', !amt);
+      btns.forEach(([v, b]) => b.setAttribute('aria-checked', String(v === to)));
+      help.textContent = to
+        ? n + ' gave the cash straight to ' + to + ' (for example, buying some of ' + to + '’s chips). ' + n + ' still gets the chips, and at the end ' + to + ' pays out that much less, so nobody pays twice.'
+        : 'The usual: the money goes into the pot and ' + n + ' gets the same value in chips.';
+      ok.disabled = !(+amt > 0);
+      ok.textContent = +amt > 0 ? 'Add ' + peso(+amt) + ' for ' + n : 'Enter an amount';
+    }
+    ok.addEventListener('click', async () => {
+      const v = +amt; if(!(v > 0)) return; close();
+      if(await liveDo({op:'buyin', name:n, amount:String(v), to, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(v) + (to ? ', handed to ' + to : '') + '.', 'ok');
+    });
+    let rm = null;
+    if(!L.log.some(e => key(e.name) === key(n))){ rm = h('button', {type:'button', class:'linkbtn', text:'Remove ' + n + ' from the game'}); rm.addEventListener('click', () => { close(); liveDo({op:'drop', name:n}); }); }
+    d.append(
+      h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Custom cash-in: ' + n}), h('p', {class:'sub', style:'margin:0', text:'For amounts that aren’t on the quick buttons.'})),
+        h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
+      big, pad,
+      h('h3', {text:'Where did the money go?'}), whereBox, help,
+      h('div', {class:'sh-foot'}, ok, rm));
+    paint();
+  });
+}
+
 function liveTyping(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#liveCard') && a.matches('input, select')); }
 function liveNote(text, type){ S.liveMsg = {text, type}; clearTimeout(liveNote.t); liveNote.t = setTimeout(() => { S.liveMsg = null; const m = $('#liveMsg'); if(m) setMsg(m, ''); }, 5000); const m = $('#liveMsg'); if(m) setMsg(m, text, type); }
 // Retry saves that fail because the sheet is busy or the connection blips. Every live action is safe to repeat.
@@ -1333,7 +1514,6 @@ function renderLive(){
   const overOut = outSum > totalIn + 0.004;
   const mismatch = allOut && Math.abs(outSum - totalIn) >= 0.005;
   const problem = overOut || mismatch;
-  if(!problem && S.editAllOut) S.editAllOut = false;
 
   // ----- 1. Table summary -----
   const mins = Math.max(0, Math.round((Date.now() - new Date(L.started)) / 60000));
@@ -1369,7 +1549,7 @@ function renderLive(){
     wrap.append(alertBox('bad', 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot',
       'Players can’t take out more than went in. One of the cash-outs was probably typed wrong, or someone’s cash-in is missing.',
       [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)]],
-      [jumpBtn('Fix a cash-out', '#outCard', false, () => { S.editAllOut = true; renderLive(); }), jumpBtn('Check cash-in history', '#logDet', true)]));
+      [jumpBtn('Fix a cash-out', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
 
   // ----- 2. At the table / count the chips -----
   if(!allOut){
@@ -1384,17 +1564,8 @@ function renderLive(){
       const tile = h('div', {class:'ptile' + (tot ? '' : ' warnt') + (flash && key(flash) === key(n) ? ' flash' : '')},
         h('div', {class:'pt-head'}, h('div', {class:'pt-name', text:n}), h('div', {class:'pt-tot num' + (tot ? '' : ' zero'), text:tot ? peso(tot) : '⚠ No cash-in yet'})),
         h('div', {class:'stack', title:es.map(e => peso(e.amount) + (e.to ? ' paid to ' + e.to : '')).join(', ')}, es.map(e => h('span', {class:'tag' + (e.to ? ' to' : ''), text:String(e.amount)}))));
-      const coIn = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', id:'co-' + key(n).replace(/\W+/g, '-'), 'aria-label':'Chips ' + n + ' has'});
-      const coBtn = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Cash out'});
-      const doOut = async () => {
-        if(coIn.value.trim() === ''){ coIn.focus(); return; }
-        const v = +coIn.value;
-        if(v > inPlay + 0.004 && !(await confirmBox('That’s more than what’s left', n + ' is cashing out ' + peso(v) + ', but only ' + peso(Math.max(0, inPlay)) + ' is still in play. Check the chip count before saving it.', 'Cash out anyway', true, 'Fix the count'))) { coIn.focus(); return; }
-        if(await liveDo({op:'cashout', name:n, amount:coIn.value.trim()}, n)) liveNote(n + ' cashed out ' + peso(v) + '.', 'ok');
-      };
-      coBtn.addEventListener('click', doOut); coIn.addEventListener('keydown', e => { if(e.key === 'Enter') doOut(); });
-      const coRow = h('div', {class:'co-row'}, coIn, coBtn);
-      const counter = chipCounter(v => { coIn.value = v; coIn.focus(); });
+      const outBtn = h('button', {type:'button', class:'btn btn-red btn-sm', text:counting ? 'Count ' + n + '’s chips' : 'Cash out', 'aria-label':'Cash out ' + n});
+      outBtn.addEventListener('click', () => cashOutSheet(n));
       if(!counting){
         const quick = h('div', {class:'quick', role:'group', 'aria-label':'Cash in for ' + n});
         for(const a of [100, 200, 300, 500]){
@@ -1402,16 +1573,11 @@ function renderLive(){
           b.addEventListener('click', async () => { if(await liveDo({op:'buyin', name:n, amount:a, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(a) + '.', 'ok'); });
           quick.append(b);
         }
-        const amtIn = h('input', {type:'number', inputMode:'decimal', min:1, placeholder:'Amount', 'aria-label':'Other amount for ' + n});
-        const toSel = h('select', {'aria-label':'Paid cash straight to'}, h('option', {value:'', text:'Into the pot'}), L.players.filter(p => key(p) !== key(n)).map(p => h('option', {value:p, text:'Cash went to ' + p})));
-        const add = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Add'});
-        add.addEventListener('click', async () => { const v = +amtIn.value, to = toSel.value; if(await liveDo({op:'buyin', name:n, amount:amtIn.value, to, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(v) + (to ? ', cash went to ' + to : '') + '.', 'ok'); });
-        const more = h('details', {class:'more'}, h('summary', {text:'Other amount'}), h('div', {class:'more-row'}, amtIn, toSel, add));
-        if(!es.length){ const rm = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:8px', text:'Remove ' + n}); rm.addEventListener('click', () => liveDo({op:'drop', name:n})); more.append(rm); }
-        const co = h('details', {class:'more'}, h('summary', {text:'Cash out'}), coRow, counter);
-        tile.append(quick, h('div', {class:'tile-acts'}, more, co));
+        const custom = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Custom cash-in', 'aria-label':'Custom cash-in for ' + n});
+        custom.addEventListener('click', () => cashInSheet(n));
+        tile.append(h('div', {class:'qlab', text:'Rebuy'}), quick, h('div', {class:'tile-btns'}, custom, outBtn));
       } else {
-        tile.append(h('label', {for:coIn.id, style:'margin:0', text:'Chips at the end'}), coRow, counter);
+        tile.append(h('div', {class:'tile-btns one'}, outBtn));
       }
       tiles.append(tile);
     }
@@ -1445,39 +1611,18 @@ function renderLive(){
   if(done.length){
     const sec = h('div', {class:'card', id:'outCard'});
     sec.append(h('div', {class:'sec-head'}, h('h2', {text:'Cashed out'}), h('span', {class:'count', text:done.length + ' of ' + L.players.length})));
-    S.editOut = S.editOut || {};
     for(const n of done){
       const tin = tinOf(n), out = L.cashout[key(n)], net = round(out - tin);
       const rowCls = 'orow ' + (net > 0 ? 'win' : net < 0 ? 'loss' : 'even') + (flash && key(flash) === key(n) ? ' flash' : '');
-      if(S.editOut[key(n)] || S.editAllOut){
-        const inp = h('input', {type:'number', inputMode:'decimal', min:0, id:'eo-' + key(n).replace(/\W+/g, '-'), 'aria-label':'Chips ' + n + ' cashed out'}); inp.value = out;
-        const saveB = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Save'});
-        const doSave = async () => {
-          if(inp.value.trim() === ''){ inp.focus(); return; }
-          const v = +inp.value; delete S.editOut[key(n)];
-          if(v !== out){ if(await liveDo({op:'cashout', name:n, amount:inp.value.trim()}, n)) liveNote(n + '’s cash-out changed to ' + peso(v) + '.', 'ok'); } else renderLive();
-        };
-        saveB.addEventListener('click', doSave); inp.addEventListener('keydown', e => { if(e.key === 'Enter') doSave(); });
-        const cancelB = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Cancel'});
-        cancelB.addEventListener('click', () => { delete S.editOut[key(n)]; S.editAllOut = false; renderLive(); });
-        const back = h('button', {type:'button', class:'linkbtn', text:'Put ' + n + ' back in the game'});
-        back.addEventListener('click', () => { delete S.editOut[key(n)]; liveDo({op:'cashout', name:n, amount:''}); });
-        sec.append(h('div', {class:rowCls + ' editing'},
-          h('div', {class:'nm', text:n}),
-          h('div', {class:'io num', text:peso(tin) + ' in'}),
-          h('div', {class:'eo'}, h('label', {for:inp.id, text:'Cashed out'}), h('div', {class:'co-row'}, inp, saveB, cancelB)),
-          h('div', {class:'eo-more'}, chipCounter(v => { inp.value = v; inp.focus(); }), back)));
-        continue;
-      }
       const edit = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Edit', 'aria-label':'Edit cash-out for ' + n});
-      edit.addEventListener('click', () => { S.editOut[key(n)] = true; renderLive(); const x = $('#eo-' + key(n).replace(/\W+/g, '-')); if(x){ x.focus(); x.select(); } });
+      edit.addEventListener('click', () => cashOutSheet(n));
       sec.append(h('div', {class:rowCls},
         h('div', {class:'nm', text:n}),
         h('div', {class:'io num', text:peso(tin) + ' in, ' + peso(out) + ' out'}),
         h('div', {class:'net num ' + cls(net), text:net ? signed(net) : 'Even'}),
         edit));
     }
-    if(S.editAllOut){ const fin = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:10px', text:'Done editing'}); fin.addEventListener('click', () => { S.editAllOut = false; S.editOut = {}; renderLive(); }); sec.append(fin); }
+
     wrap.append(sec);
   }
 
@@ -1487,10 +1632,10 @@ function renderLive(){
     const c = compute(players); const ok = Math.abs(c.diff) < 0.005;
     const sec = h('div', {class:'card settle-box'}, h('h2', {text:'Settle up'}));
     if(!ok) sec.append(alertBox('bad', 'Totals are off by ' + peso(Math.abs(c.diff)),
-      c.diff > 0 ? 'More came out than went in. A cash-out was probably entered too high, or someone’s cash-in is missing. Tap Fix a cash-out to correct the amount.'
+      c.diff > 0 ? 'More came out than went in. A cash-out was probably entered too high, or someone’s cash-in is missing. Tap Edit on the wrong cash-out to correct it.'
                  : 'Less came out than went in. Some chips weren’t counted, a cash-out was entered too low, or a cash-in was added by mistake.',
       [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)], ['Difference', (c.diff > 0 ? '+' : '−') + peso(Math.abs(c.diff))]],
-      [jumpBtn('Fix a cash-out', '#outCard', false, () => { S.editAllOut = true; renderLive(); }), jumpBtn('Check cash-in history', '#logDet', true)]));
+      [jumpBtn('Fix a cash-out', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
     else {
       sec.append(h('div', {class:'check ok', role:'status', text:'✓ Balanced: ' + peso(totalIn) + ' in, ' + peso(outSum) + ' out'}));
       sec.append(h('h3', {text:'Who pays who'}), transfersList(c));
