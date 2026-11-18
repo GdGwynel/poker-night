@@ -359,6 +359,11 @@
   .livebar.bad{background:#9E0C24}
   .livebar.bad .lb-k{color:#FFD3D8}
   .season-sels{display:flex; gap:8px; flex-wrap:wrap}
+  .gtabs{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  .gtabs [role=tab]{border:1.5px solid rgba(255,244,242,.3); background:rgba(25,3,7,.4); color:var(--on-back-2); border-radius:999px; padding:7px 14px; font-weight:700; cursor:pointer}
+  .gtabs [role=tab][aria-selected="true"]{background:var(--paper); color:var(--ink); border-color:var(--paper)}
+  .gtabs .gt-new{border:1.5px dashed rgba(255,244,242,.4); background:transparent; color:var(--on-back-2); border-radius:999px; padding:7px 14px; font-weight:700; cursor:pointer}
+  .gbadge{font-family:var(--body); font-size:.75rem; font-weight:700; background:var(--paper-2); color:var(--ink-2); border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:3px}
   .season-sels select{width:auto; background:var(--paper)}
   .grp-name{color:var(--gold-l); font-weight:700; margin:2px 2px 0}
   .grp-name:empty{display:none}
@@ -557,9 +562,10 @@ Khelvin = 0"></textarea>
 
     <!-- LEADERBOARD -->
     <section class="view" id="view-board" hidden>
+      <div class="gtabs" id="groupTabs" role="tablist" aria-label="Group"></div>
       <div class="season">
         <div><h2 class="felt-h">Season standings</h2><div class="grp-name" id="boardGroupName"></div></div>
-        <div class="season-sels"><span id="groupBox"></span><select id="seasonSel" aria-label="Season"></select></div>
+        <div class="season-sels"><select id="seasonSel" aria-label="Season"></select></div>
       </div>
       <div class="hand" id="podium" aria-label="Top three"></div>
       <div class="stats" id="stats"></div>
@@ -1141,12 +1147,29 @@ function standings(sessions){
 }
 function renderBoard(){
   const sel = $('#seasonSel');
-  const grp = currentGroup();
   const gs = allGroups();
-  const gbox = $('#groupBox'); gbox.replaceChildren();
-  if(gs.length > 1) gbox.append(groupPicker('groupSel', grp, g => { setGroup(g); renderBoard(); }));
-  $('#boardGroupName').textContent = gs.length > 1 ? grp : '';
-  const groupSessions = S.sessions.filter(s => key(groupOf(s)) === key(grp));
+  // Leaderboard group: a group, or every group together
+  let grp = store('pokerBoardGroup') || currentGroup();
+  if(grp !== '__all' && !gs.some(g => key(g) === key(grp))) grp = DEFAULT_GROUP;
+  const gtabs = $('#groupTabs'); gtabs.replaceChildren();
+  const counts = g => S.sessions.filter(x => g === '__all' || key(groupOf(x)) === key(g)).length;
+  for(const g of [...gs, '__all']){
+    const b = h('button', {type:'button', role:'tab', 'aria-selected':String(key(g) === key(grp)), text:(g === '__all' ? 'All groups' : g) + ' (' + counts(g) + ')'});
+    b.addEventListener('click', () => { store('pokerBoardGroup', g); if(g !== '__all') setGroup(g); renderBoard(); });
+    gtabs.append(b);
+  }
+  const nb = h('button', {type:'button', class:'gt-new', text:'+ New group'});
+  nb.addEventListener('click', async () => {
+    const g = await inputBox('New group', 'Games for this group get their own leaderboard, separate from ' + DEFAULT_GROUP + '. Pick it when you start a live game.', 'e.g. Office friends', 'Create group');
+    if(!g) return;
+    let extra = []; try{ extra = JSON.parse(store('pokerGroups') || '[]'); }catch(e){}
+    if(!allGroups().some(x => key(x) === key(g))){ extra.push(g); store('pokerGroups', JSON.stringify(extra)); }
+    const name = allGroups().find(x => key(x) === key(g)); store('pokerBoardGroup', name); setGroup(name); renderBoard();
+  });
+  gtabs.append(nb);
+  const isAll = grp === '__all';
+  $('#boardGroupName').textContent = isAll ? 'Every group combined' : '';
+  const groupSessions = S.sessions.filter(s => isAll || key(groupOf(s)) === key(grp));
   const seasons = [...new Set(groupSessions.map(seasonOf).filter(Boolean))].sort().reverse();
   const prev = sel.value || 'all';
   sel.replaceChildren(h('option', {value:'all', text:'All time'}), seasons.map(y => h('option', {value:y, text:y + ' season'})));
@@ -1195,7 +1218,7 @@ function renderBoard(){
     const allPaid = paidCount === c.transfers.length;
     const badge = h('span', {class:'badge ' + (allPaid ? 'done' : 'open'), text:allPaid ? 'All paid' : (c.transfers.length - paidCount) + ' unpaid'});
     const det = h('details', {class:'card game'},
-      h('summary', null, h('span', {class:'t', text:fmtDate(s.date) + (s.note ? ' · ' + s.note : '')}), h('span', {class:'m', text:c.rows.length + ' players · ' + peso(c.totalIn) + ' in play · top: ' + top.name + ' ' + signed(top.net)}), badge));
+      h('summary', null, h('span', {class:'t', text:fmtDate(s.date) + (s.note ? ' · ' + s.note : '')}, isAll ? h('span', {class:'gbadge', text:groupOf(s)}) : null), h('span', {class:'m', text:c.rows.length + ' players · ' + peso(c.totalIn) + ' in play · top: ' + top.name + ' ' + signed(top.net)}), badge));
     det.append(h('h3', {style:'margin-top:0', text:'Who pays who'}), transfersList(c, s.paid, async (k, val, row, cb) => {
       cb.disabled = true;
       try{ applyState(await api({action:'markPaid', id:s.id, key:k, paid:val})); row.classList.toggle('done', val); const ns = S.sessions.find(x => x.id === s.id); const pc = c.transfers.filter(t => ns && ns.paid && ns.paid[tKey(t)]).length; badge.className = 'badge ' + (pc === c.transfers.length ? 'done' : 'open'); badge.textContent = pc === c.transfers.length ? 'All paid' : (c.transfers.length - pc) + ' unpaid'; s.paid = ns ? ns.paid : s.paid; }
