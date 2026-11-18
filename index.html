@@ -1019,6 +1019,7 @@ function liveApply(live, b){
 }
 
 // ===== Live game =====
+const START_BUYIN = 300; // everyone starts with a ₱300 cash-in
 const newId = () => 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const chipCls = a => ({100:'c100', 200:'c200', 300:'c300', 500:'c500', 1000:'c1000'})[a] || 'cx';
 const clock = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'}); };
@@ -1124,14 +1125,15 @@ function renderLive(){
     tiles.append(tile);
   }
   [...tiles.children].filter(t => t.classList.contains('left')).forEach(t => tiles.append(t));
-  if(!L.players.length) tiles.append(h('p', {class:'sub', text:'Add the first player below.'}));
+  if(!L.players.length) tiles.append(h('p', {class:'sub', text:'Add players below. Each one starts with a ' + peso(START_BUYIN) + ' cash-in, and the chip buttons are for rebuys.'}));
   card.append(tiles);
 
   // Add player (with suggestions from this week's poll)
   if(!counting){
     const inp = h('input', {id:'liveAdd', maxLength:30, placeholder:'Player name', list:'knownPlayers', autocomplete:'off'});
-    const add = h('button', {type:'button', class:'btn btn-ghost', text:'Add player'});
-    const go = async () => { const n = inp.value.trim(); if(!n) { inp.focus(); return; } inp.value = ''; await liveDo({op:'join', name:canon(n)}); const x = $('#liveAdd'); if(x) x.focus(); };
+    const add = h('button', {type:'button', class:'btn btn-ghost', text:'Add player, ' + peso(START_BUYIN) + ' in'});
+    const join = async n => { if(await liveDo({op:'buyin', name:n, amount:START_BUYIN, eid:newId()}, n)) liveNote(n + ' joined with ' + peso(START_BUYIN) + '.', 'ok'); };
+    const go = async () => { const n = inp.value.trim(); if(!n) { inp.focus(); return; } inp.value = ''; await join(canon(n)); const x = $('#liveAdd'); if(x) x.focus(); };
     add.addEventListener('click', go); inp.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
     card.append(h('div', {class:'addp'}, inp, add));
     const inNames = new Set(L.players.map(key));
@@ -1139,8 +1141,8 @@ function renderLive(){
     if(!sugg.length) sugg = standings(S.sessions).map(p => p.name);
     sugg = [...new Set(sugg)].filter(n => !inNames.has(key(n))).slice(0, 10);
     if(sugg.length){
-      const box = h('div', {class:'suggest', 'aria-label':'Quick add'});
-      for(const n of sugg){ const b = h('button', {type:'button', text:'+ ' + n}); b.addEventListener('click', () => liveDo({op:'join', name:n})); box.append(b); }
+      const box = h('div', {class:'suggest', 'aria-label':'Quick add with ' + peso(START_BUYIN)});
+      for(const n of sugg){ const b = h('button', {type:'button', text:'+ ' + n}); b.addEventListener('click', () => join(n)); box.append(b); }
       card.append(box);
     }
   }
