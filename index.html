@@ -833,6 +833,12 @@
   .gl .center-msg.win{top:28%}
   .gl .center-msg .winline{display:grid; grid-template-columns:auto auto; column-gap:10px; align-items:center; text-align:left; padding:8px 16px}
   .gl .center-msg .winline .trophy{grid-row:span 2; margin:0}
+  .gl .center-msg.win{width:min(92%, 420px)}
+  .gl .center-msg .winline.split b{font-size:clamp(1rem,3.4vw,1.5rem)}
+  .gl .center-msg.multi .winline{padding:5px 12px; margin:3px 0}
+  .gl .center-msg.multi .winline b{font-size:clamp(1rem,3.2vw,1.4rem)}
+  .gl .center-msg.multi .winline .trophy{font-size:1.4rem}
+  .gl .seat{z-index:4} .gl .seat .scards.reveal{z-index:5}
 
   @media (max-width:640px){
     .ptable-wrap{--tilt:50deg; height:clamp(400px, 60vh, 560px); perspective:640px; margin:0 -14px; border-radius:0}
@@ -2579,6 +2585,7 @@ function toggleFull(force){
     if(!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }catch(e){}
 }
+document.addEventListener('selectstart', e => { if(e.target.closest && e.target.closest('.room') && !e.target.closest('input,textarea')) e.preventDefault(); });
 document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement && $('.room.full')) toggleFull(false); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('.room.full') && !document.fullscreenElement) toggleFull(false); });
 
@@ -2752,7 +2759,12 @@ function updateRoom(s){
   potEl.querySelector('.stack').style.setProperty('--n', String(Math.min(6, Math.ceil(pot / (s.blinds.bb * 4)) || 1)));
   // center message
   const cm = $('#pMsg');
-  if(sd){ cm.replaceChildren(...sd.winners.map(w => h('div', {class:'winline'}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount)}), w.hand ? h('span', {text:w.hand}) : h('span', {class:'allfold', text:(w.seat === s.me ? 'Everyone folded to you 🙌' : 'Everyone else folded')})))); cm.className = 'center-msg show win'; }
+  if(sd){
+    const ws = sd.winners, nm = w => w.seat === s.me ? 'You' : w.name;
+    const same = ws.length > 1 && ws.every(w => w.amount === ws[0].amount && w.hand === ws[0].hand);
+    const lines = same ? [{t:'Split pot: ' + ws.map(nm).join(' and ') + ' each win ' + peso(ws[0].amount), hand:ws[0].hand}] : ws.map(w => ({t:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount), hand:w.hand, me:w.seat === s.me}));
+    cm.replaceChildren(...lines.map(l => h('div', {class:'winline' + (same ? ' split' : '')}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:l.t}), l.hand ? h('span', {text:l.hand}) : h('span', {class:'allfold', text:(l.me ? 'Everyone folded to you 🙌' : 'Everyone else folded')}))));
+    cm.className = 'center-msg show win' + (lines.length > 1 ? ' multi' : ''); }
   else if(!h_ && s.nextHandAt){ const sec = Math.max(0, Math.ceil((s.nextHandAt - (Date.now() + P.skew)) / 1000)); cm.replaceChildren(h('span', {class:'count', text:'Next hand in ' + sec})); cm.className = 'center-msg show soft'; }
   else if(!h_){ const n = s.seats.filter(x => x && (x.stack > 0 || x.pendingRebuy)).length; cm.replaceChildren(h('span', {text:n < 2 ? 'Waiting for one more player…' : 'Ready when you are'})); cm.className = 'center-msg show soft'; }
   else { cm.className = 'center-msg'; cm.replaceChildren(); }
@@ -2781,6 +2793,7 @@ function renderMyHand(s, sd){
     const stop = () => peek(false);
     wrap.addEventListener('pointerdown', start); wrap.addEventListener('pointerup', stop); wrap.addEventListener('pointerleave', stop); wrap.addEventListener('pointercancel', stop);
     wrap.addEventListener('contextmenu', e => e.preventDefault());
+    wrap.addEventListener('touchstart', e => { e.preventDefault(); peek(true); }, {passive:false}); wrap.addEventListener('touchend', stop); wrap.addEventListener('touchcancel', stop);
     const tog = h('button', {type:'button', class:'eye', text:P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'});
     tog.addEventListener('click', () => { P.showCards = !P.showCards; store('pokerShowCards', P.showCards ? '1' : '0'); wrap.classList.toggle('faceup', P.showCards); tog.textContent = P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'; });
     box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:P.showCards ? 'Your cards' : 'Press and hold to peek'}), tog));
@@ -3843,7 +3856,10 @@ function makeGL(T, host){
     else{ cam.position.set(base.x + par.x * .22, base.y - par.y * .1, base.z); cam.lookAt(look.x + par.x * .05, look.y, look.z); }
     R.render(scene, cam);
     // keep the name plates and chip labels on top of the 3D people and stacks
-    if(P.seatEls) for(const [i, el] of Object.entries(P.seatEls)){ const a = avs[i]; if(a) place(el, a.g.position.x, (a.real !== undefined ? 1.5 : 1.47) + a.inner.position.y, a.g.position.z); }
+    if(P.seatEls) for(const [i, el] of Object.entries(P.seatEls)){ const a = avs[i]; if(!a) continue; place(el, a.g.position.x, (a.real !== undefined ? 1.5 : 1.47) + a.inner.position.y, a.g.position.z);
+      // keep the name plate and any shown cards fully on screen
+      let half = el.offsetWidth / 2; for(const c of el.children) if(c.offsetWidth) half = Math.max(half, c.offsetWidth / 2);
+      const x = parseFloat(el.style.left), lo = half + 6, hi = W - half - 6; if(lo < hi) el.style.left = Math.min(hi, Math.max(lo, x)) + 'px'; }
     const bl = $('#pBets'); if(bl) bl.querySelectorAll('.bet').forEach(el => { const b = bets[el.dataset.seat]; if(b) place(el, b.g.position.x, TY, b.g.position.z + .05); });
     const pl = $('#pPot'); if(pl && pot) place(pl, 0, TY, pot.position.z + .07);
   }
