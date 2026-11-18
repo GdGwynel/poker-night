@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Poker Night</title>
+<meta name="description" content="Pick the next poker night, settle up who pays who, and keep the season leaderboard.">
+<meta name="theme-color" content="#0E3A2D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: a felt table; ivory "cards" sit on it. Three tabs: Schedule, Settle up, Leaderboard. Single dark-felt look on purpose. */
+  :root{
+    --felt:#0E3A2D; --felt-2:#145040; --felt-3:#1B5F4C; --rail:#082519;
+    --ivory:#F6F0E2; --ivory-2:#EBE2CD; --line:#D9CDB2;
+    --ink:#1C1A16; --ink-2:#5C5547; --on-felt:#E9F2EC; --on-felt-2:#A7C4B6;
+    --red:#C0392B; --red-d:#9A2C21; --gold:#E3B341; --gold-l:#F2D27C;
+    --win:#1E7A49; --loss:#B02A1F; --win-felt:#6FDC9A; --loss-felt:#FF9A8B;
+    --maybe:#B7801B;
+    --display:'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+    --body:'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --r:14px;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  td.r,th.r{white-space:nowrap}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; font-family:var(--body); font-size:16px; line-height:1.5; color:var(--on-felt);
+    background-color:var(--felt);
+    background-image:
+      radial-gradient(120% 80% at 50% 0%, var(--felt-3) 0%, var(--felt) 55%, var(--rail) 100%);
+    background-attachment:fixed; min-height:100vh;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  button,input,select,textarea{font:inherit}
+  :focus-visible{outline:3px solid var(--gold-l); outline-offset:2px}
+  .wrap{max-width:880px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px))}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* Header */
+  header.top{padding-block:22px 6px; display:flex; gap:14px; align-items:center}
+  .logo{width:52px; height:52px; flex:none}
+  .top h1{font-family:var(--display); font-weight:800; font-size:clamp(2rem,6vw,2.8rem); line-height:1; margin:0; letter-spacing:-.02em; color:var(--ivory)}
+  .next{margin:6px 0 0; color:var(--on-felt-2); font-size:.95rem}
+  .next b{color:var(--gold-l); font-weight:600}
+
+  /* Tabs */
+  nav.tabs{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; padding-block:10px; background:linear-gradient(var(--felt) 70%, transparent)}
+  .tabs .seg{display:flex; gap:4px; background:var(--rail); border-radius:999px; padding:4px; max-width:460px}
+  .tabs a{flex:1; text-align:center; text-decoration:none; color:var(--on-felt-2); font-weight:600; padding:9px 6px; border-radius:999px; font-size:.95rem; white-space:nowrap}
+  .tabs a[aria-current="page"]{background:var(--ivory); color:var(--ink)}
+  body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--felt)}
+
+  .banner{background:rgba(227,179,65,.14); border:1px solid rgba(227,179,65,.45); color:var(--gold-l); border-radius:10px; padding:10px 14px; font-size:.92rem; margin:6px 0 12px}
+  main{padding-bottom:60px}
+  section.view{display:grid; gap:16px}
+  .card{background:var(--ivory); color:var(--ink); border-radius:var(--r); padding:20px; box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 10px 30px rgba(0,0,0,.28); min-width:0}
+  .card h2{font-family:var(--display); font-weight:800; font-size:1.45rem; line-height:1.15; margin:0 0 4px; letter-spacing:-.01em; text-wrap:balance}
+  .card h3{font-size:1rem; margin:18px 0 8px}
+  .sub{color:var(--ink-2); margin:0 0 14px; font-size:.95rem}
+  .eyebrow{font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; font-weight:700; color:var(--ink-2)}
+  .felt-h{font-family:var(--display); font-weight:800; font-size:1.2rem; margin:8px 2px 0; color:var(--ivory)}
+
+  /* Buttons & inputs */
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:2px solid transparent; border-radius:999px; padding:10px 18px; font-weight:700; cursor:pointer; line-height:1.1; text-decoration:none}
+  .btn:disabled{opacity:.55; cursor:not-allowed}
+  .btn-red{background:var(--red); color:#fff}
+  .btn-red:hover:not(:disabled){background:var(--red-d)}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+  .btn-ghost:hover:not(:disabled){border-color:var(--ink-2)}
+  .btn-sm{padding:6px 12px; font-size:.88rem}
+  .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  label{display:block; font-size:.85rem; font-weight:600; color:var(--ink-2); margin-bottom:4px}
+  input[type=text],input[type=number],input[type=date],input[type=datetime-local],input[type=password],input:not([type]),select,textarea{
+    width:100%; background:#fff; color:var(--ink); border:1.5px solid var(--line); border-radius:9px; padding:9px 11px; min-width:0; color-scheme:light}
+  input:focus,select:focus,textarea:focus{border-color:var(--ink-2); outline:none; box-shadow:0 0 0 3px rgba(227,179,65,.35)}
+  textarea{min-height:170px; resize:vertical; font-family:ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size:.9rem; line-height:1.45}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .msg{font-size:.92rem; margin-top:10px; min-height:1.2em}
+  .msg.err{color:var(--loss); font-weight:600}
+  .msg.ok{color:var(--win); font-weight:600}
+  details.tools{border-top:1px dashed var(--line); margin-top:18px; padding-top:12px}
+  details.tools summary{cursor:pointer; font-weight:700; color:var(--ink-2)}
+
+  /* Schedule */
+  .locked{background:var(--ink); color:var(--ivory); border-radius:var(--r); padding:22px; position:relative; overflow:hidden}
+  .locked .eyebrow{color:var(--gold-l)}
+  .locked .big{font-family:var(--display); font-weight:800; font-size:clamp(1.6rem,5vw,2.2rem); line-height:1.1; margin:6px 0 4px}
+  .locked p{margin:0; color:#D8D0BE}
+  .slot{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; align-items:center; padding:12px 0; border-top:1px solid var(--line)}
+  .slot:first-of-type{border-top:0}
+  .slot .when{font-weight:700}
+  .slot .who{grid-column:1 / -1; font-size:.86rem; color:var(--ink-2)}
+  .slot.best .when::after{content:"Best so far"; margin-left:8px; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; background:var(--gold); color:var(--ink); padding:2px 7px; border-radius:999px; vertical-align:2px}
+  .tally{display:flex; gap:6px; flex-wrap:wrap}
+  .pill{font-size:.8rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap}
+  .pill.yes{background:#D5EEDD; color:var(--win)}
+  .pill.maybe{background:#F5E6C4; color:var(--maybe)}
+  .pill.no{background:#F4D8D3; color:var(--loss)}
+  .tri{display:inline-flex; border:1.5px solid var(--line); border-radius:999px; overflow:hidden}
+  .tri button{border:0; background:#fff; color:var(--ink-2); padding:7px 12px; font-weight:700; cursor:pointer; font-size:.88rem}
+  .tri button + button{border-left:1.5px solid var(--line)}
+  .tri button[aria-pressed="true"].yes{background:var(--win); color:#fff}
+  .tri button[aria-pressed="true"].maybe{background:var(--maybe); color:#fff}
+  .tri button[aria-pressed="true"].no{background:var(--loss); color:#fff}
+  .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .chipbtn{border:1.5px solid var(--line); background:#fff; color:var(--ink); border-radius:999px; padding:7px 14px; font-weight:600; cursor:pointer}
+  .chipbtn[aria-pressed="true"]{background:var(--ink); color:var(--ivory); border-color:var(--ink)}
+  .slot-edit{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-bottom:8px}
+
+  /* Settle */
+  .tbl-wrap{overflow-x:auto; margin:0 -4px; padding:0 4px}
+  table{border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums}
+  th,td{padding:8px 8px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
+  th{font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-2); font-weight:700}
+  td.r,th.r{text-align:right}
+  tfoot td{font-weight:800; border-bottom:0}
+  .pos{color:var(--win); font-weight:700}
+  .neg{color:var(--loss); font-weight:700}
+  .editor td{padding:5px 4px}
+  .editor input{padding:7px 8px; font-size:.92rem}
+  .editor .c-name{min-width:96px}
+  .editor .c-buy{min-width:150px}
+  .editor .c-amt{min-width:84px}
+  .editor .x{background:none; border:0; color:var(--ink-2); font-size:1.2rem; cursor:pointer; padding:4px 8px}
+  .warn{background:#FBEFD2; border:1px solid #E7C979; color:#5B4310; border-radius:10px; padding:10px 12px; font-size:.92rem; display:grid; gap:6px; margin-top:12px}
+  .warn .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .check{display:flex; align-items:center; gap:8px; font-weight:700; margin-top:12px}
+  .check.ok{color:var(--win)} .check.bad{color:var(--loss)}
+  .pay{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px 0; border-top:1px solid var(--line)}
+  .pay:first-child{border-top:0}
+  .pay .who{font-weight:600}
+  .pay .who .arrow{color:var(--ink-2); margin:0 6px}
+  .pay .amt{font-weight:800; font-size:1.05rem}
+  .pay.done .who,.pay.done .amt{text-decoration:line-through; color:var(--ink-2)}
+  .pay input[type=checkbox]{width:20px; height:20px; accent-color:var(--win)}
+  .note{font-size:.88rem; color:var(--ink-2); margin:8px 0 0}
+
+  /* Leaderboard */
+  .stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+  .stat{background:var(--rail); border-radius:12px; padding:12px 14px; min-width:0}
+  .stat .k{font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--on-felt-2); font-weight:700}
+  .stat .v{font-family:var(--display); font-weight:800; font-size:1.35rem; color:var(--ivory); margin-top:2px; overflow-wrap:anywhere}
+  .stat .s{font-size:.85rem; color:var(--on-felt-2)}
+  .board td.rank{width:2.2em; font-weight:800; color:var(--ink-2)}
+  .board tr.top1 td.rank{color:var(--gold)}
+  .board .pname{font-weight:700}
+  .form{display:inline-flex; gap:3px}
+  .form i{width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--line)}
+  .form i.w{background:var(--win)} .form i.l{background:var(--loss)}
+  .season{display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+  .season select{width:auto}
+  .game summary{list-style:none; cursor:pointer; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; align-items:center}
+  .game summary::-webkit-details-marker{display:none}
+  .game summary .t{font-weight:800; font-family:var(--display); font-size:1.1rem}
+  .game summary .m{font-size:.88rem; color:var(--ink-2); grid-column:1}
+  .game summary .badge{grid-row:1 / span 2; grid-column:2}
+  .badge{font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--ivory-2); color:var(--ink-2); white-space:nowrap}
+  .badge.open{background:#F4D8D3; color:var(--loss)}
+  .badge.done{background:#D5EEDD; color:var(--win)}
+  .game[open] summary{margin-bottom:10px}
+  .empty{color:var(--ink-2); text-align:center; padding:20px 8px}
+  .loading{color:var(--on-felt-2); padding:20px 0}
+  footer{color:var(--on-felt-2); text-align:center; font-size:.85rem; padding-block:10px 30px}
+
+  @media (max-width:560px){
+    .grid2{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr 1fr}
+    .stats .stat:last-child{grid-column:1 / -1}
+    .card{padding:16px}
+    .slot{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:no-preference){ .btn{transition:background .12s, border-color .12s} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <ellipse cx="32" cy="46" rx="24" ry="8" fill="#9A2C21"/>
+      <rect x="8" y="38" width="48" height="8" fill="#9A2C21"/>
+      <ellipse cx="32" cy="38" rx="24" ry="8" fill="#C0392B"/>
+      <ellipse cx="32" cy="38" rx="24" ry="8" fill="none" stroke="#F6F0E2" stroke-width="3" stroke-dasharray="6 7"/>
+      <ellipse cx="32" cy="30" rx="24" ry="8" fill="#B8901F"/>
+      <rect x="8" y="22" width="48" height="8" fill="#B8901F"/>
+      <ellipse cx="32" cy="22" rx="24" ry="8" fill="#E3B341"/>
+      <ellipse cx="32" cy="22" rx="24" ry="8" fill="none" stroke="#F6F0E2" stroke-width="3" stroke-dasharray="6 7"/>
+      <ellipse cx="32" cy="22" rx="12" ry="4" fill="none" stroke="#F6F0E2" stroke-width="1.5"/>
+    </svg>
+    <div>
+      <h1>Poker Night</h1>
+      <p class="next" id="nextLine">Loading…</p>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <div class="seg">
+      <a href="#schedule" data-tab="schedule">Schedule</a>
+      <a href="#settle" data-tab="settle">Settle up</a>
+      <a href="#board" data-tab="board">Leaderboard</a>
+    </div>
+  </nav>
+
+  <div id="demoBanner" class="banner" hidden>Preview with sample players. It isn't connected to the Google Sheet yet, so nothing is saved. Any 4-digit host PIN works here.</div>
+
+  <main>
+    <!-- SCHEDULE -->
+    <section class="view" id="view-schedule" hidden>
+      <div id="lockedCard"></div>
+      <div class="card" id="pollCard"><div class="empty">Loading the poll…</div></div>
+      <div class="card" id="voteCard" hidden></div>
+      <div class="card">
+        <details class="tools" id="hostTools" style="border:0; margin:0; padding:0">
+          <summary>Host tools</summary>
+          <div id="hostToolsBody"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- SETTLE -->
+    <section class="view" id="view-settle" hidden>
+      <div class="card">
+        <h2>Settle up</h2>
+        <p class="sub">Paste the usual cash-in and winnings list from the group chat, or type it into the table. Totals, who pays who, and the Messenger message update as you go.</p>
+        <label for="paste">Paste from the group chat</label>
+        <textarea id="paste" spellcheck="false" placeholder="Cash in
+Kyle - 300 + 500
+Bill - 300
+Khelvin 100 + 200 paid (cash to cali)
+
+Winnings
+Kyle = 1190
+Bill = 1400
+Khelvin = 0"></textarea>
+        <div class="btns">
+          <button type="button" class="btn btn-red" id="parseBtn">Fill the table</button>
+          <button type="button" class="btn btn-ghost" id="clearBtn">Start over</button>
+        </div>
+        <div class="msg" id="parseMsg" role="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Players</h2>
+        <p class="sub">Buy-ins can be a sum like <b>300 + 300 + 400</b>. Use “Already paid” when someone handed their buy-in money straight to another player.</p>
+        <div class="tbl-wrap">
+          <table class="editor">
+            <thead><tr><th>Player</th><th>Buy-ins (₱)</th><th class="r">Winnings</th><th class="r">Already paid</th><th>Paid to</th><th><span class="sr" hidden>Remove</span></th></tr></thead>
+            <tbody id="editorBody"></tbody>
+          </table>
+        </div>
+        <datalist id="knownPlayers"></datalist>
+        <div class="btns"><button type="button" class="btn btn-ghost btn-sm" id="addRow">Add player</button></div>
+        <div id="calcWarn"></div>
+      </div>
+
+      <div class="card" id="resultCard"></div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="view" id="view-board" hidden>
+      <div class="season">
+        <h2 class="felt-h">Season standings</h2>
+        <select id="seasonSel" aria-label="Season"></select>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <div class="tbl-wrap"><table class="board" id="boardTable"></table></div>
+        <p class="note">Net is total winnings minus total buy-ins across every game in this season. Last 5 runs oldest to newest: green for a winning night, red for a losing one.</p>
+      </div>
+      <h2 class="felt-h">Game history</h2>
+      <div id="games" style="display:grid; gap:12px"></div>
+    </section>
+  </main>
+  <footer>Deal responsibly. Settle within the week.</footer>
+</div>
+
+<script>
+// ===== Settings =====
+// Paste your Apps Script web app URL here (ends in /exec). Leave empty for preview mode.
+const API_URL = '';
+
+const DEMO = !/^https:\/\/script\.google\.com\//.test(API_URL);
+const $ = s => document.querySelector(s);
+const S = { poll:null, votes:[], sessions:[], loaded:false, draft:{name:'', slots:{}, host:''}, calc:[], pinOk:false };
+
+// ===== Small helpers =====
+function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){ return null; } }
+function h(tag, props, ...kids){
+  const n = document.createElement(tag);
+  if(props) for(const [k, v] of Object.entries(props)){
+    if(v == null || v === false) continue;
+    if(k === 'class') n.className = v;
+    else if(k === 'text') n.textContent = v;
+    else if(k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+    else if(typeof v !== 'string' && k in n) n[k] = v;
+    else n.setAttribute(k, v === true ? '' : v);
+  }
+  for(const c of kids.flat()){ if(c == null || c === false) continue; n.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  return n;
+}
+const round = n => Math.round(n * 100) / 100;
+const sum = a => round(a.reduce((x, y) => x + y, 0));
+const key = n => String(n || '').trim().toLowerCase().replace(/\s+/g, ' ');
+function nums(t){ return (String(t || '').match(/\d[\d,]*(?:\.\d+)?/g) || []).map(s => +s.replace(/,/g, '')).filter(n => isFinite(n)); }
+function peso(n){ const a = Math.abs(n); return (n < 0 ? '−' : '') + '₱' + a.toLocaleString('en-PH', {maximumFractionDigits:2}); }
+function signed(n){ return n > 0 ? '+' + peso(n) : n < 0 ? peso(n) : '₱0'; }
+function cls(n){ return n > 0 ? 'pos' : n < 0 ? 'neg' : ''; }
+function setMsg(el, text, type){ el.textContent = text || ''; el.className = 'msg' + (type ? ' ' + type : ''); }
+function fmtWhen(w){
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(w || ''); if(!m) return w || '';
+  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+}
+function fmtDate(d){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); if(!m) return 'Undated game';
+  return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+}
+function today(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+async function copyText(text, btn){
+  const old = btn.textContent;
+  try{ await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; }
+  catch(e){
+    const ta = h('textarea', {style:'position:fixed;left:-9999px;top:0'}); ta.value = text; document.body.append(ta); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(_){}
+    ta.remove(); btn.textContent = ok ? 'Copied' : 'Copy failed. Select the text instead.';
+  }
+  setTimeout(() => btn.textContent = old, 1800);
+}
+function knownPlayers(){
+  const m = new Map();
+  for(const s of S.sessions) for(const p of s.players) if(!m.has(key(p.name))) m.set(key(p.name), p.name);
+  for(const v of S.votes) if(!m.has(key(v.name))) m.set(key(v.name), v.name);
+  return m;
+}
+function canon(name){ const k = key(name); return knownPlayers().get(k) || String(name).trim().replace(/\s+/g, ' '); }
+
+// ===== Money math =====
+// players: [{name, buyins:[n], winnings:n|null, prepaid:n, prepaidTo:''}]
+function compute(players){
+  const rows = players.map(p => { const cashIn = sum(p.buyins || []); const win = p.winnings == null ? 0 : +p.winnings; return Object.assign({}, p, {cashIn, win, net: round(win - cashIn)}); });
+  const totalIn = sum(rows.map(r => r.cashIn)), totalOut = sum(rows.map(r => r.win));
+  const diff = round(totalOut - totalIn);
+  const names = new Map(rows.map(r => [key(r.name), r.name]));
+  const bal = new Map(rows.map(r => [key(r.name), r.net]));
+  const prepaid = [];
+  for(const r of rows){
+    const to = key(r.prepaidTo);
+    if(r.prepaid > 0 && to && bal.has(to) && to !== key(r.name)){
+      bal.set(key(r.name), round(bal.get(key(r.name)) + r.prepaid));
+      bal.set(to, round(bal.get(to) - r.prepaid));
+      prepaid.push({from:r.name, to:names.get(to), amount:r.prepaid});
+    }
+  }
+  const transfers = Math.abs(diff) < 0.005 ? settle(bal, names) : [];
+  const winnings = sum(rows.filter(r => r.net > 0).map(r => r.net));
+  return {rows, totalIn, totalOut, diff, transfers, prepaid, winnings};
+}
+// Fewest-payments settlement: pair exact matches first, then biggest loser pays biggest winner.
+function settle(bal, names){
+  let cred = [], debt = [];
+  for(const [k, v] of bal){ if(v > 0.004) cred.push({k, a:v}); else if(v < -0.004) debt.push({k, a:-v}); }
+  const out = [];
+  debt.sort((a, b) => b.a - a.a); cred.sort((a, b) => b.a - a.a);
+  for(const d of debt){ const c = cred.find(c => c.a > 0.004 && Math.abs(c.a - d.a) < 0.005); if(c){ out.push({from:names.get(d.k), to:names.get(c.k), amount:round(d.a)}); c.a = 0; d.a = 0; } }
+  cred = cred.filter(c => c.a > 0.004); debt = debt.filter(d => d.a > 0.004);
+  let i = 0, j = 0;
+  while(i < debt.length && j < cred.length){
+    const x = round(Math.min(debt[i].a, cred[j].a));
+    out.push({from:names.get(debt[i].k), to:names.get(cred[j].k), amount:x});
+    debt[i].a = round(debt[i].a - x); cred[j].a = round(cred[j].a - x);
+    if(debt[i].a <= 0.004) i++;
+    if(cred[j].a <= 0.004) j++;
+  }
+  return out.sort((a, b) => a.from.localeCompare(b.from) || b.amount - a.amount);
+}
+const tKey = t => t.from + '→' + t.to + '→' + t.amount;
+
+// Reads the "Cash in / Winnings" text people post in the group chat.
+function parsePaste(txt){
+  const rows = new Map(); let mode = null;
+  const get = name => { const k = key(name); if(!rows.has(k)) rows.set(k, {name:canon(name), buy:'', win:'', pre:'', preTo:''}); return rows.get(k); };
+  for(const raw of String(txt).split(/\r?\n/)){
+    const t = raw.trim(); if(!t) continue;
+    if(!/\d/.test(t)){
+      if(/cash\s*-?\s*in|buy\s*-?\s*in/i.test(t)) mode = 'cash';
+      else if(/win|cash\s*-?\s*out|chips|final/i.test(t)) mode = 'win';
+      continue;
+    }
+    const m = t.match(/^([^\d₱=:\-–—]+?)\s*[-–—=:]*\s*(₱?\s*\d.*)$/); if(!m) continue;
+    const name = m[1].trim().replace(/[.,]+$/, ''); if(!name) continue;
+    const rest = m[2];
+    const lineMode = mode || (/=/.test(t) ? 'win' : 'cash');
+    const paidM = rest.match(/\bpaid\b(.*)$/i);
+    const amountPart = paidM ? rest.slice(0, paidM.index) : rest.split('(')[0];
+    const n = nums(amountPart);
+    const r = get(name);
+    if(lineMode === 'win') r.win = String(sum(n));
+    else {
+      if(n.length) r.buy = (r.buy ? r.buy + ' + ' : '') + n.join(' + ');
+      if(paidM){ r.pre = String(sum(n)); const to = paidM[1].match(/\bto\s+([A-Za-zÀ-ÿ][\wÀ-ÿ'.-]*)/i); if(to) r.preTo = to[1]; }
+    }
+  }
+  for(const r of rows.values()) if(r.preTo){ const hit = rows.get(key(r.preTo)); if(hit) r.preTo = hit.name; }
+  return [...rows.values()];
+}
+function calcPlayers(){
+  const m = new Map();
+  for(const r of S.calc){
+    const name = r.name.trim(); if(!name) continue;
+    const k = key(name);
+    if(!m.has(k)) m.set(k, {name, buyins:[], winnings:null, prepaid:0, prepaidTo:''});
+    const p = m.get(k);
+    p.buyins.push(...nums(r.buy));
+    if(String(r.win).trim() !== '') p.winnings = round((p.winnings || 0) + sum(nums(r.win)));
+    p.prepaid = round(p.prepaid + sum(nums(r.pre)));
+    if(r.preTo) p.prepaidTo = r.preTo;
+  }
+  return [...m.values()];
+}
+
+// ===== API =====
+async function api(body){
+  if(DEMO) return demoApi(body);
+  const r = await fetch(API_URL, {method:'POST', body:JSON.stringify(body)});
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error || 'Something went wrong.');
+  return j;
+}
+function applyState(j){
+  if('poll' in j){ S.poll = j.poll; S.votes = j.votes || []; S.sessions = j.sessions || []; S.loaded = true; }
+}
+async function load(){
+  try{ applyState(await api({action:'state'})); }
+  catch(e){ $('#nextLine').textContent = 'Couldn’t reach the sheet. Refresh to try again.'; }
+  if(pin()){ try{ await api({action:'checkPin', pin:pin()}); S.pinOk = true; }catch(e){ store('pokerPin', null); } }
+  renderAll();
+}
+
+// ===== Header =====
+function renderHeader(){
+  const el = $('#nextLine'); el.replaceChildren();
+  const p = S.poll;
+  if(!S.loaded) return;
+  if(p && p.locked){
+    const slot = p.slots.find(s => s.id === p.locked.slotId);
+    el.append('Next game: ', h('b', {text: fmtWhen(slot && slot.when) + (p.locked.host ? ' · at ' + p.locked.host + '’s' : '')}));
+  } else if(p){
+    el.append('Voting open: ', h('b', {text:p.title}));
+  } else el.textContent = 'No game scheduled yet.';
+}
+
+// ===== Schedule =====
+function slotTally(slotId){
+  const t = {yes:[], maybe:[], no:[]};
+  for(const v of S.votes){ const a = v.slots && v.slots[slotId]; if(t[a]) t[a].push(v.name); }
+  return t;
+}
+function bestSlot(){
+  let best = null, score = 0;
+  for(const s of (S.poll ? S.poll.slots : [])){ const t = slotTally(s.id); const sc = t.yes.length * 2 + t.maybe.length; if(t.yes.length && sc > score){ best = s.id; score = sc; } }
+  return best;
+}
+function hostTally(){
+  const m = new Map((S.poll ? S.poll.hosts : []).map(x => [x, []]));
+  for(const v of S.votes) if(v.host && m.has(v.host)) m.get(v.host).push(v.name);
+  return m;
+}
+function pollMessage(){
+  const p = S.poll; if(!p) return '';
+  const link = location.href.split('#')[0] + '#schedule';
+  if(p.locked){
+    const s = p.slots.find(x => x.id === p.locked.slotId); const t = slotTally(p.locked.slotId);
+    return ['♠️ Poker night is ON', fmtWhen(s && s.when) + (p.locked.host ? '\nAt ' + p.locked.host + '’s' : ''), '', 'In: ' + (t.yes.join(', ') || 'nobody yet') + (t.maybe.length ? '\nMaybe: ' + t.maybe.join(', ') : ''), '', link].join('\n');
+  }
+  const lines = ['♠️ ' + p.title + ' — vote for a date', ''];
+  for(const s of p.slots){ const t = slotTally(s.id); lines.push(fmtWhen(s.when) + ': ' + t.yes.length + ' yes' + (t.maybe.length ? ', ' + t.maybe.length + ' maybe' : '')); }
+  lines.push('', 'Vote here: ' + link);
+  return lines.join('\n');
+}
+function renderSchedule(){
+  const p = S.poll, pollCard = $('#pollCard'), voteCard = $('#voteCard'), lockedCard = $('#lockedCard');
+  lockedCard.replaceChildren(); pollCard.replaceChildren(); voteCard.replaceChildren();
+  if(!S.loaded){ pollCard.append(h('div', {class:'empty', text:'Loading the poll…'})); return; }
+  if(!p){
+    pollCard.append(h('h2', {text:'No poll yet'}), h('p', {class:'sub', text:'The host can start one under Host tools below: add a few dates and the places that could host.'}));
+    voteCard.hidden = true; renderHostTools(); return;
+  }
+  if(p.locked){
+    const s = p.slots.find(x => x.id === p.locked.slotId); const t = slotTally(p.locked.slotId);
+    lockedCard.append(h('div', {class:'locked'},
+      h('div', {class:'eyebrow', text:'Locked in'}),
+      h('div', {class:'big', text:fmtWhen(s && s.when)}),
+      h('p', {text:(p.locked.host ? 'At ' + p.locked.host + '’s place. ' : '') + (t.yes.length ? 'In: ' + t.yes.join(', ') + '.' : '')})));
+  }
+  const best = p.locked ? p.locked.slotId : bestSlot();
+  pollCard.append(h('div', {class:'eyebrow', text:p.locked ? 'Final votes' : 'Voting open'}), h('h2', {text:p.title}),
+    h('p', {class:'sub', text:S.votes.length ? S.votes.length + (S.votes.length === 1 ? ' person has' : ' people have') + ' voted.' : 'No votes yet. Be the first.'}));
+  for(const s of p.slots){
+    const t = slotTally(s.id);
+    pollCard.append(h('div', {class:'slot' + (s.id === best && !p.locked ? ' best' : '')},
+      h('div', {class:'when', text:fmtWhen(s.when)}),
+      h('div', {class:'tally'}, h('span', {class:'pill yes', text:t.yes.length + ' yes'}), h('span', {class:'pill maybe', text:t.maybe.length + ' maybe'}), h('span', {class:'pill no', text:t.no.length + ' no'})),
+      (t.yes.length || t.maybe.length) ? h('div', {class:'who', text:(t.yes.length ? 'Yes: ' + t.yes.join(', ') : '') + (t.yes.length && t.maybe.length ? ' · ' : '') + (t.maybe.length ? 'Maybe: ' + t.maybe.join(', ') : '')}) : null));
+  }
+  if(p.hosts.length){
+    pollCard.append(h('h3', {text:'Who hosts?'}));
+    const ht = hostTally(); const wrap = h('div', {class:'tally'});
+    for(const [name, who] of ht) wrap.append(h('span', {class:'pill ' + (p.locked && p.locked.host === name ? 'yes' : 'maybe'), title:who.join(', '), text:name + ' · ' + who.length}));
+    pollCard.append(wrap);
+  }
+  const cb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Copy for Messenger'}); cb.addEventListener('click', () => copyText(pollMessage(), cb));
+  pollCard.append(h('div', {class:'btns'}, cb));
+
+  voteCard.hidden = !!p.locked;
+  if(!p.locked) renderVoteForm();
+  renderHostTools();
+}
+function renderVoteForm(){
+  const p = S.poll, card = $('#voteCard'); card.replaceChildren();
+  const d = S.draft;
+  if(!d.name) d.name = store('pokerName') || '';
+  const existing = S.votes.find(v => key(v.name) === key(d.name));
+  if(existing && !d.touched){ d.slots = Object.assign({}, existing.slots); d.host = existing.host || ''; }
+  card.append(h('h2', {text:existing ? 'Change your vote' : 'Cast your vote'}), h('p', {class:'sub', text:'Mark every date that works. Use the same name to change your vote later.'}));
+  const nameIn = h('input', {id:'voteName', maxLength:30, autocomplete:'given-name', placeholder:'Your name', list:'knownPlayers'}); nameIn.value = d.name;
+  nameIn.addEventListener('change', () => { d.name = nameIn.value.trim(); d.touched = false; renderVoteForm(); });
+  card.append(h('div', null, h('label', {for:'voteName', text:'Your name'}), nameIn));
+  const list = h('div', {style:'margin-top:8px'});
+  for(const s of p.slots){
+    const tri = h('div', {class:'tri', role:'group', 'aria-label':fmtWhen(s.when)});
+    for(const [val, lab] of [['yes', 'Yes'], ['maybe', 'Maybe'], ['no', 'No']]){
+      const b = h('button', {type:'button', class:val, text:lab, 'aria-pressed':String(d.slots[s.id] === val)});
+      b.addEventListener('click', () => { d.slots[s.id] = d.slots[s.id] === val ? undefined : val; d.touched = true; tri.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(d.slots[s.id] === x.className))); });
+      tri.append(b);
+    }
+    list.append(h('div', {class:'slot'}, h('div', {class:'when', text:fmtWhen(s.when)}), tri));
+  }
+  card.append(list);
+  if(p.hosts.length){
+    card.append(h('h3', {text:'Where should we play?'}));
+    const chips = h('div', {class:'chips'});
+    for(const name of p.hosts){
+      const b = h('button', {type:'button', class:'chipbtn', text:name, 'aria-pressed':String(d.host === name)});
+      b.addEventListener('click', () => { d.host = d.host === name ? '' : name; d.touched = true; chips.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.textContent === d.host))); });
+      chips.append(b);
+    }
+    card.append(chips);
+  }
+  const msg = h('div', {class:'msg', role:'status'});
+  const save = h('button', {type:'button', class:'btn btn-red', text:existing ? 'Update my vote' : 'Save my vote'});
+  save.addEventListener('click', async () => {
+    d.name = nameIn.value.trim();
+    if(!d.name){ setMsg(msg, 'Enter your name first.', 'err'); nameIn.focus(); return; }
+    const slots = {}; for(const s of p.slots) if(d.slots[s.id]) slots[s.id] = d.slots[s.id];
+    if(!Object.keys(slots).length){ setMsg(msg, 'Tap Yes, Maybe or No on at least one date.', 'err'); return; }
+    save.disabled = true; save.textContent = 'Saving…';
+    try{
+      applyState(await api({action:'vote', pollId:p.id, name:d.name, slots, host:d.host}));
+      store('pokerName', d.name); d.touched = false;
+      renderAll(); setMsg($('#voteCard .msg'), 'Vote saved. Thanks, ' + d.name + '.', 'ok');
+    }catch(e){ setMsg(msg, e.message, 'err'); save.disabled = false; save.textContent = 'Save my vote'; }
+  });
+  card.append(h('div', {class:'btns'}, save), msg);
+}
+
+// ===== Host tools =====
+function pin(){ return store('pokerPin') || ''; }
+function pinField(id){
+  const i = h('input', {id, type:'password', inputMode:'numeric', maxLength:8, autocomplete:'off', placeholder:'Host PIN'}); i.value = pin(); return i;
+}
+async function checkPin(value){
+  await api({action:'checkPin', pin:value}); store('pokerPin', value); S.pinOk = true;
+}
+function renderHostTools(){
+  const body = $('#hostToolsBody'); body.replaceChildren();
+  if(!S.pinOk){
+    const msg = h('div', {class:'msg', role:'status'});
+    const pi = pinField('hostPin');
+    const go = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Unlock'});
+    go.addEventListener('click', async () => { go.disabled = true; try{ await checkPin(pi.value.trim()); renderHostTools(); }catch(e){ setMsg(msg, e.message, 'err'); go.disabled = false; } });
+    body.append(h('p', {class:'sub', style:'margin-top:10px', text:'Start a new poll, lock in the final date, or reopen voting. Only the host PIN can do this.'}),
+      h('div', {class:'slot-edit'}, pi, go), msg);
+    return;
+  }
+  const p = S.poll;
+  if(p){
+    body.append(h('h3', {text:p.locked ? 'Reopen voting' : 'Lock in the date'}));
+    const msg = h('div', {class:'msg', role:'status'});
+    if(p.locked){
+      const b = h('button', {type:'button', class:'btn btn-ghost', text:'Reopen voting'});
+      b.addEventListener('click', async () => { b.disabled = true; try{ applyState(await api({action:'reopenPoll', pin:pin()})); renderAll(); }catch(e){ setMsg(msg, e.message, 'err'); b.disabled = false; } });
+      body.append(b, msg);
+    } else {
+      const best = bestSlot();
+      const ss = h('select', {id:'lockSlot'}, p.slots.map(s => h('option', {value:s.id, text:fmtWhen(s.when) + ' (' + slotTally(s.id).yes.length + ' yes)'})));
+      if(best) ss.value = best;
+      let topHost = ''; let topN = -1; for(const [n, w] of hostTally()) if(w.length > topN){ topN = w.length; topHost = n; }
+      const hs = h('select', {id:'lockHost'}, h('option', {value:'', text:'Decide later'}), p.hosts.map(x => h('option', {value:x, text:x})));
+      hs.value = topN > 0 ? topHost : '';
+      const b = h('button', {type:'button', class:'btn btn-red', text:'Lock it in'});
+      b.addEventListener('click', async () => { b.disabled = true; try{ applyState(await api({action:'lockPoll', pin:pin(), slotId:ss.value, host:hs.value})); renderAll(); }catch(e){ setMsg(msg, e.message, 'err'); b.disabled = false; } });
+      body.append(h('div', {class:'grid2'}, h('div', null, h('label', {for:'lockSlot', text:'Date'}), ss), h('div', null, h('label', {for:'lockHost', text:'Host'}), hs)), h('div', {class:'btns'}, b), msg);
+    }
+  }
+  // New poll
+  body.append(h('h3', {text:'Start a new poll'}), h('p', {class:'sub', text:p ? 'This replaces the current poll and clears its votes from the page.' : 'Add the dates people can pick from.'}));
+  const title = h('input', {id:'npTitle', maxLength:80, placeholder:'Poker night — December'});
+  const slotsBox = h('div');
+  const addSlot = v => { const i = h('input', {type:'datetime-local'}); if(v) i.value = v; const x = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Remove'}); const row = h('div', {class:'slot-edit'}, i, x); x.addEventListener('click', () => row.remove()); slotsBox.append(row); };
+  const base = new Date(); base.setDate(base.getDate() + ((6 - base.getDay() + 7) % 7 || 7)); // next Saturday
+  for(let k = 0; k < 3; k++){ const d = new Date(base); d.setDate(base.getDate() + k * 7); addSlot(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + 'T20:00'); }
+  const more = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Add another date'}); more.addEventListener('click', () => addSlot(''));
+  const hosts = h('input', {id:'npHosts', maxLength:200, placeholder:'Bill, Cali, Kyle'});
+  const msg2 = h('div', {class:'msg', role:'status'});
+  const create = h('button', {type:'button', class:'btn btn-red', text:'Start poll'});
+  let armed = false;
+  create.addEventListener('click', async () => {
+    const slots = [...slotsBox.querySelectorAll('input')].map(i => i.value).filter(Boolean);
+    if(!slots.length){ setMsg(msg2, 'Add at least one date.', 'err'); return; }
+    if(p && !armed){ armed = true; create.textContent = 'Tap again to replace the current poll'; return; }
+    create.disabled = true;
+    try{
+      applyState(await api({action:'createPoll', pin:pin(), title:title.value.trim() || 'Poker night', slots, hosts:hosts.value.split(',').map(s => s.trim()).filter(Boolean)}));
+      S.draft = {name:S.draft.name, slots:{}, host:''}; renderAll(); location.hash = '#schedule';
+    }catch(e){ setMsg(msg2, e.message, 'err'); create.disabled = false; }
+  });
+  const signOut = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Lock host tools'});
+  signOut.addEventListener('click', () => { store('pokerPin', null); S.pinOk = false; renderHostTools(); renderSettleResults(); });
+  body.append(h('div', null, h('label', {for:'npTitle', text:'Poll name'}), title),
+    h('div', {style:'margin-top:10px'}, h('label', {text:'Dates and start times'}), slotsBox, more),
+    h('div', {style:'margin-top:10px'}, h('label', {for:'npHosts', text:'Who could host? Separate names with commas'}), hosts),
+    h('div', {class:'btns'}, create, signOut), msg2);
+}
+
+// ===== Settle up =====
+function renderEditor(){
+  const tb = $('#editorBody'); tb.replaceChildren();
+  if(!S.calc.length) S.calc.push({name:'', buy:'', win:'', pre:'', preTo:''});
+  const names = S.calc.map(r => r.name.trim()).filter(Boolean);
+  S.calc.forEach((r, i) => {
+    const inp = (field, cl, ph, extra) => { const x = h('input', Object.assign({class:cl, placeholder:ph, 'aria-label':ph + ' for row ' + (i + 1)}, extra || {})); x.value = r[field]; x.addEventListener('input', () => { r[field] = x.value; if(field === 'name') refreshPaidTo(); renderSettleResults(); }); return x; };
+    const sel = h('select', {class:'c-name', 'aria-label':'Paid to, row ' + (i + 1)}, h('option', {value:'', text:'—'}), names.filter(n => key(n) !== key(r.name)).map(n => h('option', {value:n, text:n})));
+    if(r.preTo && ![...sel.options].some(o => key(o.value) === key(r.preTo))) sel.append(h('option', {value:r.preTo, text:r.preTo}));
+    sel.value = [...sel.options].find(o => key(o.value) === key(r.preTo))?.value || '';
+    sel.addEventListener('change', () => { r.preTo = sel.value; renderSettleResults(); });
+    const x = h('button', {type:'button', class:'x', 'aria-label':'Remove row ' + (i + 1), text:'×'});
+    x.addEventListener('click', () => { S.calc.splice(i, 1); renderEditor(); renderSettleResults(); });
+    tb.append(h('tr', null,
+      h('td', null, inp('name', 'c-name', 'Name', {list:'knownPlayers', maxLength:30})),
+      h('td', null, inp('buy', 'c-buy', '300 + 300', {inputMode:'text'})),
+      h('td', null, inp('win', 'c-amt num', '0', {inputMode:'decimal'})),
+      h('td', null, inp('pre', 'c-amt num', '0', {inputMode:'decimal'})),
+      h('td', null, sel), h('td', null, x)));
+  });
+}
+function refreshPaidTo(){ clearTimeout(refreshPaidTo.t); refreshPaidTo.t = setTimeout(() => { const a = document.activeElement; const idx = [...document.querySelectorAll('#editorBody input')].indexOf(a); const pos = a && a.selectionStart; renderEditor(); if(idx >= 0){ const n = document.querySelectorAll('#editorBody input')[idx]; if(n){ n.focus(); try{ n.setSelectionRange(pos, pos); }catch(e){} } } }, 700); }
+function renderWarnings(players, c){
+  const box = $('#calcWarn'); box.replaceChildren();
+  const cashOnly = players.filter(p => p.buyins.length && p.winnings == null);
+  const winOnly = players.filter(p => !p.buyins.length && p.winnings != null);
+  const items = [];
+  for(const w of winOnly){
+    if(cashOnly.length){
+      const row = h('div', {class:'row'}, h('span', {text:w.name + ' has winnings but no buy-in. Same person as'}));
+      for(const cO of cashOnly){
+        const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:cO.name + '?'});
+        b.addEventListener('click', () => mergeRows(w.name, cO.name));
+        row.append(b);
+      }
+      items.push(row);
+    } else items.push(h('div', {text:w.name + ' has winnings but no buy-in.'}));
+  }
+  for(const cO of cashOnly) if(!winOnly.length) items.push(h('div', {text:'No winnings entered for ' + cO.name + '. Enter 0 if they lost everything.'}));
+  for(const p of players) if(p.prepaid > 0 && !p.prepaidTo) items.push(h('div', {text:p.name + ' already paid ' + peso(p.prepaid) + '. Pick who received it.'}));
+  if(items.length) box.append(h('div', {class:'warn'}, items));
+}
+function mergeRows(fromName, intoName){
+  const known = knownPlayers();
+  const keepName = !known.has(key(intoName)) && known.has(key(fromName)) ? fromName : intoName;
+  const from = S.calc.find(r => key(r.name) === key(fromName)), into = S.calc.find(r => key(r.name) === key(intoName));
+  if(!from || !into) return;
+  into.buy = [into.buy, from.buy].filter(Boolean).join(' + ');
+  if(String(from.win).trim() !== '') into.win = String(sum(nums(into.win)) + sum(nums(from.win)));
+  if(String(from.pre).trim()) into.pre = String(sum(nums(into.pre)) + sum(nums(from.pre)));
+  into.name = keepName;
+  S.calc.splice(S.calc.indexOf(from), 1);
+  for(const r of S.calc) if(key(r.preTo) === key(fromName) || key(r.preTo) === key(intoName)) r.preTo = keepName;
+  renderEditor(); renderSettleResults();
+}
+function settleMessage(c, date){
+  const lines = ['♠️ Poker night' + (date ? ' · ' + fmtDate(date) : ''), 'Cash in ' + peso(c.totalIn) + ' · Cash out ' + peso(c.totalOut) + (Math.abs(c.diff) < 0.005 ? ' ✅' : ' ⚠️'), '', 'Results'];
+  for(const r of [...c.rows].sort((a, b) => b.net - a.net)) lines.push(r.name + ' ' + signed(r.net));
+  if(c.transfers.length){ lines.push('', 'Who pays who'); for(const t of c.transfers) lines.push(t.from + ' → ' + t.to + ': ' + peso(t.amount)); }
+  if(c.prepaid.length){ lines.push('', 'Already settled'); for(const x of c.prepaid) lines.push(x.from + ' paid ' + x.to + ' ' + peso(x.amount)); }
+  return lines.join('\n');
+}
+function resultsTable(c){
+  const rows = [...c.rows].sort((a, b) => b.net - a.net);
+  return h('div', {class:'tbl-wrap'}, h('table', null,
+    h('thead', null, h('tr', null, h('th', {text:'Player'}), h('th', {class:'r', text:'Cash in'}), h('th', {class:'r', text:'Winnings'}), h('th', {class:'r', text:'Net'}))),
+    h('tbody', null, rows.map(r => h('tr', null, h('td', {text:r.name}), h('td', {class:'r', text:peso(r.cashIn)}), h('td', {class:'r', text:peso(r.win)}), h('td', {class:'r ' + cls(r.net), text:signed(r.net)})))),
+    h('tfoot', null, h('tr', null, h('td', {text:'Total'}), h('td', {class:'r', text:peso(c.totalIn)}), h('td', {class:'r', text:peso(c.totalOut)}), h('td', {class:'r', text:Math.abs(c.diff) < 0.005 ? '₱0' : signed(c.diff)})))));
+}
+function transfersList(c, paidMap, onToggle, settled){
+  const box = h('div');
+  if(!c.transfers.length){ box.append(h('p', {class:'sub', text:'Nobody owes anything.'})); return box; }
+  for(const t of c.transfers){
+    const k = tKey(t); const done = settled || !!(paidMap && paidMap[k]);
+    const row = h('div', {class:'pay' + (done ? ' done' : '')});
+    if(onToggle){
+      const cb = h('input', {type:'checkbox', checked:done, disabled:!!settled, 'aria-label':'Mark ' + t.from + ' to ' + t.to + ' as paid'});
+      cb.addEventListener('change', () => onToggle(k, cb.checked, row, cb));
+      row.append(cb);
+    } else row.append(h('span', {'aria-hidden':'true', text:'•'}));
+    row.append(h('div', {class:'who'}, t.from, h('span', {class:'arrow', text:'→'}), t.to), h('div', {class:'amt num', text:peso(t.amount)}));
+    box.append(row);
+  }
+  return box;
+}
+function renderSettleResults(){
+  const card = $('#resultCard'); card.replaceChildren();
+  const players = calcPlayers();
+  renderWarnings(players, null);
+  if(players.length < 2){ card.append(h('h2', {text:'Who pays who'}), h('p', {class:'sub', text:'Add at least two players to see the results.'})); return; }
+  const c = compute(players);
+  const ok = Math.abs(c.diff) < 0.005;
+  card.append(h('h2', {text:'Who pays who'}),
+    h('div', {class:'check ' + (ok ? 'ok' : 'bad'), role:'status', text: ok ? '✓ Balanced: ' + peso(c.totalIn) + ' in, ' + peso(c.totalOut) + ' out' : '✗ Off by ' + peso(Math.abs(c.diff)) + ': winnings are ' + (c.diff > 0 ? 'more' : 'less') + ' than buy-ins. ' + (c.diff > 0 ? 'A buy-in is probably missing.' : 'Someone’s winnings are probably missing.')}));
+  if(ok){
+    card.append(h('div', {style:'margin-top:8px'}, transfersList(c)));
+    if(c.prepaid.length) card.append(h('p', {class:'note', text:'Already settled at the table: ' + c.prepaid.map(x => x.from + ' paid ' + x.to + ' ' + peso(x.amount)).join(', ') + '. Those amounts are counted, so nobody pays twice.'}));
+    card.append(h('p', {class:'note', text:c.transfers.length + ' payment' + (c.transfers.length === 1 ? '' : 's') + ' settle ' + peso(c.winnings) + ' in winnings.'}));
+  }
+  card.append(h('h3', {text:'Results'}), resultsTable(c));
+
+  const date = h('input', {id:'gameDate', type:'date'}); date.value = S.gameDate || today(); date.addEventListener('change', () => S.gameDate = date.value);
+  const note = h('input', {id:'gameNote', maxLength:80, placeholder:'At Bill’s'}); note.value = S.gameNote || ''; note.addEventListener('input', () => S.gameNote = note.value);
+  const copy = h('button', {type:'button', class:'btn btn-ghost', text:'Copy for Messenger'}); copy.addEventListener('click', () => copyText(settleMessage(c, date.value), copy));
+  const msg = h('div', {class:'msg', role:'status'});
+  const save = h('button', {type:'button', class:'btn btn-red', text:'Save to leaderboard', disabled:!ok});
+  const pinIn = pinField('savePin');
+  save.addEventListener('click', async () => {
+    if(!ok) return;
+    const missing = players.filter(p => p.winnings == null);
+    if(missing.length){ setMsg(msg, 'Enter winnings (even 0) for ' + missing.map(p => p.name).join(', ') + ' first.', 'err'); return; }
+    save.disabled = true; save.textContent = 'Saving…';
+    try{
+      if(!S.pinOk) await checkPin(pinIn.value.trim());
+      applyState(await api({action:'saveSession', pin:pin(), session:{date:date.value, note:note.value.trim(), players}}));
+      S.calc = []; S.gameNote = ''; $('#paste').value = '';
+      renderAll(); location.hash = '#board';
+    }catch(e){ setMsg(msg, e.message, 'err'); save.disabled = false; save.textContent = 'Save to leaderboard'; }
+  });
+  card.append(h('h3', {text:'Save this game'}),
+    h('div', {class:'grid2'}, h('div', null, h('label', {for:'gameDate', text:'Date played'}), date), h('div', null, h('label', {for:'gameNote', text:'Note (optional)'}), note)),
+    S.pinOk ? null : h('div', {style:'margin-top:10px; max-width:220px'}, h('label', {for:'savePin', text:'Host PIN'}), pinIn),
+    h('div', {class:'btns'}, copy, save), msg);
+}
+
+// ===== Leaderboard =====
+const byDateAsc = (a, b) => (a.date || '0000').localeCompare(b.date || '0000') || (a.created || '').localeCompare(b.created || '');
+function seasonOf(s){ return (s.date || '').slice(0, 4); }
+function standings(sessions){
+  const m = new Map();
+  for(const s of [...sessions].sort(byDateAsc)){
+    const c = compute(s.players);
+    for(const r of c.rows){
+      const k = key(r.name);
+      if(!m.has(k)) m.set(k, {name:r.name, net:0, games:0, wins:0, best:null, form:[]});
+      const p = m.get(k); p.net = round(p.net + r.net); p.games++; if(r.net > 0) p.wins++; p.best = p.best == null ? r.net : Math.max(p.best, r.net); p.form.push(r.net);
+    }
+  }
+  return [...m.values()].sort((a, b) => b.net - a.net || b.wins - a.wins);
+}
+function renderBoard(){
+  const sel = $('#seasonSel');
+  const seasons = [...new Set(S.sessions.map(seasonOf).filter(Boolean))].sort().reverse();
+  const prev = sel.value || 'all';
+  sel.replaceChildren(h('option', {value:'all', text:'All time'}), seasons.map(y => h('option', {value:y, text:y + ' season'})));
+  sel.value = [...sel.options].some(o => o.value === prev) ? prev : 'all';
+  const season = sel.value;
+  const list = S.sessions.filter(s => season === 'all' || seasonOf(s) === season);
+  const st = standings(list);
+  // Summary
+  const stats = $('#stats'); stats.replaceChildren();
+  let bigName = '—', bigAmt = 0, pot = 0;
+  for(const s of list){ const c = compute(s.players); pot += c.totalIn; for(const r of c.rows) if(r.net > bigAmt){ bigAmt = r.net; bigName = r.name; } }
+  stats.append(
+    h('div', {class:'stat'}, h('div', {class:'k', text:'Games'}), h('div', {class:'v num', text:String(list.length)}), h('div', {class:'s', text:st.length + ' players'})),
+    h('div', {class:'stat'}, h('div', {class:'k', text:'Total bought in'}), h('div', {class:'v num', text:peso(round(pot))}), h('div', {class:'s', text:list.length ? 'avg ' + peso(Math.round(pot / list.length)) + ' a night' : ''})),
+    h('div', {class:'stat'}, h('div', {class:'k', text:'Biggest night'}), h('div', {class:'v', text:bigAmt ? bigName : '—'}), h('div', {class:'s num', text:bigAmt ? signed(bigAmt) : ''})));
+  // Table
+  const t = $('#boardTable'); t.replaceChildren();
+  if(!st.length){ t.append(h('tbody', null, h('tr', null, h('td', {class:'empty', text:S.loaded ? 'No games saved yet. Settle up a game and save it to start the leaderboard.' : 'Loading…'})))); }
+  else {
+    t.append(h('thead', null, h('tr', null, h('th', {text:'#'}), h('th', {text:'Player'}), h('th', {class:'r', text:'Net'}), h('th', {class:'r', text:'Games'}), h('th', {class:'r', text:'Up nights'}), h('th', {class:'r', text:'Best night'}), h('th', {text:'Last 5'}))),
+      h('tbody', null, st.map((p, i) => h('tr', {class:i === 0 ? 'top1' : ''},
+        h('td', {class:'rank', text:String(i + 1)}), h('td', {class:'pname', text:p.name}),
+        h('td', {class:'r ' + cls(p.net), text:signed(p.net)}), h('td', {class:'r', text:String(p.games)}),
+        h('td', {class:'r', text:p.wins + ' of ' + p.games}), h('td', {class:'r ' + cls(p.best), text:signed(p.best)}),
+        h('td', null, h('span', {class:'form', title:p.form.slice(-5).map(signed).join(', ')}, p.form.slice(-5).map(n => h('i', {class:n > 0 ? 'w' : n < 0 ? 'l' : ''}))))))));
+  }
+  // History
+  const g = $('#games'); g.replaceChildren();
+  if(!list.length){ g.append(h('div', {class:'card empty', text:'Saved games show up here with who pays who, so you can tick off payments.'})); return; }
+  for(const s of [...list].sort(byDateAsc).reverse()){
+    const c = compute(s.players);
+    const top = [...c.rows].sort((a, b) => b.net - a.net)[0];
+    const paidCount = c.transfers.filter(t => s.settled || (s.paid && s.paid[tKey(t)])).length;
+    const allPaid = paidCount === c.transfers.length;
+    const badge = h('span', {class:'badge ' + (allPaid ? 'done' : 'open'), text:allPaid ? 'All paid' : (c.transfers.length - paidCount) + ' unpaid'});
+    const det = h('details', {class:'card game'},
+      h('summary', null, h('span', {class:'t', text:fmtDate(s.date) + (s.note ? ' · ' + s.note : '')}), h('span', {class:'m', text:c.rows.length + ' players · ' + peso(c.totalIn) + ' in play · top: ' + top.name + ' ' + signed(top.net)}), badge));
+    det.append(h('h3', {style:'margin-top:0', text:'Who pays who'}), transfersList(c, s.paid, async (k, val, row, cb) => {
+      cb.disabled = true;
+      try{ applyState(await api({action:'markPaid', id:s.id, key:k, paid:val})); row.classList.toggle('done', val); const ns = S.sessions.find(x => x.id === s.id); const pc = c.transfers.filter(t => ns && ns.paid && ns.paid[tKey(t)]).length; badge.className = 'badge ' + (pc === c.transfers.length ? 'done' : 'open'); badge.textContent = pc === c.transfers.length ? 'All paid' : (c.transfers.length - pc) + ' unpaid'; s.paid = ns ? ns.paid : s.paid; }
+      catch(e){ cb.checked = !val; alertInline(det, e.message); }
+      cb.disabled = false;
+    }, s.settled));
+    if(s.settled) det.append(h('p', {class:'note', text:'Imported from the group’s earlier games and marked as settled.'}));
+    if(c.prepaid.length) det.append(h('p', {class:'note', text:'Already settled at the table: ' + c.prepaid.map(x => x.from + ' paid ' + x.to + ' ' + peso(x.amount)).join(', ') + '.'}));
+    det.append(h('h3', {text:'Results'}), resultsTable(c));
+    const copy = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Copy for Messenger'}); copy.addEventListener('click', () => copyText(settleMessage(c, s.date), copy));
+    const btns = h('div', {class:'btns'}, copy);
+    if(S.pinOk){
+      const del = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Delete game'}); let armed = false;
+      del.addEventListener('click', async () => {
+        if(!armed){ armed = true; del.textContent = 'Tap again to delete'; return; }
+        del.disabled = true;
+        try{ applyState(await api({action:'deleteSession', pin:pin(), id:s.id})); renderBoard(); }catch(e){ alertInline(det, e.message); del.disabled = false; }
+      });
+      btns.append(del);
+    }
+    det.append(btns);
+    g.append(det);
+  }
+}
+function alertInline(parent, text){ let m = parent.querySelector(':scope > .msg'); if(!m){ m = h('div', {class:'msg', role:'status'}); parent.append(m); } setMsg(m, text, 'err'); }
+
+// ===== Routing & boot =====
+function route(){
+  let tab = (location.hash || '#schedule').slice(1);
+  if(!['schedule', 'settle', 'board'].includes(tab)) tab = 'schedule';
+  for(const v of ['schedule', 'settle', 'board']) $('#view-' + v).hidden = v !== tab;
+  document.querySelectorAll('.tabs a').forEach(a => { if(a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+}
+function renderAll(){
+  const dl = $('#knownPlayers'); dl.replaceChildren(...[...knownPlayers().values()].sort().map(n => h('option', {value:n})));
+  renderHeader(); renderSchedule(); renderBoard(); renderEditor(); renderSettleResults();
+}
+$('#parseBtn').addEventListener('click', () => {
+  const rows = parsePaste($('#paste').value);
+  if(!rows.length){ setMsg($('#parseMsg'), 'Couldn’t find any names with amounts. Use one line per player, like “Kyle - 300 + 500” and “Kyle = 1190”.', 'err'); return; }
+  S.calc = rows; renderEditor(); renderSettleResults();
+  setMsg($('#parseMsg'), 'Found ' + rows.length + ' players. Check the table below.', 'ok');
+});
+$('#clearBtn').addEventListener('click', () => { S.calc = []; $('#paste').value = ''; setMsg($('#parseMsg'), ''); renderEditor(); renderSettleResults(); });
+$('#addRow').addEventListener('click', () => { S.calc.push({name:'', buy:'', win:'', pre:'', preTo:''}); renderEditor(); const ins = document.querySelectorAll('#editorBody tr:last-child input'); if(ins[0]) ins[0].focus(); });
+$('#seasonSel').addEventListener('change', renderBoard);
+window.addEventListener('hashchange', route);
+
+// ===== Preview mode (no sheet connected) =====
+const DEMO_DB = (() => {
+  const d = new Date(); const ymd = x => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  const sat = new Date(d); sat.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
+  const fri = new Date(sat); fri.setDate(sat.getDate() + 6); const sat2 = new Date(sat); sat2.setDate(sat.getDate() + 7);
+  const back = n => { const x = new Date(d); x.setDate(d.getDate() - n); return ymd(x); };
+  return {
+    poll:{id:'p1', title:'Poker night (sample)', slots:[{id:'s1', when:ymd(sat) + 'T20:00'}, {id:'s2', when:ymd(fri) + 'T19:30'}, {id:'s3', when:ymd(sat2) + 'T20:00'}], hosts:['Sam', 'Rico'], locked:null},
+    votes:[{name:'Sam', slots:{s1:'yes', s2:'no', s3:'maybe'}, host:'Sam'}, {name:'Rico', slots:{s1:'yes', s2:'yes', s3:'no'}, host:'Sam'}, {name:'Jo', slots:{s1:'maybe', s2:'yes', s3:'yes'}, host:'Rico'}],
+    sessions:[
+      {id:'g1', date:back(21), note:'Sample game', paid:{}, settled:true, players:[{name:'Sam', buyins:[300, 300], winnings:1450, prepaid:0, prepaidTo:''}, {name:'Rico', buyins:[300], winnings:120, prepaid:0, prepaidTo:''}, {name:'Jo', buyins:[300, 200], winnings:530, prepaid:0, prepaidTo:''}, {name:'Tess', buyins:[300, 300], winnings:0, prepaid:0, prepaidTo:''}]},
+      {id:'g2', date:back(7), note:'Sample game', paid:{}, players:[{name:'Sam', buyins:[300], winnings:0, prepaid:0, prepaidTo:''}, {name:'Rico', buyins:[300, 500], winnings:1640, prepaid:0, prepaidTo:''}, {name:'Jo', buyins:[300], winnings:410, prepaid:0, prepaidTo:''}, {name:'Tess', buyins:[300], winnings:150, prepaid:0, prepaidTo:''}, {name:'Migs', buyins:[300, 200], winnings:0, prepaid:500, prepaidTo:'Rico'}]}
+    ]
+  };
+})();
+function demoApi(b){
+  const db = DEMO_DB; const st = () => JSON.parse(JSON.stringify({ok:true, poll:db.poll, votes:db.votes, sessions:db.sessions}));
+  const needPin = () => { if(!/^\d{4,8}$/.test(String(b.pin || ''))) throw new Error('Enter a 4-digit PIN (any PIN works in the preview).'); };
+  switch(b.action){
+    case 'state': return st();
+    case 'checkPin': needPin(); return {ok:true};
+    case 'vote': { const i = db.votes.findIndex(v => key(v.name) === key(b.name)); const v = {name:b.name, slots:b.slots, host:b.host}; if(i >= 0) db.votes[i] = v; else db.votes.push(v); return st(); }
+    case 'createPoll': needPin(); db.poll = {id:'p' + Date.now(), title:b.title, slots:b.slots.map((w, i) => ({id:'s' + (i + 1), when:w})), hosts:b.hosts, locked:null}; db.votes = []; return st();
+    case 'lockPoll': needPin(); db.poll.locked = {slotId:b.slotId, host:b.host}; return st();
+    case 'reopenPoll': needPin(); db.poll.locked = null; return st();
+    case 'saveSession': needPin(); db.sessions.push(Object.assign({id:'g' + Date.now(), paid:{}, created:new Date().toISOString()}, b.session)); return st();
+    case 'deleteSession': needPin(); db.sessions = db.sessions.filter(s => s.id !== b.id); return st();
+    case 'markPaid': { const s = db.sessions.find(x => x.id === b.id); s.paid = Object.assign({}, s.paid, {[b.key]:!!b.paid}); return st(); }
+  }
+  throw new Error('Unknown action.');
+}
+
+if(DEMO) $('#demoBanner').hidden = false;
+S.pinOk = false;
+route(); renderAll(); load();
+</script>
+</body>
+</html>
