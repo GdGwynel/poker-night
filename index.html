@@ -482,6 +482,11 @@
   .pick img{width:100%; max-width:110px; aspect-ratio:220/240; display:block}
   .pick-ph{width:100%; max-width:110px; aspect-ratio:220/240; display:grid; place-items:center; font-size:2rem; border-radius:12px; background:radial-gradient(circle at 50% 40%, var(--c), #2a0a12)}
   .pick-l{font-size:.78rem; font-weight:800; color:var(--ink)}
+  .ptabs{display:flex; gap:6px; background:#EEE7DB; border-radius:999px; padding:4px}
+  .ptab{border:0; background:transparent; border-radius:999px; padding:7px 14px; font-weight:800; cursor:pointer; color:var(--ink-2)}
+  .ptab[aria-selected="true"]{background:#fff; color:var(--ink); box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .picks.real .pick{background:linear-gradient(#F7F1E6, #E9DFCF)}
+  .pick-note{margin:0; font-size:.8rem; color:var(--ink-2)}
   .pick:hover{transform:translateY(-2px)}
   .pick[aria-checked="true"]{border-color:var(--suit, #C8102E); box-shadow:0 0 0 3px rgba(200,16,46,.18); background:#fff}
   @media (max-width:640px){ .picks{grid-template-columns:repeat(3, minmax(0, 1fr))} }
@@ -521,7 +526,7 @@
   .center-msg.soft{color:rgba(255,244,242,.8); font-weight:700}
   .center-msg.win{top:76%}
   .center-msg .winline{background:rgba(27,26,31,.88); color:var(--paper); border:2px solid var(--gold); border-radius:16px; padding:8px 18px; margin:4px 0; box-shadow:0 10px 30px rgba(0,0,0,.5)}
-  .center-msg .winline b{display:block; font-family:var(--display); font-size:clamp(1rem,3vw,1.5rem); color:var(--gold-l)}
+  .center-msg .winline b{display:block; font-family:var(--display); font-size:clamp(1.2rem,3.6vw,1.9rem); color:var(--gold-l)}
   .center-msg .winline span{font-size:.85rem; color:#E7DED0}
   .center-msg .count{font-family:var(--display); font-size:1.3rem}
   .center-msg.soft{top:40%; text-shadow:0 2px 8px rgba(0,0,0,.7)}
@@ -569,6 +574,7 @@
   }
   .mebar{position:absolute; left:12px; bottom:12px; z-index:5; display:flex; align-items:center; gap:8px; background:rgba(251,250,246,.95); color:var(--ink); border-radius:999px; padding:4px 12px 4px 4px; box-shadow:0 6px 18px rgba(0,0,0,.5); font-size:.82rem}
   .mebar[hidden]{display:none}
+  .mebar.inhand{position:relative; left:auto; bottom:auto; box-shadow:none; justify-self:stretch; justify-content:flex-start}
   .mebar .av{position:relative; width:34px; height:34px; border-radius:50%; background:var(--c); color:#fff; font-weight:800; display:grid; place-items:center; font-size:.75rem}
   .mebar .ring{position:absolute; inset:-5px; border-radius:50%; background:conic-gradient(var(--gold) calc(var(--p,1) * 360deg), transparent 0); -webkit-mask:radial-gradient(circle, transparent 60%, #000 62%); mask:radial-gradient(circle, transparent 60%, #000 62%); opacity:0}
   .mebar.turn .ring{opacity:1} .mebar.turn.hurry .ring{background:conic-gradient(#FF5A6E calc(var(--p,1) * 360deg), transparent 0)}
@@ -649,8 +655,10 @@
   .emo{border:0; background:var(--paper-2); border-radius:50%; width:38px; height:38px; font-size:1.2rem; cursor:pointer}
   .emo:active{transform:scale(.9)}
   .deal-btn{min-width:240px}
-  .ticker{color:var(--on-back-2); font-size:.82rem; text-align:center; display:grid; gap:2px; min-height:3.6em}
+  .ticker{color:rgba(255,240,236,.72); text-align:left; font-size:.84rem; display:grid; gap:3px; align-content:start; max-height:9.5em; overflow-y:auto; overscroll-behavior:contain; background:rgba(15,2,6,.35); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:8px 12px; -webkit-overflow-scrolling:touch}
   .ticker div:last-child{color:var(--paper); font-weight:700}
+  .ticker .hand{color:var(--gold-l); font-weight:800; margin-top:6px}
+  .ticker .win{color:#9BE3B8; font-weight:700}
 
   .ptoast{position:fixed; left:50%; top:calc(78px + env(safe-area-inset-top,0px)); transform:translate(-50%,-20px); opacity:0; background:var(--ink); color:var(--paper); border-radius:999px; padding:10px 18px; font-weight:700; z-index:50; transition:all .25s; pointer-events:none; box-shadow:0 10px 30px rgba(0,0,0,.4); max-width:90vw; text-align:center}
   .ptoast.show{opacity:1; transform:translate(-50%,0)} .ptoast.err{background:#9E0C24}
@@ -693,6 +701,15 @@
   .gl .ptable > .layer{transform-style:flat}
   .gl .seat{transform:translate(-50%,-100%); padding-top:0; --sz:1; transition:opacity .4s}
   .gl .seat .av, .gl .seat .scards{display:none}
+  .gl .seat .scards.reveal{display:flex; position:absolute; top:100%; left:50%; transform:translate(-50%, 6px); gap:3px; z-index:4}
+  .gl .seat .scards.reveal .pc{width:42px; margin:0}
+  .seat .scards .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 16px rgba(243,216,145,.9)}
+  .seat.winner::before{content:'🏆 Winner'; position:absolute; left:50%; bottom:100%; transform:translate(-50%, -4px); background:linear-gradient(#F7DE8B, #D9A93A); color:#3A2400; font-weight:900; font-size:.75rem; padding:3px 10px; border-radius:999px; white-space:nowrap; box-shadow:0 4px 14px rgba(217,169,58,.7); z-index:6; animation:winBadge 1s ease-in-out infinite}
+  @keyframes winBadge{50%{transform:translate(-50%, -10px) scale(1.06)}}
+  .fp:not(.gl) .seat.winner::before{bottom:auto; top:84px}
+  .pboard.has-win .pc:not(.win){opacity:.4; filter:grayscale(.5)}
+  .pboard .pc.win{transform:translateY(-8px)}
+  .center-msg .winline .trophy{font-size:2rem; line-height:1; margin-bottom:2px}
   .gl .seat .tag{top:-12px} .gl .seat .bubble{top:-34px} .gl .seat .emote-s{top:-36px}
   .gl .seat.arrive, .gl .seat.depart{animation:none}
   .gl .seat.depart{opacity:0}
@@ -701,30 +718,72 @@
   .gl .seat.turn .plate{box-shadow:0 0 0 2px var(--gold), 0 0 18px rgba(217,169,58,.6)}
   .gl .seat .plate::after{content:""; position:absolute; left:8px; right:8px; bottom:2px; height:2px; border-radius:2px; background:var(--gold); transform-origin:left; transform:scaleX(var(--p,1)); opacity:0}
   .gl .seat.turn .plate::after{opacity:1} .gl .seat.turn.hurry .plate::after{background:#FF5A6E}
-  .seat .cv{display:none}
+  .seat .cv{display:none} .seat .ca{display:none}
+  .seat[data-call="connecting"] .cv.vis, .seat[data-call="new"] .cv.vis{opacity:.5}
   .seat .cv.vis{display:block; position:absolute; left:50%; bottom:100%; width:78px; height:78px; transform:translate(-50%,-14px); border-radius:50%; object-fit:cover; border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111; z-index:5}
   .fp:not(.gl) .seat .cv.vis{bottom:auto; top:0; transform:translate(-50%,-60%)}
   .seat.micon .nm::after{content:' 🎙'} .gl .seat.micon .nm[data-mood]::after{content:' ' attr(data-mood) ' 🎙'}
   .mebar .cv.self{position:absolute; left:0; bottom:calc(100% + 8px); width:84px; height:84px; border-radius:50%; object-fit:cover; transform:scaleX(-1); border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111}
   .rbtn.on{background:#1E7A49; border-color:#1E7A49; color:#fff}
   .callbtns{display:contents}
+  .rbtn.gear{font-size:1rem}
+  .set-group{display:grid; gap:2px; background:#F2ECE2; border-radius:16px; padding:6px; margin:8px 0}
+  .set-h{font-size:.72rem; font-weight:800; color:var(--ink-2); padding:4px 10px 2px; letter-spacing:.02em}
+  .set-row{display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; padding:10px; border-radius:12px; background:#FBFAF6; cursor:pointer; text-align:left; border:0; width:100%; font:inherit; color:var(--ink); position:relative}
+  .set-row + .set-row{margin-top:2px}
+  .set-ic{font-size:1.2rem; text-align:center}
+  .set-tx{display:grid} .set-tx b{font-weight:800} .set-tx small{color:var(--ink-2); font-size:.78rem}
+  .set-row .sw-in{position:absolute; opacity:0; pointer-events:none}
+  .set-row .sw{width:46px; height:28px; border-radius:999px; background:#CFC6B8; position:relative; transition:background .2s}
+  .set-row .sw::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+  .set-row .sw-in:checked + .sw{background:#1E7A49}
+  .set-row .sw-in:checked + .sw::after{transform:translateX(18px)}
+  .set-row .sw-in:focus-visible + .sw{outline:3px solid var(--gold); outline-offset:2px}
+  .set-go{font-size:1.4rem; color:var(--ink-2)}
+  .set-foot{font-size:.78rem; color:var(--ink-2); text-align:center; margin:6px 0 0}
+  .show-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center}
+  .show-ask{display:grid; gap:6px; justify-items:center; text-align:center; width:100%}
+  .show-ask b{font-family:var(--display); font-size:1.1rem}
+  .show-ask.won{background:linear-gradient(#FFF6DA, #FBEBC0); border-radius:14px; padding:10px; box-shadow:0 0 0 2px var(--gold)}
+  .show-ask.won b{font-size:1.25rem}
+  .show-btn{background:var(--gold-l, #F3D891); color:var(--ink)}
+  .show-note{font-size:.8rem; color:var(--ink-2)}
   .fxflash{position:absolute; inset:0; pointer-events:none; z-index:4; opacity:0}
   .fxflash.allin{background:radial-gradient(ellipse at 50% 55%, transparent 35%, rgba(200,16,46,.55) 100%); animation:fxPulse 1.4s ease-out}
   .fxflash.win{background:radial-gradient(circle at 50% 45%, rgba(255,226,150,.55), transparent 60%); animation:fxPulse 1.5s ease-out}
   @keyframes fxPulse{0%{opacity:0} 15%{opacity:1} 100%{opacity:0}}
-  .room.full{position:fixed; inset:0; z-index:60; background:#0d0306; padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); display:flex; flex-direction:column; gap:8px; overflow:auto}
-  .room.full .ptable-wrap{height:auto; flex:1 1 auto; min-height:300px; margin:0; border-radius:18px}
-  .room.full .myhand{margin-top:-130px}
-  .room.full .ticker{display:none}
+  .room.full{position:fixed; top:0; left:0; right:0; height:100vh; height:100dvh; z-index:60; background:#0d0306; padding:max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); display:grid; grid-template-rows:auto minmax(0, 1fr) auto auto auto; grid-template-columns:minmax(0, 1fr); gap:6px; overflow:hidden; box-sizing:border-box}
+  .room.full > *{min-width:0}
+  .room.full .room-top{flex-wrap:nowrap; gap:6px}
+  .room.full .rinfo{flex:none} .room.full .rinfo span:not(.conn){display:none}
+  @media (max-width:640px){ .room-top{flex-wrap:nowrap} .room-top .rinfo{min-width:0; flex:1 1 auto; flex-wrap:nowrap; overflow:hidden} .room-top .rinfo b{font-size:1rem; white-space:nowrap} .room-top .rbtns{flex:none; flex-wrap:nowrap} .room-top .rbtn{flex:none; padding:7px 10px} .rinfo span:not(.conn){display:none} }
+  .room.full .rbtns{flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; min-width:0}
+  .room.full .rbtns::-webkit-scrollbar{display:none}
+  .room.full .rbtn{flex:none}
+  .room.full .ptable-wrap{height:auto; min-height:0; margin:0; border-radius:16px}
+  .room.full .myhand{margin-top:-110px}
+  .room.full .myhand .hole .hc{width:clamp(64px, 16vw, 104px)}
+  .room.full .actbar{position:static; max-height:42vh; overflow-y:auto}
+  .room.full .ticker{max-height:4.6em; font-size:.78rem; padding:5px 10px}
   body.table-full{overflow:hidden}
   body.table-full .tabs, body.table-full header{visibility:hidden}
+  .seat .tag{left:50%; right:auto; transform:translateX(-50%); white-space:nowrap; font-size:.68rem; padding:2px 8px; box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .gl .seat .tag{top:auto; bottom:calc(100% + 2px)}
+  .gl .seat.winner .tag{display:none}
+  .seat .tag[data-role="sb"], .mebar .tag[data-role="sb"]{background:#1F5FA8; color:#fff}
+  .seat .tag[data-role="bb"], .mebar .tag[data-role="bb"]{background:#D9A93A; color:#2A1800}
+  .seat .tag[data-role="dealer"], .mebar .tag[data-role="dealer"]{background:#FBFAF6; color:#1B1A1F}
+  .seat .tag[data-role="allin"], .mebar .tag[data-role="allin"]{background:var(--suit, #C8102E); color:#fff}
+  .seat .tag[data-role="off"], .mebar .tag[data-role="off"]{background:#6b6461; color:#fff}
   .seat.bot{cursor:pointer} .seat.bot .nm::before{content:'🤖 '}
   .gl .seat .nm[data-mood]::after{content:' ' attr(data-mood); font-size:.85em}
   .gl .seat.winner .plate{box-shadow:0 0 0 2px var(--gold-l), 0 0 26px rgba(243,216,145,.8)}
   .gl .bet{transform:translate(-50%,0); background:rgba(0,0,0,.55); padding:1px 7px} .gl .bet .chips3{display:none}
   .gl .pot{transform:translate(-50%,0)} .gl .pot .stack{display:none}
-  .gl .center-msg.soft{top:62%}
-  .gl .center-msg.win{top:60%}
+  .gl .center-msg.soft{top:40%}
+  .gl .center-msg.win{top:28%}
+  .gl .center-msg .winline{display:grid; grid-template-columns:auto auto; column-gap:10px; align-items:center; text-align:left; padding:8px 16px}
+  .gl .center-msg .winline .trophy{grid-row:span 2; margin:0}
 
   @media (max-width:640px){
     .ptable-wrap{--tilt:50deg; height:clamp(400px, 60vh, 560px); perspective:640px; margin:0 -14px; border-radius:0}
@@ -734,7 +793,7 @@
     .seat{--sz:1.15}
     .myhand{margin-top:-104px}
     .p-lamp{width:90px; height:26px}
-    .gl .center-msg.win, .gl .center-msg.soft{top:74%}
+    .gl .center-msg.win, .gl .center-msg.soft{top:30%}
     .seat{width:78px} .seat .av{width:44px; height:44px; font-size:.85rem} .seat .plate{min-width:64px; padding:2px 6px 3px} .seat .nm{font-size:.74rem; max-width:70px} .seat .stk{font-size:.72rem}
     .felt-logo{top:78%}
     .myhand{margin-top:-18px; gap:12px}
@@ -871,6 +930,8 @@ Khelvin = 0"></textarea>
 <script>
 // ===== Settings =====
 // Paste your Apps Script web app URL here (ends in /exec). Leave empty for preview mode.
+// empty slots in lists of children (null / false) should add nothing, not the text "null"
+for(const k of ['append', 'prepend', 'replaceChildren']){ const f = Element.prototype[k]; Element.prototype[k] = function(...a){ return f.apply(this, a.filter(x => x != null && x !== false)); }; }
 const API_URL = 'https://script.google.com/macros/s/AKfycbwoFBLWwfG_L4dl0PxScQWbyDUfjuSwi_dzc-LaYrQyJhXVy_ekXI0NoqlqJpqXfAUy/exec';
 
 const DEMO = !/^https:\/\/script\.google\.com\//.test(API_URL);
@@ -2047,7 +2108,7 @@ const TABLE_URL = (new URLSearchParams(location.search).get('table') || 'https:/
 const P = {ws:null, s:null, prev:null, lastEv:0, open:false, tries:0, token:'', skew:0, built:false, watching:false,
   showCards:store('pokerShowCards') === '1', sound:store('pokerSound') !== '0', showdown:null, rebuyFor:-1, status:null, pendingEnter:false, err:''};
 P.token = store('pokerSeatToken') || (() => { const t = 'k' + Math.random().toString(36).slice(2) + Date.now().toString(36); store('pokerSeatToken', t); return t; })();
-const tableRoom = () => (new URLSearchParams(location.search).get('room') || '').replace(/[^a-z0-9-]/gi, '') || (S.test ? 'test' : 'main');
+const tableRoom = () => (new URLSearchParams(location.search).get('room') || '').replace(/[^a-z0-9-]/gi, '') || ((S.test || /[?&]test\b/.test(location.search)) ? 'test' : 'main');
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SUIT = {s:'♠', h:'♥', d:'♦', c:'♣'};
 const avColor = n => { let x = 2166136261; for(const ch of key(n)) x = Math.imul(x ^ ch.charCodeAt(0), 16777619) >>> 0; return 'hsl(' + (x % 360) + ' 58% 40%)'; };
@@ -2162,7 +2223,7 @@ function pconnect(){
   if(!TABLE_URL || P.ws && P.ws.readyState <= 1) return;
   const url = TABLE_URL.replace(/^http/, 'ws') + '/ws?room=' + tableRoom() + '&token=' + encodeURIComponent(P.token);
   let ws; try{ ws = new WebSocket(url); }catch(e){ P.err = 'Can’t reach the online table.'; renderPlay(); return; }
-  P.ws = ws;
+  P.ws = ws; P.wsRoom = tableRoom();
   ws.onopen = () => { P.open = true; P.tries = 0; P.err = ''; renderPlay(); };
   ws.onmessage = e => { let m; try{ m = JSON.parse(e.data); }catch(_){ return; }
     if(m.t === 'state') onTableState(m.s);
@@ -2202,6 +2263,10 @@ function onTableState(s){
   if(s.me < 0 && P.prev && P.prev.me >= 0) P.built = false;   // left the table
   renderPlay();
   if(ev && ev.id !== P.lastEv){ if(P.lastEv) handleEvent(ev, P.prev, s); P.lastEv = ev.id; }
+  // never miss a finished hand: if the win message got overtaken by a later one, show it from the hand record
+  const lh = s.lastHand;
+  if(lh && P.winSeen !== lh.no){ const first = P.winSeen === undefined; P.winSeen = lh.no;
+    if(!first && !(P.showdown && P.showdown.no === lh.no)) handleEvent({type:'win', winners:lh.winners, showdown:lh.showdown, late:true}, P.prev, s); }
   pollTableStatus();
   // out of chips: offer a cash-in right away
   const me = s.me >= 0 ? s.seats[s.me] : null;
@@ -2209,6 +2274,14 @@ function onTableState(s){
 }
 
 // ---------- layout ----------
+// dealer / small blind / big blind for a seat, as a short label
+function seatRole(s, i){
+  const h_ = s.hand, parts = [], b = s.blinds || {sb:5, bb:10};
+  if(s.dealer === i) parts.push('Dealer');
+  if(h_ && i === h_.sb) parts.push('SB ' + peso(b.sb));
+  if(h_ && i === h_.bb) parts.push('BB ' + peso(b.bb));
+  return {text:parts.join(' · '), kind:h_ && i === h_.bb ? 'bb' : h_ && i === h_.sb ? 'sb' : s.dealer === i ? 'dealer' : ''};
+}
 function seatXY(i, r){
   const s = P.s; const meI = s && s.me >= 0 ? s.me : -1;
   const narrow = innerWidth < 640 && !P.gl;
@@ -2280,22 +2353,28 @@ async function renderPicks(onDone){
   PICK.busy = false; if(onDone) onDone();
 }
 function characterPicker(){
-  const looks = pickLooks();
-  const grid = h('div', {class:'picks', role:'radiogroup', 'aria-label':'Pick your character'});
+  if(!PICK.kind) PICK.kind = isReal(+store('pokerLook') || 0) ? 'real' : 'cute';
+  const real = PICK.kind === 'real' && glOK();
+  const looks = real ? Array.from({length:REAL_N}, (_, k) => REAL_BASE + k + 1) : pickLooks();
+  if(!P.look) pickLooks();
+  const grid = h('div', {class:'picks' + (real ? ' real' : ''), role:'radiogroup', 'aria-label':'Pick your character'});
   const paint = () => {
     grid.replaceChildren(...looks.map(l => {
-      const [emo, label] = MOOD_LABELS[(l >>> 0) % 6];
+      const [emo, label] = MOOD_LABELS[isReal(l) ? realMood(l) : (l >>> 0) % 6];
+      const src = isReal(l) ? AV_BASE + 'p' + String(realIdx(l)).padStart(2, '0') + '.png' : PICK.imgs[l];
       const b = h('button', {type:'button', class:'pick', role:'radio', 'aria-checked':String(l === P.look), 'aria-label':label + ' character'},
-        PICK.imgs[l] ? h('img', {src:PICK.imgs[l], alt:''}) : h('span', {class:'pick-ph', style:'--c:' + lookColor({look:l, name:''}), text:emo}),
+        src ? h('img', {src, alt:'', loading:'lazy'}) : h('span', {class:'pick-ph', style:'--c:' + lookColor({look:l, name:''}), text:emo}),
         h('span', {class:'pick-l', text:emo + ' ' + label}));
       b.addEventListener('click', () => { P.look = l; store('pokerLook', String(l)); sfx('chip'); paint(); });
       return b;
     }));
   };
-  paint(); renderPicks(paint);
+  paint(); if(!real) renderPicks(paint);
   const shuffle = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🎲 Show me others'});
-  shuffle.addEventListener('click', () => { const keep = P.look; PICK.looks = null; pickLooks(true); PICK.looks[0] = keep; P.look = keep; characterPicker.re && characterPicker.re(); });
-  const box = h('div', {class:'picker'}, grid, shuffle);
+  shuffle.addEventListener('click', () => { const keep = P.look; PICK.looks = null; pickLooks(true); if(!isReal(keep)) PICK.looks[0] = keep; P.look = keep; characterPicker.re && characterPicker.re(); });
+  const tab = (k, label) => { const b = h('button', {type:'button', class:'ptab', role:'tab', 'aria-selected':String(PICK.kind === k), text:label}); b.addEventListener('click', () => { PICK.kind = k; characterPicker.re && characterPicker.re(); }); return b; };
+  const tabs = glOK() ? h('div', {class:'ptabs', role:'tablist'}, tab('cute', '🧸 Cute'), tab('real', '🧑 Realistic')) : null;
+  const box = h('div', {class:'picker'}, tabs, grid, real ? h('p', {class:'pick-note', text:'Realistic people load the first time you sit with them (about 2 MB each).'}) : shuffle);
   characterPicker.re = () => { box.replaceWith(characterPicker()); };
   return box;
 }
@@ -2338,7 +2417,14 @@ function makePC(j){
   const pc = new RTCPeerConnection({iceServers:RTC.ice || []}); pc._name = P.s.seats[j] && P.s.seats[j].name; RTC.pcs[j] = pc;
   pc.onicecandidate = e => { if(e.candidate) psend({t:'rtc', to:j, data:{ice:e.candidate}}); };
   pc.ontrack = e => { const st = RTC.remote[j] || (RTC.remote[j] = new MediaStream()); if(!st.getTracks().includes(e.track)) st.addTrack(e.track); if(P.s) callUI(P.s); };
-  pc.onconnectionstatechange = () => { if(pc.connectionState === 'failed' && RTC.pcs[j] === pc){ closePC(j); setTimeout(() => P.s && rtcSync(P.s), 2000); } };
+  pc.onconnectionstatechange = () => {
+    const el = P.seatEls && P.seatEls[j]; if(el) el.dataset.call = pc.connectionState;
+    if(pc.connectionState === 'failed' && RTC.pcs[j] === pc){
+      RTC.fails = (RTC.fails || 0) + 1; closePC(j);
+      if(RTC.fails === 2) ptoast('Couldn’t connect the call to ' + (pc._name || 'a player') + '. On mobile data the call needs Cloudflare’s relay.', 'err');
+      setTimeout(() => P.s && rtcSync(P.s), 2500);
+    }
+  };
   return pc;
 }
 async function offerTo(j){
@@ -2379,26 +2465,57 @@ function rtcSync(s){
   for(const j of Object.keys(RTC.pcs)) if(!s.seats[j]) closePC(+j);
   callUI(s);
 }
+function playMedia(m){ const p = m.play && m.play(); if(p && p.catch) p.catch(() => { RTC.blocked = true; ptoast('Tap anywhere to hear the table 🔈'); }); }
+document.addEventListener('pointerdown', () => { if(!RTC.blocked) return; RTC.blocked = false; document.querySelectorAll('video.cv, audio.ca').forEach(m => playMedia(m)); }, true);
 function callButtons(){
   const c = $('#pCam'), m = $('#pMic'); if(!c) return;
-  c.classList.toggle('on', RTC.cam); c.textContent = RTC.cam ? '📷 Camera on' : '📷 Camera'; c.setAttribute('aria-pressed', String(RTC.cam));
-  m.classList.toggle('on', RTC.mic); m.textContent = RTC.mic ? '🎙 Mic on' : '🎙 Mic'; m.setAttribute('aria-pressed', String(RTC.mic));
+  c.classList.toggle('on', RTC.cam); c.textContent = '📷'; c.title = RTC.cam ? 'Camera on (tap to turn off)' : 'Turn on your camera'; c.setAttribute('aria-pressed', String(RTC.cam));
+  m.classList.toggle('on', RTC.mic); m.textContent = RTC.mic ? '🎙' : '🎙'; m.title = RTC.mic ? 'Mic on (tap to mute)' : 'Turn on your mic'; m.setAttribute('aria-pressed', String(RTC.mic));
 }
 function callUI(s){
   if(!P.seatEls) return;
   s.seats.forEach((x, j) => {
     const el = P.seatEls[j]; if(!el || j === s.me) return;
     const st = RTC.remote[j]; let v = el.querySelector('video.cv');
+    let au = el.querySelector('audio.ca');
     if(x && st && (x.cam || x.mic)){
-      if(!v){ v = document.createElement('video'); v.className = 'cv'; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); el.append(v); }
-      if(v.srcObject !== st){ v.srcObject = st; v.play().catch(() => {}); }
+      if(!v){ v = document.createElement('video'); v.className = 'cv'; v.autoplay = true; v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); el.append(v); }
+      if(!au){ au = document.createElement('audio'); au.className = 'ca'; au.autoplay = true; el.append(au); }
+      if(v.srcObject !== st){ v.srcObject = st; playMedia(v); }
+      if(au.srcObject !== st){ au.srcObject = st; playMedia(au); }
       v.classList.toggle('vis', !!x.cam);
-    } else if(v) v.remove();
+    } else { if(v) v.remove(); if(au) au.remove(); }
     el.classList.toggle('micon', !!(x && x.mic));
   });
-  const mb = $('#pMe'); if(mb){ let v = mb.querySelector('video.cv');
+  const mb = (P.meEl || $('#pMe')); if(mb){ let v = mb.querySelector('video.cv');
     if(RTC.cam && RTC.stream){ if(!v){ v = document.createElement('video'); v.className = 'cv vis self'; v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); mb.append(v); } if(v.srcObject !== RTC.stream){ v.srcObject = RTC.stream; v.play().catch(() => {}); } }
     else if(v) v.remove(); }
+}
+
+// ---------- settings: everything that isn't Cash out, camera or mic ----------
+function settingsSheet(){
+  openSheet((d, close) => {
+    const s = P.s || {};
+    const sw = (icon, label, note, on, onChange) => {
+      const inp = h('input', {type:'checkbox', class:'sw-in'}); inp.checked = !!on;
+      inp.addEventListener('change', () => onChange(inp.checked, inp));
+      return h('label', {class:'set-row'}, h('span', {class:'set-ic', text:icon}), h('span', {class:'set-tx'}, h('b', {text:label}), note ? h('small', {text:note}) : null), inp, h('span', {class:'sw', 'aria-hidden':'true'}));
+    };
+    const act = (icon, label, note, fn, hide) => { if(hide) return null; const b = h('button', {type:'button', class:'set-row set-btn'}, h('span', {class:'set-ic', text:icon}), h('span', {class:'set-tx'}, h('b', {text:label}), note ? h('small', {text:note}) : null), h('span', {class:'set-go', text:'›'})); b.addEventListener('click', () => fn(b)); return b; };
+    d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Settings'}), h('p', {class:'sub', style:'margin:0', text:'Table, sound and display'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
+      h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Sound'}),
+        sw('🎵', 'Lounge music', 'Soft jazz while you play', P.music, on => setMusic(on)),
+        sw('🔊', 'Sound effects', 'Chips, cards and cheers', P.sound, on => { P.sound = on; store('pokerSound', on ? '1' : '0'); if(on) sfx('chip'); })),
+      h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Display'}),
+        sw('⛶', 'Full screen', 'Just the table, nothing else', !!$('.room.full'), on => { toggleFull(on); close(); }),
+        sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
+      h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
+        sw('🃏', 'Show all hands at showdown', 'House rule. All-in hands are always shown.', s.showAll, on => psend({t:'rules', showAll:on})),
+        act('🎲', 'New random look', 'Everyone sees your new character', () => { if(psend({t:'look'})) ptoast('New look!'); close(); }),
+        act('📒', 'Session and blinds', 'Who’s in for how much, change blinds, finish the game', () => { close(); sessionSheet(); }),
+        act('🤖', 'Add a bot', 'Practice tables only', () => { psend({t:'addbot'}); close(); }, tableRoom() === 'main')),
+      h('p', {class:'set-foot', text:'Tip: tap a bot’s name tag to remove it.'}));
+  });
 }
 
 // ---------- full screen table ----------
@@ -2475,10 +2592,11 @@ function buildRoom(root){
   const botB = h('button', {type:'button', class:'rbtn', id:'pBot', text:'🤖 Add bot', title:'Add a practice bot (test tables only)'}); botB.addEventListener('click', () => psend({t:'addbot'}));
   botB.hidden = tableRoom() === 'main';
   const fs = h('button', {type:'button', class:'rbtn', id:'pFull', title:'Full screen', 'aria-label':'Full screen', text:'⛶'});
+  const gear = h('button', {type:'button', class:'rbtn gear', id:'pGear', 'aria-label':'Settings', title:'Settings', text:'⚙️'}); gear.addEventListener('click', settingsSheet);
   fs.addEventListener('click', () => toggleFull());
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
-    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, botB, dice, vc, sess, mus, snd, fs, leave)),
+    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, gear, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
       h('div', {class:'mebar', id:'pMe', hidden:true}, h('div', {class:'av'}, h('span', {class:'ini'}), h('i', {class:'ring'})), h('b', {class:'nm'}), h('span', {class:'stk num'}), h('span', {class:'tag'})),
       h('div', {class:'ptable', id:'pTable'},
@@ -2489,6 +2607,7 @@ function buildRoom(root){
     h('div', {class:'myhand', id:'pHand'}),
     h('div', {class:'actbar', id:'pAct'}),
     h('div', {class:'ticker', id:'pTicker', 'aria-live':'polite'})));
+  P.meEl = $('#pMe');
   const scene = $('#pScene');
   glStart(scene);
   if(store('pokerMusic') === '1' && !P.music){ const go = () => { document.removeEventListener('pointerdown', go, true); if(!P.music && $('#pScene')) setMusic(true); }; document.addEventListener('pointerdown', go, true); }
@@ -2514,10 +2633,11 @@ function updateRoom(s){
     h('span', {class:'conn ' + (P.open ? 'on' : 'off'), text:P.open ? 'Live' : 'Reconnecting…'}),
     s.finishing ? h('span', {class:'conn off', text:'Last hand'}) : '');
   $('#pLeave').hidden = me < 0;
-  const mb = $('#pMe'), mx = me >= 0 ? s.seats[me] : null; mb.hidden = !mx;
+  const mb = (P.meEl || $('#pMe')), mx = me >= 0 ? s.seats[me] : null; mb.hidden = !mx;
   if(mx){ mb.querySelector('.av').style.setProperty('--c', avColor(mx.name)); mb.querySelector('.ini').textContent = initials(mx.name); mb.querySelector('.nm').textContent = mx.name;
     mb.querySelector('.stk').textContent = peso(mx.stack) + (mx.pendingRebuy ? ' +' + mx.pendingRebuy : '');
-    mb.querySelector('.tag').textContent = mx.allIn ? 'ALL IN' : h_ && me === h_.sb ? 'SB' : h_ && me === h_.bb ? 'BB' : s.dealer === me ? 'Dealer' : '';
+    const mr = seatRole(s, me), mt = mb.querySelector('.tag');
+    mt.textContent = mx.sitOut ? 'Sitting out' : mx.allIn ? 'ALL IN' : mr.text; mt.dataset.role = mx.sitOut ? 'off' : mx.allIn ? 'allin' : mr.kind;
     mb.classList.toggle('turn', !!(h_ && h_.toAct === me)); }
   // seats
   const layer = $('#pSeats'); const bets = $('#pBets');
@@ -2544,11 +2664,15 @@ function updateRoom(s){
     el.classList.toggle('busted', x.stack === 0 && !x.inHand && !x.pendingRebuy);
     el.classList.toggle('winner', !!(sd && sd.winners.some(w => w.seat === i)));
     el.querySelector('.stk').textContent = peso(x.stack) + (x.pendingRebuy ? ' +' + x.pendingRebuy : '');
-    el.querySelector('.tag').textContent = x.allIn ? 'ALL IN' : !x.connected ? 'away' : x.stack === 0 && !x.inHand ? 'out of chips' : (h_ && i === h_.sb ? 'SB' : h_ && i === h_.bb ? 'BB' : '');
+    const tg = el.querySelector('.tag'), role = seatRole(s, i);
+    tg.textContent = x.allIn ? 'ALL IN' : !x.connected ? 'away' : x.sitOut ? 'sitting out' : x.stack === 0 && !x.inHand ? 'out of chips' : role.text;
+    tg.dataset.role = x.allIn ? 'allin' : (!x.connected || x.sitOut || (x.stack === 0 && !x.inHand)) ? 'off' : role.kind;
     // cards at the seat (others), revealed at showdown
     const sc = el.querySelector('.scards'); const shown = sd && sd.shown[i];
     const want = x.me ? '' : shown ? shown.join() : (x.cards && !x.folded ? 'back' : '');
     if(sc.dataset.k !== want){ sc.dataset.k = want; sc.replaceChildren(...(want ? (shown ? shown.map((c, k) => cardEl(c, 'sm flipin d' + k)) : [cardEl('??', 'sm'), cardEl('??', 'sm')]) : [])); }
+    sc.classList.toggle('reveal', !!shown);
+    if(shown && sd && sd.best) sc.querySelectorAll('.pc').forEach(c => c.classList.toggle('win', sd.best.includes(c.dataset.c) && sd.winners.some(w => w.seat === i)));
     // bet in front of the seat
     let b = bets.querySelector('[data-seat="' + i + '"]');
     if(x.bet > 0){
@@ -2571,18 +2695,23 @@ function updateRoom(s){
   }
   P.boardShown = boardCards.length;
   for(const sl of slots){ const c = sl.firstChild; if(c) c.classList.toggle('win', !!(sd && sd.best && sd.best.includes(c.dataset.c))); }
+  $('#pBoard').classList.toggle('has-win', !!(sd && sd.best && sd.best.length));
   // pot
   const pot = h_ ? h_.pot - s.seats.reduce((a, x) => a + (x ? x.bet : 0), 0) : 0;
   const potEl = $('#pPot'); potEl.hidden = !(h_ && h_.pot > 0); potEl.querySelector('b').textContent = 'Pot ' + peso(h_ ? h_.pot : 0);
   potEl.querySelector('.stack').style.setProperty('--n', String(Math.min(6, Math.ceil(pot / (s.blinds.bb * 4)) || 1)));
   // center message
   const cm = $('#pMsg');
-  if(sd){ cm.replaceChildren(...sd.winners.map(w => h('div', {class:'winline'}, h('b', {text:w.name + ' wins ' + peso(w.amount)}), w.hand ? h('span', {text:w.hand}) : null))); cm.className = 'center-msg show win'; }
+  if(sd){ cm.replaceChildren(...sd.winners.map(w => h('div', {class:'winline'}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount)}), w.hand ? h('span', {text:w.hand}) : h('span', {text:'Everyone else folded'})))); cm.className = 'center-msg show win'; }
   else if(!h_ && s.nextHandAt){ const sec = Math.max(0, Math.ceil((s.nextHandAt - (Date.now() + P.skew)) / 1000)); cm.replaceChildren(h('span', {class:'count', text:'Next hand in ' + sec})); cm.className = 'center-msg show soft'; }
   else if(!h_){ const n = s.seats.filter(x => x && (x.stack > 0 || x.pendingRebuy)).length; cm.replaceChildren(h('span', {text:n < 2 ? 'Waiting for one more player…' : 'Ready when you are'})); cm.className = 'center-msg show soft'; }
   else { cm.className = 'center-msg'; cm.replaceChildren(); }
   renderMyHand(s, sd); renderActions(s);
-  $('#pTicker').replaceChildren(...s.log.slice(-3).map(l => h('div', {text:l.text})));
+  { const mbx = (P.meEl || $('#pMe')), side = $('#pHand .hole-side'), scene = $('#pScene');
+    if(mbx){ if(side && !side.contains(mbx)) side.prepend(mbx); else if(!side && scene && mbx.parentNode !== scene) scene.append(mbx); mbx.classList.toggle('inhand', !!side); } }
+  const tk = $('#pTicker'); const atEnd = tk.scrollHeight - tk.scrollTop - tk.clientHeight < 30;
+  const key = s.log.length + '|' + (s.log.length ? s.log[s.log.length - 1].t : '');
+  if(tk.dataset.k !== key){ tk.dataset.k = key; tk.replaceChildren(...s.log.map(l => h('div', {class:/ wins /.test(l.text) ? 'win' : /^Hand #/.test(l.text) ? 'hand' : '', text:l.text}))); if(atEnd || !tk.dataset.seen){ tk.scrollTop = tk.scrollHeight; tk.dataset.seen = '1'; } }
   if(P.gl) P.gl.sync(s, sd);
   rtcSync(s); callButtons();
 }
@@ -2619,7 +2748,7 @@ function seatPeek(seat, on){ const el = P.seatEls && P.seatEls[seat]; if(el) el.
 // ---------- actions ----------
 function renderActions(s){
   const bar = $('#pAct'); const me = s.me >= 0 ? s.seats[s.me] : null; const o = s.options;
-  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen]);
+  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen, s.lastHand && [s.lastHand.no, Object.keys(s.lastHand.shown || {}).length], P.mucked]);
   if(bar.dataset.k === k) return; bar.dataset.k = k; bar.replaceChildren();
   const emotes = h('div', {class:'emotes'}, ['😂', '🔥', '😱', '👏', '😎', '🙏'].map(e => { const b = h('button', {type:'button', class:'emo', text:e, 'aria-label':'React ' + e}); b.addEventListener('click', () => psend({t:'emote', e})); return b; }));
   if(!me){
@@ -2642,6 +2771,19 @@ function renderActions(s){
     return;
   }
   bar.classList.remove('myturn'); P.raiseOpen = false;
+  const lh = s.lastHand;
+  const wonLast = lh && (lh.winners || []).some(w => w.seat === s.me);
+  if(!s.hand && !s.result && lh && lh.players.includes(s.me) && !(lh.shown || {})[s.me] && P.mucked !== lh.no && (wonLast || (lh.showdown && !(lh.folded || []).includes(s.me)))){
+    const won = wonLast;
+    const yes = h('button', {type:'button', class:'btn show-btn', text:'🃏 Show my cards'});
+    const no = h('button', {type:'button', class:'btn btn-ghost', text:won ? 'Keep hidden' : 'Muck'});
+    yes.addEventListener('click', () => { psend({t:'show'}); yes.disabled = no.disabled = true; });
+    no.addEventListener('click', () => { P.mucked = lh.no; bar.dataset.k = ''; renderActions(P.s); });
+    bar.append(h('div', {class:'show-ask' + (won ? ' won' : '')},
+      h('b', {text:won ? '🏆 You won! Show your cards?' : 'Show your cards?'}),
+      h('span', {class:'show-note', text:won ? 'Everyone folded, so nobody has seen them.' : 'The winner’s hand is shown. Yours stays hidden unless you show it.'}),
+      h('div', {class:'show-row'}, yes, no)));
+  }
   if(s.hand){
     const who = s.hand.toAct >= 0 && s.seats[s.hand.toAct] ? s.seats[s.hand.toAct].name : '';
     bar.append(h('div', {class:'act-msg', text:me.folded ? 'You folded. Next hand soon.' : me.allIn ? 'You’re all in. Good luck!' : (who ? 'Waiting for ' + who + '…' : '')}), emotes);
@@ -2673,19 +2815,22 @@ function raisePanel(s, o){
 // ---------- cash in again / cash out ----------
 function rebuySheet(auto){
   const s = P.s; if(!s || s.me < 0) return;
-  openSheet((d, close) => {
+  if(P.rebuyOpen){ if(auto) return; P.rebuyOpen(); }   // only ever one cash-in panel
+  const closeIt = openSheet((d, close) => {
     let amt = String(START_BUYIN);
     const big = h('div', {class:'sh-big num', tabIndex:-1, 'data-autofocus':''});
     const ok = h('button', {type:'button', class:'btn btn-red btn-lg sh-ok'});
     const paint = () => { big.textContent = peso(+amt || 0); ok.disabled = !(+amt > 0); ok.textContent = +amt > 0 ? 'Cash in ' + peso(+amt) : 'Enter an amount'; };
     const quick = h('div', {class:'quick'}, [100, 200, 300, 500].map(a => { const b = h('button', {type:'button', class:'cashbtn', text:peso(a)}); b.addEventListener('click', () => { amt = String(a); paint(); }); return b; }));
     const pad = keypad(d, k => { amt = editNum(amt, k, 6); paint(); });
-    ok.addEventListener('click', () => { if(psend({t:'cashin', amount:+amt})){ close(); sfx('chip'); } });
+    ok.addEventListener('click', () => { if(ok.dataset.sent) return; if(psend({t:'cashin', amount:+amt})){ ok.dataset.sent = '1'; ok.disabled = true; close(); sfx('chip'); } else ptoast('Reconnecting to the table. Try again in a moment.', 'err'); });
     const out = h('button', {type:'button', class:'linkbtn', text:'No thanks, cash out and leave'}); out.addEventListener('click', () => { close(); psend({t:'leave'}); });
     d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:auto ? 'You’re out of chips 😬' : 'Cash in again'}), h('p', {class:'sub', style:'margin:0', text:'It goes on your tab like any rebuy. ' + (s.hand ? 'Your chips arrive after this hand.' : '')})),
       h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})), big, quick, pad, h('div', {class:'sh-foot'}, ok, out));
     paint();
   });
+  P.rebuyOpen = () => { closeIt(); P.rebuyOpen = null; };
+  const d = document.querySelector('dialog.sheet:last-of-type'); if(d) d.addEventListener('close', () => { P.rebuyOpen = null; });
 }
 async function leaveTable(){
   const s = P.s; const me = s && s.me >= 0 ? s.seats[s.me] : null; if(!me) return;
@@ -2749,7 +2894,7 @@ function fly(from, to, el, ms, delay){
 }
 const chipEl = () => h('span', {class:'fchip'}, h('i'), h('i'), h('i'));
 function bubble(seat, text, cls){ const el = P.seatEls && P.seatEls[seat]; if(!el) return; const b = el.querySelector('.bubble'); b.textContent = text; b.className = 'bubble show ' + (cls || ''); clearTimeout(b._t); b._t = setTimeout(() => b.className = 'bubble', 1800); }
-function floatEmote(seat, e){ if(P.gl) try{ P.gl.react(seat, 'emote', {e}); }catch(x){} const host = P.s && seat === P.s.me ? $('#pMe') : P.seatEls && P.seatEls[seat]; if(!host) return; const el = h('span', {class:'emote-s', text:e}); host.append(el); setTimeout(() => el.remove(), 2200); }
+function floatEmote(seat, e){ if(P.gl) try{ P.gl.react(seat, 'emote', {e}); }catch(x){} const host = P.s && seat === P.s.me ? (P.meEl || $('#pMe')) : P.seatEls && P.seatEls[seat]; if(!host) return; const el = h('span', {class:'emote-s', text:e}); host.append(el); setTimeout(() => el.remove(), 2200); }
 function handleEvent(ev, prev, s){
   if(!$('#pTable')) return;
   if(P.gl) try{ P.gl.react(ev.seat, ev.type === 'bet' || ev.type === 'raise' || ev.type === 'call' ? ev.type : ev.type, ev); }catch(e){}
@@ -2770,22 +2915,28 @@ function handleEvent(ev, prev, s){
     updateRoom(s);
   } else if(ev.type === 'win'){
     const lh = s.lastHand || {};
-    P.showdown = {until:Date.now() + 5200, shown:lh.shown || {}, winners:ev.winners || [], board:lh.board || [], best:ev.showdown && ev.winners && ev.winners[0] ? ev.winners[0].cards || [] : []};
+    P.showdown = {no:lh.no, until:Date.now() + (ev.late && s.hand ? 3500 : 5500), shown:lh.shown || {}, winners:ev.winners || [], board:lh.board || [], best:ev.showdown && ev.winners && ev.winners[0] ? ev.winners[0].cards || [] : []};
     (ev.winners || []).forEach((w, n) => { for(let c = 0; c < 5; c++) fly([50, 58], seatXY(w.seat), chipEl(), 600, 350 + c * 60 + n * 200); });
     setTimeout(() => sfx('win'), 300); flash('win');
     if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)) setTimeout(() => confetti(true), 500);
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
   } else if(ev.type === 'cashin'){
-    const host = seat === s.me ? $('#pMe') : P.seatEls[seat]; if(host){ const el = h('span', {class:'emote-s plus', style:'font-size:1rem', text:'+' + peso(ev.amount)}); host.append(el); setTimeout(() => el.remove(), 1600); } sfx('chip');
+    const host = seat === s.me ? (P.meEl || $('#pMe')) : P.seatEls[seat]; if(host){ const el = h('span', {class:'emote-s plus', style:'font-size:1rem', text:'+' + peso(ev.amount)}); host.append(el); setTimeout(() => el.remove(), 1600); } sfx('chip');
   } else if(ev.type === 'sit'){ if(seat !== s.me){ ptoast(ev.name + ' sat down 👋'); sfx('chip'); } }
   else if(ev.type === 'leave'){ ptoast(ev.name + ' cashed out ' + peso(ev.amount)); }
+  else if(ev.type === 'show'){
+    const lh = s.lastHand || {}; const prevSd = P.showdown && Date.now() < P.showdown.until ? P.showdown : null;
+    P.showdown = {until:Date.now() + 5000, shown:Object.assign({}, lh.shown || {}), winners:prevSd ? prevSd.winners : (lh.winners || []).map(w => Object.assign({}, w, {hand:null})), board:lh.board || [], best:[]};
+    if(seat !== s.me) ptoast(ev.name + ' shows their cards 👀'); sfx('card'); updateRoom(s);
+    setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5100);
+  }
   else if(ev.type === 'finishing'){ ptoast('Last hand! The game ends after this one.'); }
 }
 // countdown + turn timer ring
 setInterval(() => {
   const s = P.s; if(!s || $('#view-play').hidden || !$('#pTable')) return;
   const now = Date.now() + P.skew;
-  if(s.hand && s.deadline){ const left = Math.max(0, s.deadline - now); const el = s.hand.toAct === s.me ? $('#pMe') : P.seatEls[s.hand.toAct]; if(el) el.style.setProperty('--p', String(left / 45000)); if(el) el.classList.toggle('hurry', left < 10000); }
+  if(s.hand && s.deadline){ const left = Math.max(0, s.deadline - now); const el = s.hand.toAct === s.me ? (P.meEl || $('#pMe')) : P.seatEls[s.hand.toAct]; if(el) el.style.setProperty('--p', String(left / 45000)); if(el) el.classList.toggle('hurry', left < 10000); }
   if(!s.hand && s.nextHandAt){ const c = $('#pMsg .count'); if(c) c.textContent = 'Next hand in ' + Math.max(0, Math.ceil((s.nextHandAt - now) / 1000)); }
   if(P.showdown && Date.now() > P.showdown.until){ P.showdown = null; updateRoom(s); }
 }, 250);
@@ -2819,7 +2970,15 @@ function playEnter(name){
 }
 
 // ===== 3D table (three.js, loaded on demand) =====
-const lookColor = x => x.look ? 'hsl(' + (x.look % 360) + ' ' + (50 + (x.look >>> 9) % 30) + '% ' + (38 + (x.look >>> 15) % 18) + '%)' : avColor(x.name);
+const GLTF_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/loaders/GLTFLoader.js/+esm';
+const SKEL_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/utils/SkeletonUtils.js/+esm';
+const AV_BASE = new URL('avatars/', location.href).href;
+const REAL_BASE = 4294967040, REAL_N = 12;
+const isReal = l => l > REAL_BASE && l <= REAL_BASE + REAL_N;
+const realIdx = l => l - REAL_BASE;
+const realMood = l => (realIdx(l) * 5 + 1) % 6;
+const REAL_COLORS = ['#9B3FB5', '#E7B8C0', '#222222', '#3A4A8C', '#49A877', '#5A4A50', '#B9AF9C', '#C8102E', '#2A2A2A', '#4B6E9E', '#4F78A8', '#1F4FA8'];
+const lookColor = x => isReal(x.look) ? REAL_COLORS[realIdx(x.look) - 1] : x.look ? 'hsl(' + (x.look % 360) + ' ' + (50 + (x.look >>> 9) % 30) + '% ' + (38 + (x.look >>> 15) % 18) + '%)' : avColor(x.name);
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/+esm';
 let THREE_P = null;
 const loadThree = () => THREE_P || (THREE_P = import(THREE_URL));
@@ -2837,6 +2996,85 @@ function glStart(host){
     if(P.s) updateRoom(P.s);
     if(P.glEnter){ P.glEnter = false; P.gl.enter(); }
   }).catch(e => { P.glFailed = true; P.glEnter = false; console.warn('3D table off:', e); });
+}
+
+// Realistic seated people (Microsoft Rocketbox, MIT): pose a standing rig into a chair and animate it with bones.
+function realKit(T){
+  const V = () => new T.Vector3(), Q = () => new T.Quaternion();
+  const tmpA = V(), tmpB = V(), qa = Q(), qb = Q(), qc = Q();
+  function aim(bone, child, dir){
+    bone.updateWorldMatrix(true, true);
+    const cur = child.getWorldPosition(tmpA).sub(bone.getWorldPosition(tmpB)).normalize();
+    qa.setFromUnitVectors(cur, tmpB.copy(dir).normalize());
+    bone.getWorldQuaternion(qb); bone.parent.getWorldQuaternion(qc);
+    bone.quaternion.copy(qc.invert().multiply(qa.multiply(qb)));
+    bone.updateWorldMatrix(false, true);
+  }
+  // rotate a bone by an avatar-space rotation (axis, angle), keeping it relative to its pose
+  function turn(bone, axis, ang){
+    if(!ang) return;
+    bone.updateWorldMatrix(true, false);
+    bone.parent.getWorldQuaternion(qc); qa.setFromAxisAngle(axis, ang);
+    qb.copy(qc).invert().multiply(qa).multiply(qc);   // parent-space rotation
+    bone.quaternion.premultiply(qb);
+  }
+  const X = new T.Vector3(1, 0, 0), Y = new T.Vector3(0, 1, 0), Z = new T.Vector3(0, 0, 1);
+  function rig(model){
+    const b = n => model.getObjectByName('Bip01_' + n);
+    const R = {model, b:{}};
+    for(const n of ['Pelvis', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head', 'L_Thigh', 'L_Calf', 'L_Foot', 'L_Toe0', 'R_Thigh', 'R_Calf', 'R_Foot', 'R_Toe0', 'L_Clavicle', 'R_Clavicle', 'L_UpperArm', 'L_Forearm', 'L_Hand', 'L_Finger2', 'R_UpperArm', 'R_Forearm', 'R_Hand', 'R_Finger2',
+      'LEyeBlinkTop', 'REyeBlinkTop', 'LEyeBlinkBottom', 'REyeBlinkBottom', 'LMouthCorner', 'RMouthCorner', 'MJaw', 'LInnerEyebrow', 'RInnerEyebrow', 'LOuterEyebrow', 'ROuterEyebrow', 'MBottomLip', 'MUpperLip', 'LEye', 'REye']) R.b[n] = b(n);
+    return R;
+  }
+  // arm directions in avatar space (+z is toward the table)
+  const REST = {thigh:new T.Vector3(0, -.12, 1), calf:new T.Vector3(0, -1, .12), foot:new T.Vector3(0, -.25, 1),
+    upper:s => new T.Vector3(s * .18, -.75, .55), fore:s => new T.Vector3(-s * .28, .02, 1), hand:s => new T.Vector3(-s * .2, -.15, 1)};
+  function sit(R){
+    const b = R.b, m = R.model;
+    m.updateWorldMatrix(true, true);
+    for(const s of ['L', 'R']){ const sx = s === 'L' ? 1 : -1;
+      aim(b[s + '_Thigh'], b[s + '_Calf'], tmpA.set(sx * .12, -.12, 1).clone());
+      aim(b[s + '_Calf'], b[s + '_Foot'], REST.calf);
+      aim(b[s + '_Foot'], b[s + '_Toe0'], REST.foot);
+    }
+    // drop the hips onto the chair
+    m.updateWorldMatrix(true, true);
+    const hip = b.Pelvis.getWorldPosition(V()), foot = b.L_Foot.getWorldPosition(V());
+    R.seatOffset = .52 - hip.y; m.position.y += R.seatOffset; m.position.z -= (hip.z - (-.06));
+    m.updateWorldMatrix(true, true);
+    // remember the seated pose for every bone
+    R.pose = new Map(); m.traverse(o => { if(o.isBone) R.pose.set(o, {q:o.quaternion.clone(), p:o.position.clone()}); });
+    // face rig targets: where lids / mouth corners go, in their parents' space
+    const off = (bone, dx, dy, dz) => { if(!bone) return null; bone.updateWorldMatrix(true, false); const w = bone.getWorldPosition(V()).add(tmpA.set(dx, dy, dz)); return bone.parent.worldToLocal(w); };
+    R.face = {
+      lidL:off(b.LEyeBlinkTop, 0, -.013, .001), lidR:off(b.REyeBlinkTop, 0, -.013, .001),
+      smileL:off(b.LMouthCorner, .006, .009, -.002), smileR:off(b.RMouthCorner, -.006, .009, -.002),
+      frownL:off(b.LMouthCorner, .001, -.006, 0), frownR:off(b.RMouthCorner, -.001, -.006, 0),
+      browUpL:off(b.LInnerEyebrow, 0, .006, 0), browUpR:off(b.RInnerEyebrow, 0, .006, 0), browDnL:off(b.LInnerEyebrow, -.002, -.005, .001), browDnR:off(b.RInnerEyebrow, .002, -.005, .001),
+    };
+    return R;
+  }
+  // per frame: start from the seated pose, then layer on breathing, gestures, head look and the face
+  function drive(R, st){
+    const b = R.b;
+    for(const [o, p] of R.pose){ o.quaternion.copy(p.q); o.position.copy(p.p); }
+    turn(b.Spine, X, st.lean || 0); turn(b.Spine1, X, st.breath || 0); turn(b.Spine, Z, st.sway || 0);
+    for(const s of ['L', 'R']){ const sx = s === 'L' ? 1 : -1, g = st.arms && st.arms[s];
+      const up = REST.upper(sx), fo = REST.fore(sx), ha = REST.hand(sx);
+      if(g){ up.lerp(g.up, g.w).normalize(); fo.lerp(g.fo, g.w).normalize(); }
+      aim(b[s + '_UpperArm'], b[s + '_Forearm'], up); aim(b[s + '_Forearm'], b[s + '_Hand'], fo); if(b[s + '_Finger2']) aim(b[s + '_Hand'], b[s + '_Finger2'], ha);
+    }
+    turn(b.Neck, Y, (st.yaw || 0) * .4); turn(b.Head, Y, (st.yaw || 0) * .6);
+    turn(b.Neck, X, (st.pitch || 0) * .4); turn(b.Head, X, (st.pitch || 0) * .6); turn(b.Head, Z, st.roll || 0);
+    const f = R.face, P_ = R.pose, mix = (bone, to, k) => { if(bone && to && k) bone.position.lerpVectors(P_.get(bone).p, to, Math.max(-1, Math.min(1.2, k))); };
+    mix(b.LEyeBlinkTop, f.lidL, st.lid || 0); mix(b.REyeBlinkTop, f.lidR, st.lid || 0);
+    if(st.smile > 0){ mix(b.LMouthCorner, f.smileL, st.smile); mix(b.RMouthCorner, f.smileR, st.smile); }
+    if(st.smile < 0){ mix(b.LMouthCorner, f.frownL, -st.smile); mix(b.RMouthCorner, f.frownR, -st.smile); }
+    if(st.brow > 0){ mix(b.LInnerEyebrow, f.browUpL, st.brow); mix(b.RInnerEyebrow, f.browUpR, st.brow); }
+    if(st.brow < 0){ mix(b.LInnerEyebrow, f.browDnL, -st.brow); mix(b.RInnerEyebrow, f.browDnR, -st.brow); }
+    if(b.MJaw) turn(b.MJaw, X, st.jaw || 0);
+  }
+  return {rig, sit, drive, aim, turn};
 }
 
 // characters, shared by the table and the picker in the lobby
@@ -3017,6 +3255,7 @@ function makeGL(T, host){
   const spot = new T.SpotLight(0xffe2b4, 16, 7, .95, .6, 1.2); spot.position.set(0, 2.2, 0); spot.castShadow = true;
   spot.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048); spot.shadow.bias = -.0004; spot.shadow.normalBias = .02; spot.shadow.radius = 4;
   scene.add(spot); spot.target.position.set(0, .7, 0); scene.add(spot.target);
+  const winSpot = new T.SpotLight(0xffe7a8, 0, 6, .35, .5, 1.2); winSpot.position.set(0, 2.4, 0); scene.add(winSpot); scene.add(winSpot.target);
   scene.add(new T.HemisphereLight(0xffd7b0, 0x2a0810, 1.1));
   [[-3.6, -3.6], [3.6, -3.6], [-3.6, 3.6], [3.6, 3.6]].forEach(([x, z]) => { const l = new T.PointLight(0xffb070, 5, 6, 1.5); l.position.set(x, 2.2, z); scene.add(l); const sc = new T.Mesh(new T.SphereGeometry(.07, 12, 8), new T.MeshBasicMaterial({color:0xffd9a0, toneMapped:false})); sc.position.copy(l.position); room.add(sc); });
 
@@ -3108,7 +3347,27 @@ function makeGL(T, host){
   const KIT = avatarKit(T, {col, hash, M});
   const {SKIN, MOODS} = KIT;
   const avs = {};
-  function makeAvatar(name, color, look){ const a = KIT.makeAvatar(name, color, look); scene.add(a.g); scene.add(a.hole); return a; }
+  function makeAvatar(name, color, look){ const a = isReal(look) ? makeReal(name, look) : KIT.makeAvatar(name, color, look); scene.add(a.g); scene.add(a.hole); return a; }
+  // ---------- realistic people ----------
+  const RK = realKit(T); const realCache = {};
+  const loadReal = idx => realCache[idx] || (realCache[idx] = Promise.all([import(GLTF_URL), import(SKEL_URL)]).then(([G, SU]) => new G.GLTFLoader().loadAsync(AV_BASE + 'p' + String(idx).padStart(2, '0') + '.glb').then(gl => ({gl, SU}))));
+  function makeReal(name, look){
+    const idx = realIdx(look), g = new T.Group(), inner = new T.Group(); g.add(inner);
+    const seat = new T.Mesh(new T.BoxGeometry(.5, .07, .48), M.chair); seat.position.set(0, .47, -.06); seat.castShadow = true; inner.add(seat);
+    const back = new T.Mesh(new T.BoxGeometry(.5, .62, .07), M.chair); back.position.set(0, .8, -.32); back.rotation.x = -.08; back.castShadow = true; inner.add(back);
+    for(const [lx, lz] of [[-.21, .14], [.21, .14], [-.21, -.26], [.21, -.26]]){ const l = new T.Mesh(new T.CylinderGeometry(.018, .018, .45), M.dark); l.position.set(lx, .225, lz); inner.add(l); }
+    const ring = new T.Mesh(new T.RingGeometry(.26, .29, 48), new T.MeshBasicMaterial({color:0xF3D891, transparent:true, opacity:0, toneMapped:false, side:T.DoubleSide, depthWrite:false}));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(0, .01, .05); g.add(ring);
+    const a = {g, inner, hole:new T.Group(), ring, real:null, mood:MOODS[realMood(look)], name, color:REAL_COLORS[idx - 1], cloth:new T.MeshStandardMaterial(), arms:[], eyes:[],
+      born:performance.now(), seed:idx * 1.7, pos:null, holeKey:null, expr:'happy', exprUntil:performance.now() + 2600, act:'wave', actT:performance.now() + 900, actDur:1800, nextBlink:performance.now() + 1500, blinkT:0, st:{}};
+    loadReal(idx).then(({gl, SU}) => {
+      if(!alive) return;
+      const m = SU.clone(gl.scene); m.traverse(o => { if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; } });
+      const holder = new T.Group(); holder.add(m); inner.add(holder);
+      const R = RK.rig(m); RK.sit(R); a.real = R; a.realBorn = performance.now();
+    }).catch(e => console.warn('person', e));
+    return a;
+  }
   function removeAv(i){
     const a = avs[i]; if(!a) return; delete avs[i];
     a.leaving = performance.now();
@@ -3116,7 +3375,8 @@ function makeGL(T, host){
   }
   function placeAvatar(a, x, y){
     const p = seatPose(x, y);
-    const target = new T.Vector3(p.rim.x + p.n.x * .5, 0, p.rim.z + p.n.y * .5);
+    const back = a.real !== undefined ? .64 : .5;
+    const target = new T.Vector3(p.rim.x + p.n.x * back, 0, p.rim.z + p.n.y * back);
     if(!a.pos){ a.pos = target.clone(); a.g.position.copy(target); }
     a.target = target;
     a.g.lookAt(0, 0, 0);
@@ -3142,7 +3402,7 @@ function makeGL(T, host){
     const fa = new T.Mesh(new T.CapsuleGeometry(.055, .36, 4, 12), meCloth); fa.position.set(sx * .3, TY + .12, .02); fa.rotation.set(Math.PI / 2 - .25, 0, sx * .5); fa.castShadow = true; meArms.add(fa);
     const hd = new T.Mesh(new T.SphereGeometry(.06, 16, 12), meSkin); hd.scale.set(1, .85, 1); hd.position.set(sx * .21, TY + .09, -.15); hd.castShadow = true; meArms.add(hd);
   }
-  function setMe(x){ const k = x.name + (x.look || 0); if(meArms.userData.n === k) return; meArms.userData.n = k; meCloth.color.copy(col(lookColor(x))); meSkin.color.set(SKIN[((x.look || hash(x.name)) >>> 4) % SKIN.length]); }
+  function setMe(x){ const k = x.name + (x.look || 0); if(isReal(x.look)){ meSkin.color.set(SKIN[(realIdx(x.look) * 3) % SKIN.length]); } if(meArms.userData.n === k) return; meArms.userData.n = k; meCloth.color.copy(col(lookColor(x))); meSkin.color.set(SKIN[((x.look || hash(x.name)) >>> 4) % SKIN.length]); }
 
   // ---------- expressions & reactions ----------
   const camWorld = new T.Vector3();
@@ -3248,6 +3508,71 @@ function makeGL(T, host){
     // glow + ring on their turn / win
     const glow = a.win ? .3 + Math.sin(t / 150) * .15 : a.turn ? .12 + Math.sin(t / 300) * .08 : 0;
     a.cloth.emissive.set(0xD9A93A); a.cloth.emissiveIntensity = glow;
+    a.ring.material.opacity += ((a.turn || a.win ? .9 : 0) - a.ring.material.opacity) * .15;
+    a.hole.children.forEach((c, n) => { const lift = a.peek && a.holeKey === 'B' ? .55 : 0; c.userData.l = (c.userData.l || 0) + (lift - (c.userData.l || 0)) * .25; if(a.holeKey === 'B'){ c.rotation.x = FACEDOWN - c.userData.l; c.position.y = .002 + n * .002 + c.userData.l * .03; } });
+    if(a.peek && !a.expr && a.holeKey === 'B') express(a, Math.random() < .5 ? 'smug' : 'worried', 1200);
+  }
+
+  const ARM = {
+    cheer:s => ({up:new T.Vector3(s * .35, 1, .15), fo:new T.Vector3(s * .1, 1, .2)}),
+    wave:s => ({up:new T.Vector3(s * .6, .7, .3), fo:new T.Vector3(s * .2, 1, .25)}),
+    clap:s => ({up:new T.Vector3(s * .1, -.55, .8), fo:new T.Vector3(-s * .85, .35, .45)}),
+    pray:s => ({up:new T.Vector3(s * .05, -.6, .7), fo:new T.Vector3(-s * .55, .8, .35)}),
+    push:s => ({up:new T.Vector3(s * .1, -.45, 1), fo:new T.Vector3(-s * .05, -.15, 1)}),
+    lift:s => ({up:new T.Vector3(s * .18, -.7, .6), fo:new T.Vector3(-s * .2, .35, 1)}),
+  };
+  function animateReal(a, i, t, dt, meTurn, actor){
+    const md = a.mood, tt = t / 1000;
+    if(a.target){ a.g.position.lerp(a.target, 1 - Math.pow(.001, dt)); a.g.lookAt(0, 0, 0); }
+    if(a.leaving) return;
+    const age = a.realBorn ? (t - a.realBorn) / 600 : 0;
+    a.inner.position.y = a.realBorn && age < 1 ? (1 - (1 - Math.pow(1 - age, 3))) * .25 : 0;
+    if(!a.real) return;
+    if(a.expr && t > a.exprUntil) a.expr = null;
+    let ex = a.expr || (a.win ? 'happy' : a.folded ? 'meh' : a.turn ? 'think' : 'idle');
+    if(md.yawn && !a.expr && !a.turn && (tt + a.seed) % 14 < 1.6) ex = 'yawn';
+    const an = a.act, ak = an ? (t - a.actT) / a.actDur : 1; if(an && ak >= 1) a.act = null;
+    const s1 = an && ak > 0 && ak < 1 ? Math.sin(ak * Math.PI) : 0;
+    const arms = {};
+    let lean = a.folded ? .1 : 0, sway = Math.sin(tt * .6 + a.seed) * .02, jump = 0, jaw = 0;
+    if(an && s1){
+      if(an === 'cheer'){ arms.L = Object.assign(ARM.cheer(1), {w:s1}); arms.R = Object.assign(ARM.cheer(-1), {w:s1}); lean = -.1 * s1; }
+      else if(an === 'wave'){ const w = ARM.wave(-1); w.fo.x += Math.sin(ak * 22) * .5; arms.R = Object.assign(w, {w:s1}); }
+      else if(an === 'clap'){ const c = Math.sin(ak * 40) * .25; const L = ARM.clap(1), R = ARM.clap(-1); L.fo.x -= c; R.fo.x += c; arms.L = Object.assign(L, {w:s1}); arms.R = Object.assign(R, {w:s1}); }
+      else if(an === 'pray'){ arms.L = Object.assign(ARM.pray(1), {w:s1}); arms.R = Object.assign(ARM.pray(-1), {w:s1}); }
+      else if(an === 'push' || an === 'lean'){ arms.L = Object.assign(ARM.push(1), {w:s1}); arms.R = Object.assign(ARM.push(-1), {w:s1}); lean = (an === 'lean' ? .22 : .1) * s1; }
+      else if(an === 'tap'){ arms.R = Object.assign(ARM.lift(-1), {w:Math.abs(Math.sin(ak * Math.PI * 3)) * .8}); }
+      else if(an === 'pump'){ arms.R = Object.assign(ARM.cheer(-1), {w:s1}); }
+      else if(an === 'nod'){ lean = Math.sin(ak * Math.PI * 2) * .05; }
+      else if(an === 'slump'){ lean = .1 + .12 * s1; }
+      else if(an === 'laugh'){ lean = -.06 * s1; sway += Math.sin(ak * 50) * .03 * s1; jaw = .12 * s1; }
+      else if(an === 'jolt'){ lean = -.15 * s1; }
+    }
+    if(md.fidget && !an){ arms.R = Object.assign(ARM.lift(-1), {w:Math.abs(Math.sin(tt * 9)) * .25}); }
+    // where to look
+    let tx = 0, ty = .85, tz = 0;
+    if(meTurn){ cam.getWorldPosition(camWorld); tx = camWorld.x; ty = camWorld.y; tz = camWorld.z; }
+    else if(a.glance != null && t < a.glanceUntil && avs[a.glance]){ const o = avs[a.glance].g.position; tx = o.x; ty = 1.2; tz = o.z; }
+    else if(actor >= 0 && actor !== i && avs[actor]){ const o = avs[actor].g.position; tx = o.x; ty = 1.2; tz = o.z; }
+    else if(actor === i){ ty = .76; }
+    else { tx = Math.sin(tt * .3 + a.seed) * 1.2; tz = .3; }
+    const lp = a.g.worldToLocal(v3.set(tx, ty, tz));
+    const yaw = Math.max(-.8, Math.min(.8, Math.atan2(lp.x, lp.z))), pitch = Math.max(-.35, Math.min(.45, Math.atan2(1.25 - lp.y, Math.hypot(lp.x, lp.z))));
+    const S = a.st, k = 1 - Math.pow(.002, dt);
+    // blink
+    if(t > a.nextBlink){ a.blinkT = t; a.nextBlink = t + md.blink * 1000 * (.5 + Math.random()); }
+    const bk = (t - a.blinkT) / 150, blink = bk < 1 ? Math.sin(bk * Math.PI) : 0;
+    const face = {happy:[1.1, .5, 0, 0], sad:[-1, 1, 0, 0], smug:[.7, -.4, 0, .35], fierce:[-.3, -1, 0, .1], shock:[0, 1, .2, -.1], worried:[-.5, 1, 0, 0], think:[0, -.3, 0, .15], yawn:[0, .6, .3, .85], calm:[.5, 0, 0, 0], meh:[-.3, .2, 0, .25],
+      idle:[{cheery:.6, chill:.3, sleepy:0, nervous:-.1, cocky:.5, bouncy:.8}[md.k], md.k === 'nervous' ? .5 : md.k === 'cocky' ? -.3 : 0, 0, md.k === 'sleepy' ? .45 : md.k === 'chill' ? .25 : 0]}[ex] || [0, 0, 0, 0];
+    S.smile = (S.smile || 0) + (face[0] - (S.smile || 0)) * k; S.brow = (S.brow || 0) + (face[1] - (S.brow || 0)) * k; S.jaw = (S.jaw || 0) + (Math.max(face[2], jaw) - (S.jaw || 0)) * Math.min(1, k * 2);
+    S.lidBase = (S.lidBase || 0) + (face[3] - (S.lidBase || 0)) * k;
+    S.lid = Math.min(1, S.lidBase + blink * (1 - S.lidBase));
+    S.yaw = (S.yaw || 0) + (yaw - (S.yaw || 0)) * .08; S.pitch = (S.pitch || 0) + (pitch + (ex === 'sad' || ex === 'meh' ? .25 : 0) - (S.pitch || 0)) * .08;
+    S.roll = (S.roll || 0) + ((ex === 'think' ? .12 : ex === 'smug' ? -.08 : 0) - (S.roll || 0)) * .08;
+    S.lean = (S.lean || 0) + (lean - (S.lean || 0)) * .15; S.sway = sway; S.breath = Math.sin(tt * 1.6 + a.seed) * .025;
+    S.arms = arms;
+    if(a.win && !an) a.inner.position.y = Math.abs(Math.sin(tt * 4)) * .02;
+    RK.drive(a.real, S);
     a.ring.material.opacity += ((a.turn || a.win ? .9 : 0) - a.ring.material.opacity) * .15;
     a.hole.children.forEach((c, n) => { const lift = a.peek && a.holeKey === 'B' ? .55 : 0; c.userData.l = (c.userData.l || 0) + (lift - (c.userData.l || 0)) * .25; if(a.holeKey === 'B'){ c.rotation.x = FACEDOWN - c.userData.l; c.position.y = .002 + n * .002 + c.userData.l * .03; } });
     if(a.peek && !a.expr && a.holeKey === 'B') express(a, Math.random() < .5 ? 'smug' : 'worried', 1200);
@@ -3394,16 +3719,22 @@ function makeGL(T, host){
     // players: idle by personality, look around, react, light up on their turn
     const meTurn = last.s && last.s.hand && last.s.hand.toAct === last.s.me && last.s.me >= 0;
     const actor = last.s && last.s.hand ? last.s.hand.toAct : -1;
-    for(const [i, a] of Object.entries(avs)) animateAvatar(a, +i, t, dt, meTurn, actor);
+    for(const [i, a] of Object.entries(avs)) (a.real !== undefined ? animateReal : animateAvatar)(a, +i, t, dt, meTurn, actor);
     board.forEach(m => { m.visible = false; }); // the flat card row on top shows the board
     board.forEach(m => { const want = TY + .03 + (m.userData.lift || 0); if(!tweens.length) m.position.y += (want - m.position.y) * .2; });
+    // winner spotlight
+    const wins = last.sd && Date.now() < (P.showdown && P.showdown.until || 0) ? last.sd.winners.filter(w => avs[w.seat]) : [];
+    const wa = wins.length ? avs[wins[0].seat] : null;
+    winSpot.intensity += ((wa ? 40 : 0) - winSpot.intensity) * .08;
+    if(wa){ winSpot.target.position.lerp(v3.set(wa.g.position.x, .9, wa.g.position.z), .1); }
+    spot.intensity += ((wa ? 9 : 16) - spot.intensity) * .05;
     // camera: your head moves a little
     par.x += (par.tx - par.x) * .06; par.y += (par.ty - par.y) * .06;
     if(entering) entering(t);
     else{ cam.position.set(base.x + par.x * .22, base.y - par.y * .1, base.z); cam.lookAt(look.x + par.x * .05, look.y, look.z); }
     R.render(scene, cam);
     // keep the name plates and chip labels on top of the 3D people and stacks
-    if(P.seatEls) for(const [i, el] of Object.entries(P.seatEls)){ const a = avs[i]; if(a) place(el, a.g.position.x, 1.47 + a.inner.position.y, a.g.position.z); }
+    if(P.seatEls) for(const [i, el] of Object.entries(P.seatEls)){ const a = avs[i]; if(a) place(el, a.g.position.x, (a.real !== undefined ? 1.5 : 1.47) + a.inner.position.y, a.g.position.z); }
     const bl = $('#pBets'); if(bl) bl.querySelectorAll('.bet').forEach(el => { const b = bets[el.dataset.seat]; if(b) place(el, b.g.position.x, TY, b.g.position.z + .05); });
     const pl = $('#pPot'); if(pl && pot) place(pl, 0, TY, pot.position.z + .07);
   }
@@ -3482,7 +3813,7 @@ S.pinOk = true;
 function enterTest(keepTab){
   if(S.test || DEMO) return;
   S.test = true;
-  if(P.ws){ P.ws.onclose = null; try{ P.ws.close(); }catch(e){} P.ws = null; P.open = false; } P.s = null; P.built = false; P.status = null;   // practice table
+  if(P.ws && P.wsRoom !== tableRoom()){ P.ws.onclose = null; try{ P.ws.close(); }catch(e){} P.ws = null; P.open = false; P.s = null; P.built = false; P.status = null; }   // practice table
   const copy = x => JSON.parse(JSON.stringify(x));
   DEMO_DB.poll = copy(S.poll); DEMO_DB.votes = copy(S.votes); DEMO_DB.sessions = copy(S.sessions); DEMO_DB.live = null;
   S.live = null; S.calc = [];
