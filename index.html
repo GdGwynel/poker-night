@@ -3538,7 +3538,8 @@ function makeGL(T, host){
     if(type === 'win'){
       const from = new T.Vector3(0, TY + .03, pot ? pot.position.z : wz(64)); if(pot) pot.visible = false;
       (ev.winners || []).forEach((w, n) => { const x = avs[w.seat]; if(!x) return;
-        const home = new T.Vector3(x.g.position.x, TY + .01, x.g.position.z), land = from.clone().lerp(home, .62); land.y = TY;
+        const st = stacks[w.seat], home = st ? st.pos.clone().setY(TY + .02) : new T.Vector3(x.g.position.x, TY + .01, x.g.position.z), land = from.clone().lerp(home, .55); land.y = TY;
+        stackHold[w.seat] = performance.now() + 250 + n * 350 + 3400;
         const cnt = Math.max(8, Math.min(22, Math.round(Math.sqrt(w.amount || 10) * 2.2)));
         throwChips(from, land, 650, 250 + n * 350, {n:cnt, spread:.07, gap:28, hold:1900, home}); });
       (ev.winners || []).forEach(w => { const x = avs[w.seat]; if(x){ express(x, 'happy', 5000); action(x, 'cheer', 2600); } });
@@ -3716,6 +3717,20 @@ function makeGL(T, host){
   const boardSlots = k => new T.Vector3((k - 2) * (CW + .016), TY + .03, wz(44));
   let board = [];
   const bets = {}; let pot = null, potAmt = -1;
+  // every player's chips sit on the felt in front of them
+  const stacks = {}, stackHold = {};
+  function setStack(i, amount, x, y){
+    let st = stacks[i]; if(!st){ st = stacks[i] = {g:null, amount:-1, want:0, pos:new T.Vector3()}; }
+    st.want = amount; st.pos.set(wx(x), TY + .001, wz(y));
+    if(st.g) st.g.position.copy(st.pos);
+    if((stackHold[i] || 0) > performance.now()) return;
+    applyStack(i);
+  }
+  function applyStack(i){
+    const st = stacks[i]; if(!st || st.amount === st.want) return;
+    if(st.g) scene.remove(st.g); st.g = null; st.amount = st.want;
+    if(st.want > 0){ st.g = makeStack(st.want); st.g.position.copy(st.pos); st.g.rotation.y = rnd(-.3, .3); scene.add(st.g); }
+  }
   const deckPos = () => new T.Vector3(0, TY + .25, -RZ * .2);
   function setBoard(cards, best, instant){
     if(cards.length < board.length){ board.forEach(m => scene.remove(m)); board = []; }
@@ -3865,7 +3880,7 @@ function makeGL(T, host){
       if(a.holeKey !== key){ a.holeKey = key; setHole(a, key, shown); }
     });
     for(const k of Object.keys(avs)) if(!seen.has(+k)) removeAv(+k);
-    s.seats.forEach((x, i) => { const [bx, by] = betXY(i); setBet(i, x ? x.bet : 0, bx, by); });
+    s.seats.forEach((x, i) => { const [bx, by] = betXY(i); setBet(i, x ? x.bet : 0, bx, by); const [sx, sy] = seatXY(i, [40, 37]); setStack(i, x ? x.stack : 0, sx, sy); });
     for(const k of Object.keys(bets)) if(!s.seats[k]) setBet(+k, 0);
     const inBets = s.seats.reduce((t, x) => t + (x ? x.bet : 0), 0);
     setPot(h_ ? h_.pot - inBets : 0);
@@ -3890,6 +3905,7 @@ function makeGL(T, host){
     if(document.hidden || $('#view-play').hidden) return;
     const dt = Math.min(.05, (t - prevT) / 1000); prevT = t;
     stepChips(t, dt);
+    for(const i in stackHold) if(stackHold[i] && t > stackHold[i]){ stackHold[i] = 0; applyStack(i); }
     for(let i = tweens.length - 1; i >= 0; i--){ const tw = tweens[i]; const k = (t - tw.t0) / tw.dur; if(k < 0) continue; tw.fn(ease(Math.min(1, k))); if(k >= 1){ tweens.splice(i, 1); if(tw.done) tw.done(); } }
     // players: idle by personality, look around, react, light up on their turn
     const meTurn = last.s && last.s.hand && last.s.hand.toAct === last.s.me && last.s.me >= 0;
