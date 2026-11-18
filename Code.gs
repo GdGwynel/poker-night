@@ -89,7 +89,16 @@ function vote_(b) {
   if (!name) throw new Error('Enter your name.');
   const slots = {};
   poll.slots.forEach(s => { const v = b.slots && b.slots[s.id]; if (v === 'yes' || v === 'maybe' || v === 'no') slots[s.id] = v; });
-  const host = poll.hosts.indexOf(b.host) >= 0 ? b.host : '';
+  let host = '';
+  const want = clean_(b.host, 30);
+  if (want) {
+    const hit = poll.hosts.find(x => key_(x) === key_(want));
+    if (hit) host = hit;
+    else if (poll.hosts.length < 12) {   // someone suggested a new place
+      poll.hosts.push(want); host = want;
+      sheet_('Polls', POLL_H).getRange(ap.row, 3).setValue(JSON.stringify(poll));
+    }
+  }
   const data = JSON.stringify({ slots: slots, host: host });
   const k = key_(name);
   const s = sheet_('Votes', VOTE_H);

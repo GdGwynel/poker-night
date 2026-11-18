@@ -156,6 +156,8 @@
   .chipbtn{border:1.5px solid var(--line); background:#fff; color:var(--ink); border-radius:999px; padding:8px 15px; font-weight:700; cursor:pointer}
   .chipbtn:hover{border-color:var(--ink-2)}
   .chipbtn[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .chipbtn.add{border-style:dashed; color:var(--ink-2); background:transparent}
+  #voteCard .addp{margin-top:10px}
   .slot-edit{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-bottom:8px}
 
   /* Settle */
@@ -876,15 +878,26 @@ function renderVoteForm(){
     list.append(h('div', {class:'slot'}, h('div', {class:'when', text:fmtWhen(s.when)}), tri));
   }
   card.append(list);
-  if(p.hosts.length){
+  {
     card.append(h('h3', {text:'Where should we play?'}));
     const chips = h('div', {class:'chips'});
-    for(const name of p.hosts){
-      const b = h('button', {type:'button', class:'chipbtn', text:name, 'aria-pressed':String(d.host === name)});
-      b.addEventListener('click', () => { d.host = d.host === name ? '' : name; d.touched = true; chips.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.textContent === d.host))); });
+    const places = [...p.hosts]; if(d.host && !places.some(x => key(x) === key(d.host))) places.push(d.host);
+    const pick = name => { d.host = d.host === name ? '' : name; d.touched = true; chips.querySelectorAll('button.chipbtn').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.place === d.host))); };
+    for(const name of places){
+      const b = h('button', {type:'button', class:'chipbtn', text:name + '’s place', 'data-place':name, 'aria-pressed':String(d.host === name)});
+      b.addEventListener('click', () => pick(name));
       chips.append(b);
     }
-    card.append(chips);
+    const addBtn = h('button', {type:'button', class:'chipbtn add', text:'+ Suggest another place'});
+    const addRow = h('div', {class:'addp', hidden:true});
+    const inp = h('input', {maxLength:30, placeholder:'Whose place? e.g. Bill', list:'knownPlayers', autocomplete:'off', 'aria-label':'Whose place'});
+    const ok = h('button', {type:'button', class:'btn btn-ghost', text:'Add place'});
+    const add = () => { const v = inp.value.trim().replace(/\s+/g, ' '); if(!v){ inp.focus(); return; } const hit = places.find(x => key(x) === key(v)); d.host = hit || canon(v); d.touched = true; renderVoteForm(); setMsg($('#voteCard .msg'), d.host + '’s place picked. Save your vote to add it for everyone.', 'ok'); };
+    ok.addEventListener('click', add); inp.addEventListener('keydown', e => { if(e.key === 'Enter') add(); });
+    addRow.append(inp, ok);
+    addBtn.addEventListener('click', () => { addRow.hidden = false; addBtn.hidden = true; inp.focus(); });
+    chips.append(addBtn);
+    card.append(chips, addRow);
   }
   const msg = h('div', {class:'msg', role:'status'});
   const save = h('button', {type:'button', class:'btn btn-red', text:existing ? 'Update my vote' : 'Save my vote'});
@@ -1761,7 +1774,7 @@ function demoApi(b){
   switch(b.action){
     case 'state': return st();
     case 'checkPin': needPin(); return {ok:true};
-    case 'vote': { const i = db.votes.findIndex(v => key(v.name) === key(b.name)); const v = {name:b.name, slots:b.slots, host:b.host}; if(i >= 0) db.votes[i] = v; else db.votes.push(v); return st(); }
+    case 'vote': { if(b.host && !db.poll.hosts.some(x => key(x) === key(b.host))) db.poll.hosts.push(b.host); const hk = db.poll.hosts.find(x => key(x) === key(b.host)) || ''; const i = db.votes.findIndex(v => key(v.name) === key(b.name)); const v = {name:b.name, slots:b.slots, host:hk}; if(i >= 0) db.votes[i] = v; else db.votes.push(v); return st(); }
     case 'createPoll': needPin(); db.poll = {id:'p' + Date.now(), title:b.title, slots:b.slots.map((w, i) => ({id:'s' + (i + 1), when:w})), hosts:b.hosts, locked:null}; db.votes = []; return st();
     case 'lockPoll': needPin(); db.poll.locked = {slotId:b.slotId, host:b.host}; return st();
     case 'reopenPoll': needPin(); db.poll.locked = null; return st();
