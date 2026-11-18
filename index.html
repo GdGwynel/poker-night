@@ -727,6 +727,18 @@
   .rbtn.on{background:#1E7A49; border-color:#1E7A49; color:#fff}
   .callbtns{display:contents}
   html, body{overflow-x:hidden}
+  /* the table is for tapping and holding, not selecting text */
+  .room, .room *{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent}
+  .room input, .room textarea{-webkit-user-select:text; user-select:text}
+  .hole{touch-action:none}
+  .room-top{gap:6px; min-width:0}
+  .room-top .rbtns{display:flex; gap:5px; min-width:0}
+  @media (max-width:520px){
+    .room-top .rbtn{padding:6px 8px; font-size:.85rem}
+    .room-top .rbtn.leave{padding:6px 10px; white-space:nowrap}
+    .room-top .rinfo .conn{display:none}
+    .room-top .rinfo b{font-size:.92rem}
+  }
   .room{min-width:0; max-width:100%}
   .room > *{min-width:0; max-width:100%}
   .myhand{max-width:100%; box-sizing:border-box; padding:0 4px}
@@ -743,13 +755,14 @@
     .mebar.inhand b{max-width:5.5em; overflow:hidden; text-overflow:ellipsis}
     .actbar .abtn{min-width:0}
   }
-  .turnbar{position:relative; width:min(100%, 420px); height:10px; border-radius:999px; background:#E9E2D6; overflow:visible; margin:2px 0 4px}
+  .turnbar{position:relative; width:min(100%, 420px); height:18px; border-radius:999px; background:#E9E2D6; overflow:hidden; margin:2px 0 4px}
   .turnbar i{position:absolute; inset:0; border-radius:999px; background:linear-gradient(90deg, #1E7A49, #49A877); transform-origin:left; transform:scaleX(var(--p, 1)); transition:transform .25s linear}
-  .turnbar span{position:absolute; right:-4px; top:50%; transform:translate(100%, -50%); font-weight:900; font-size:.85rem; color:var(--ink)}
+  .turnbar span{position:absolute; right:8px; top:50%; transform:translateY(-50%); font-weight:900; font-size:.78rem; color:var(--ink); line-height:1}
   .turnbar.hurry i{background:linear-gradient(90deg, #C8102E, #FF5A6E); animation:hurryPulse .5s ease-in-out infinite alternate}
   .turnbar.hurry span{color:#C8102E}
   @keyframes hurryPulse{to{opacity:.6}}
-  .turnbar.small{height:6px; width:min(100%, 300px)}
+  .turnbar.small{height:14px; width:min(100%, 300px)}
+  .turnbar.small span{font-size:.7rem}
   .gl .seat .plate::after{height:4px; bottom:-1px}
   .mebar{white-space:nowrap; flex-wrap:nowrap}
   .mebar .tag{white-space:nowrap}
