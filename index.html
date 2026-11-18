@@ -3026,7 +3026,7 @@ function handleEvent(ev, prev, s){
   } else if(ev.type === 'win'){
     const lh = s.lastHand || {};
     P.showdown = {no:lh.no, until:Date.now() + (ev.late && s.hand ? 3500 : 5500), shown:lh.shown || {}, winners:ev.winners || [], board:lh.board || [], best:ev.showdown && ev.winners && ev.winners[0] ? ev.winners[0].cards || [] : []};
-    (ev.winners || []).forEach((w, n) => { for(let c = 0; c < 5; c++) fly([50, 58], seatXY(w.seat), chipEl(), 600, 350 + c * 60 + n * 200); });
+    if(!P.gl) (ev.winners || []).forEach((w, n) => { for(let c = 0; c < 5; c++) fly([50, 58], seatXY(w.seat), chipEl(), 600, 350 + c * 60 + n * 200); });
     setTimeout(() => sfx('win'), 300); flash('win');
     if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)) setTimeout(() => confetti(true), 500);
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
@@ -3535,7 +3535,13 @@ function makeGL(T, host){
     const a = avs[seat];
     // everyone else glances at whoever just acted
     for(const [k, o] of Object.entries(avs)) if(+k !== seat){ o.glance = seat; o.glanceUntil = performance.now() + 1400 + Math.random() * 600; }
-    if(type === 'win'){ (ev.winners || []).forEach(w => { const x = avs[w.seat]; if(x){ express(x, 'happy', 5000); action(x, 'cheer', 2600); } });
+    if(type === 'win'){
+      const from = new T.Vector3(0, TY + .03, pot ? pot.position.z : wz(64)); if(pot) pot.visible = false;
+      (ev.winners || []).forEach((w, n) => { const x = avs[w.seat]; if(!x) return;
+        const home = new T.Vector3(x.g.position.x, TY + .01, x.g.position.z), land = from.clone().lerp(home, .62); land.y = TY;
+        const cnt = Math.max(8, Math.min(22, Math.round(Math.sqrt(w.amount || 10) * 2.2)));
+        throwChips(from, land, 650, 250 + n * 350, {n:cnt, spread:.07, gap:28, hold:1900, home}); });
+      (ev.winners || []).forEach(w => { const x = avs[w.seat]; if(x){ express(x, 'happy', 5000); action(x, 'cheer', 2600); } });
       for(const [k, o] of Object.entries(avs)) if(!(ev.winners || []).some(w => w.seat === +k) && ev.showdown && o.holeKey && o.holeKey[0] === 'S') express(o, 'sad', 3500);
       return; }
     if(!a) return;
@@ -3750,20 +3756,28 @@ function makeGL(T, host){
   // ---------- chip physics: chips are thrown, fall, bounce and settle ----------
   const flying = [];
   const DEN = [5, 10, 20, 50, 100];
-  function throwChips(a, b, ms, delay){
-    const n = 3 + Math.floor(Math.random() * 4), T0 = Math.max(.35, (ms || 450) / 1000);
+  function throwChips(a, b, ms, delay, o){
+    o = o || {}; const n = o.n || 3 + Math.floor(Math.random() * 4), T0 = Math.max(.35, (ms || 450) / 1000), sp = o.spread || .06;
     for(let k = 0; k < n; k++){
       const m = chipMesh(DEN[Math.floor(Math.random() * DEN.length)]); m.visible = false; scene.add(m);
-      const tgt = b.clone().add(new T.Vector3(rnd(-.06, .06), 0, rnd(-.06, .06)));
+      const tgt = b.clone().add(new T.Vector3(rnd(-sp, sp), 0, rnd(-sp, sp)));
       const start = a.clone().add(new T.Vector3(rnd(-.03, .03), .04 + k * .012, rnd(-.03, .03)));
       const Tt = T0 * rnd(.85, 1.15), g = 9.8 * .35;
       const vel = new T.Vector3((tgt.x - start.x) / Tt, (tgt.y - start.y + .5 * g * Tt * Tt) / Tt, (tgt.z - start.z) / Tt);
-      flying.push({m, p:start, v:vel, w:new T.Vector3(rnd(-12, 12), rnd(-6, 6), rnd(-12, 12)), g, t0:performance.now() + (delay || 0) + k * 35, rest:0, bounces:0});
+      flying.push({m, p:start, v:vel, w:new T.Vector3(rnd(-12, 12), rnd(-6, 6), rnd(-12, 12)), g, t0:performance.now() + (delay || 0) + k * (o.gap || 35), rest:0, bounces:0, hold:o.hold || 0, home:o.home || null});
     }
   }
   function stepChips(t, dt){
     for(let i = flying.length - 1; i >= 0; i--){
       const c = flying[i]; if(t < c.t0) continue; c.m.visible = true;
+      if(c.rest && c.home){
+        // won chips: sit on the felt in a pile, then rake over to the winner
+        const k = (t - c.rest - c.hold) / 700; if(k < 0) continue;
+        if(!c.from) c.from = c.m.position.clone();
+        const e = k < 1 ? k * k * (3 - 2 * k) : 1; c.m.position.lerpVectors(c.from, c.home, e); c.m.position.y = c.from.y + Math.sin(Math.min(1, k) * Math.PI) * .03;
+        if(k > .7) c.m.scale.setScalar(Math.max(.01, 1 - (k - .7) / .3));
+        if(k >= 1){ scene.remove(c.m); flying.splice(i, 1); } continue;
+      }
       if(c.rest){
         const k = Math.max(0, (t - c.rest) / 500); c.m.scale.setScalar(Math.max(.01, 1 - k)); c.m.position.y -= dt * .02;
         if(k >= 1){ scene.remove(c.m); flying.splice(i, 1); } continue;
