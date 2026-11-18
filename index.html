@@ -266,6 +266,12 @@
   .phase{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:18px}
   .start-row{display:grid; grid-template-columns:minmax(0,200px) auto; gap:12px; align-items:end; margin-top:6px}
   .btn-lg{padding:14px 24px; font-size:1.05rem}
+  .lstats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px}
+  .lstat{background:var(--paper-2); border-radius:12px; padding:10px 12px; min-width:0}
+  .lstat .k{font-size:.8rem; color:var(--ink-2); font-weight:600}
+  .lstat .v{font-weight:800; font-size:1rem; overflow-wrap:anywhere}
+  .settle-box{margin-top:20px; padding-top:18px; border-top:2px solid var(--ink)}
+  @media (max-width:640px){ .lstats{grid-template-columns:1fr 1fr} }
   .btn-danger{background:var(--suit); color:#fff}
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
@@ -1079,10 +1085,27 @@ function renderLive(){
     return;
   }
   const counting = L.phase === 'count';
+  const allOut = L.players.length > 0 && L.players.every(p => L.cashout[key(p)] != null);
   const totalIn = sum(L.log.map(e => e.amount));
   card.append(h('div', {class:'live-head'},
     h('div', null, h('div', {class:'eyebrow live-dot' + (counting ? ' stopped' : ''), text:(counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started))}), h('h2', {style:'margin:4px 0 0', text:L.date ? fmtDate(L.date) : 'Tonight'})),
-    h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}), h('div', {class:'pot-k', text:'cashed in from ' + L.log.length + ' buy-in' + (L.log.length === 1 ? '' : 's') + (Object.keys(L.cashout).length && !counting ? ', ' + peso(round(totalIn - sum(Object.values(L.cashout)))) + ' still in play' : '')}))), msg);
+    h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}), h('div', {class:'pot-k', text:'cashed in from ' + L.log.length + ' buy-in' + (L.log.length === 1 ? '' : 's') + (Object.keys(L.cashout).length && !counting && !allOut ? (totalIn - sum(Object.values(L.cashout)) >= 0 ? ', ' + peso(round(totalIn - sum(Object.values(L.cashout)))) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))), msg);
+
+  // Game stats
+  if(L.log.length){
+    const per = L.players.map(n => ({n, tin:sum(L.log.filter(e => key(e.name) === key(n)).map(e => e.amount)), out:L.cashout[key(n)]}));
+    const mins = Math.max(0, Math.round((Date.now() - new Date(L.started)) / 60000));
+    const rebuys = L.log.length - per.filter(p => p.tin > 0).length;
+    const big = per.reduce((a, b) => b.tin > a.tin ? b : a, per[0]);
+    const done = per.filter(p => p.out != null).map(p => Object.assign(p, {net:round(p.out - p.tin)}));
+    const up = done.length ? done.reduce((a, b) => b.net > a.net ? b : a) : null;
+    const stat = (k, v) => h('div', {class:'lstat'}, h('div', {class:'k', text:k}), h('div', {class:'v num', text:v}));
+    card.append(h('div', {class:'lstats'},
+      stat(counting ? 'Played' : 'Playing for', mins >= 60 ? Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm' : mins + ' min'),
+      stat('Rebuys', String(Math.max(0, rebuys))),
+      stat('Biggest cash-in', big ? big.n + ' ' + peso(big.tin) : '–'),
+      stat('Up the most', up && up.net > 0 ? up.n + ' ' + signed(up.net) : 'Nobody yet')));
+  }
 
   // Player tiles
   const tiles = h('div', {class:'ptiles'});
@@ -1149,14 +1172,15 @@ function renderLive(){
   }
 
   // Counting: balance check, who pays who, save
-  if(counting){
+  if(counting || allOut){
     const players = livePlayers(L);
     const missing = players.filter(p => p.winnings == null);
     const c = compute(players); const ok = Math.abs(c.diff) < 0.005;
     const counted = sum(players.map(p => p.winnings || 0));
-    const box = h('div', {style:'margin-top:18px'});
+    const box = h('div', {class:'settle-box'});
+    if(allOut && !counting) box.append(h('h3', {style:'margin-top:0', text:'Everyone has cashed out'}));
     if(missing.length) box.append(h('div', {class:'check bad', role:'status', text:'Still to count: ' + missing.map(p => p.name).join(', ') + '. Counted ' + peso(counted) + ' of ' + peso(totalIn) + '.'}));
-    else if(!ok) box.append(h('div', {class:'check bad', role:'status', text:'✗ Off by ' + peso(Math.abs(c.diff)) + ': chips add up to ' + peso(counted) + ' but ' + peso(totalIn) + ' was bought in. Recount, or resume the game and add a missing cash-in.'}));
+    else if(!ok) box.append(h('div', {class:'check bad', role:'status', text:'✗ Off by ' + peso(Math.abs(c.diff)) + ': chips add up to ' + peso(counted) + ' but ' + peso(totalIn) + ' was cashed in. ' + (counting ? 'Recount, or resume the game and add a missing cash-in.' : 'Undo the wrong cash-out and enter it again, or add a missing cash-in.')}));
     else {
       box.append(h('div', {class:'check ok', role:'status', text:'✓ Balanced: ' + peso(totalIn) + ' in, ' + peso(counted) + ' out'}));
       box.append(h('h3', {text:'Who pays who'}), transfersList(c));
@@ -1179,7 +1203,7 @@ function renderLive(){
   // Phase controls
   const phase = h('div', {class:'phase'});
   if(!counting){
-    const b = h('button', {type:'button', class:'btn btn-red', text:'Stop the game', disabled:!L.log.length});
+    const b = h('button', {type:'button', class:'btn ' + (allOut ? 'btn-ghost' : 'btn-red'), text:'Stop the game', disabled:!L.log.length});
     b.addEventListener('click', async () => {
       const still = L.players.filter(p => L.cashout[key(p)] == null);
       if(await confirmBox('Stop the game?', 'No more cash-ins after this. ' + (still.length ? still.join(', ') + (still.length === 1 ? ' still needs' : ' still need') + ' to enter their chips, then it works out who pays who.' : 'Everyone has cashed out, so you’ll go straight to who pays who.'), 'Stop the game')) liveDo({op:'phase', phase:'count'});
