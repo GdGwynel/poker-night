@@ -1,0 +1,1 @@
+The realistic people (p01 to p12) come from the Microsoft Rocketbox Avatar Library, github.com/microsoft/Microsoft-Rocketbox, MIT licence (see LICENSE-Rocketbox.md). Converted to glTF with smaller textures.
