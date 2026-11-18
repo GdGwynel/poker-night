@@ -60,6 +60,11 @@
   .tabs a:hover:not([aria-current]){color:var(--paper)}
   body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--back-deep)}
 
+  .banner.test{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; background:#1F5FA8; border:0; color:#fff}
+  .banner.test .btn{background:#fff; color:#1F5FA8}
+  .test-acts{display:flex; gap:8px; flex-wrap:wrap}
+  body.testing{box-shadow:inset 0 0 0 4px #1F5FA8}
+  .logo{cursor:pointer}
   .banner{background:rgba(243,216,145,.12); border:1px dashed rgba(243,216,145,.6); color:var(--gold-l); border-radius:12px; padding:10px 14px; font-size:.92rem; margin:6px 0 14px}
   main{padding-bottom:60px; padding-top:6px}
   section.view{display:grid; gap:18px}
@@ -320,6 +325,7 @@
     </div>
   </nav>
 
+  <div id="testBanner" class="banner test" hidden><span><b>Test mode.</b> Play with a copy of your real players and games. Nothing is saved to the Sheet.</span><span class="test-acts"><button type="button" class="btn btn-sm" id="testFill">Fill a sample table</button><a class="btn btn-sm" href="./" id="testExit">Leave test mode</a></span></div>
   <div id="demoBanner" class="banner" hidden>Preview with sample players. It isn't connected to the Google Sheet yet, so nothing is saved.</div>
 
   <main>
@@ -555,7 +561,7 @@ function calcPlayers(){
 
 // ===== API =====
 async function api(body){
-  if(DEMO) return demoApi(body);
+  if(DEMO || S.test) return demoApi(body);
   const r = await fetch(API_URL, {method:'POST', body:JSON.stringify(body)});
   const j = await r.json();
   if(!j.ok) throw new Error(j.error || 'Something went wrong.');
@@ -1198,7 +1204,7 @@ function renderLive(){
 }
 // Keep everyone's screen in step while the Settle up tab is open.
 setInterval(async () => {
-  if(DEMO || document.hidden || $('#view-settle').hidden || S.livePending) return;
+  if(DEMO || S.test || document.hidden || $('#view-settle').hidden || S.livePending) return;
   try{ const j = await api({action:'state'}); if(S.livePending) return; applyState(j); if(!liveTyping()) renderLive(); }catch(e){}
 }, 6000);
 
@@ -1259,7 +1265,34 @@ function demoApi(b){
 
 if(DEMO) $('#demoBanner').hidden = false;
 S.pinOk = true;
-route(); renderAll(); load();
+
+// ===== Hidden test mode: tap the header card 5 times, or open the page with ?test =====
+function enterTest(){
+  if(S.test || DEMO) return;
+  S.test = true;
+  const copy = x => JSON.parse(JSON.stringify(x));
+  DEMO_DB.poll = copy(S.poll); DEMO_DB.votes = copy(S.votes); DEMO_DB.sessions = copy(S.sessions); DEMO_DB.live = null;
+  S.live = null; S.calc = [];
+  $('#testBanner').hidden = false; document.body.classList.add('testing');
+  if(!/[?&]test\b/.test(location.search)) history.replaceState(null, '', '?test' + location.hash);
+  renderAll(); location.hash = '#settle';
+}
+(() => {
+  let taps = 0, timer;
+  const logo = $('.logo');
+  logo.addEventListener('click', () => { taps++; clearTimeout(timer); timer = setTimeout(() => taps = 0, 1500); if(taps >= 5){ taps = 0; enterTest(); } });
+  $('#testFill').addEventListener('click', async () => {
+    if(!S.live) await liveDo({op:'start', date:today()});
+    const names = standings(S.sessions).map(p => p.name).concat(['Kyle', 'Bill', 'Cali', 'Mama']);
+    const pick = [...new Set(names)].slice(0, 4);
+    const plan = [[300, 500], [300], [300, 200, 500], [300, 300]];
+    for(let i = 0; i < pick.length; i++) for(const a of plan[i]) await liveDo({op:'buyin', name:pick[i], amount:a, eid:newId()}, pick[i]);
+    liveNote('Added ' + pick.join(', ') + ' with some cash-ins. Try a cash-out, then stop the game.', 'ok');
+  });
+})();
+
+route(); renderAll();
+load().then(() => { if(/[?&]test\b/.test(location.search)) enterTest(); });
 </script>
 </body>
 </html>
