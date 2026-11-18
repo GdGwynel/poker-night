@@ -232,8 +232,8 @@
   .pot{text-align:right}
   .pot-v{font-family:var(--display); font-weight:700; font-size:clamp(2.2rem,7vw,3.2rem); line-height:1; letter-spacing:-.01em}
   .pot-k{color:var(--ink-2); font-size:.92rem; margin-top:4px}
-  .ptiles{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%,240px), 1fr)); gap:12px; margin-top:18px}
-  .ptile{background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; gap:12px; min-width:0}
+  .ptiles{align-items:start; display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%,240px), 1fr)); gap:12px; margin-top:18px}
+  .ptile{align-content:start; background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; gap:12px; min-width:0}
   .ptile.flash{animation:none}
   @media (prefers-reduced-motion:no-preference){ .ptile.flash{animation:flash .6s ease-out} @keyframes flash{from{background:#FFF1C9}} }
   .pt-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
@@ -242,11 +242,27 @@
   .pt-tot.zero{color:var(--ink-2); font-weight:700; font-size:1.1rem}
   .stack{display:flex; flex-wrap:wrap; gap:3px; min-height:16px}
   .mini{width:16px; height:16px; border-radius:50%; background:var(--c); box-shadow:0 0 0 1.5px var(--c); border:2px dashed rgba(255,255,255,.8)}
-  .quick{display:flex; gap:8px; flex-wrap:wrap; padding:2px 3px 4px}
+  .quick{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
   .pchip{--c:var(--suit); width:46px; height:46px; border-radius:50%; flex:none; cursor:pointer; background:var(--c); color:#fff; font-weight:800; font-size:.86rem;
     border:3px dashed rgba(255,255,255,.85); box-shadow:0 0 0 3px var(--c), 0 4px 0 3px rgba(0,0,0,.22); display:grid; place-items:center; padding:0}
   .pchip:active{transform:translateY(3px); box-shadow:0 0 0 3px var(--c), 0 1px 0 3px rgba(0,0,0,.22)}
   .c100{--c:#4A5160} .c200{--c:#1F5FA8} .c300{--c:#C8102E} .c500{--c:#1B1A1F} .c1000{--c:#B07D10} .cx{--c:#6B4C9A}
+  .cashbtn{border:1.5px solid var(--ink); background:#fff; color:var(--ink); border-radius:999px; padding:9px 4px; font-weight:800; cursor:pointer; font-size:.95rem; min-width:0}
+  .co-row{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center}
+  .cashbtn:hover{background:var(--ink); color:var(--paper)}
+  .cashbtn:active{transform:translateY(1px)}
+  .stack{gap:4px}
+  .stack .tag{font-size:.75rem; font-weight:700; background:#fff; border:1px solid var(--line); border-radius:6px; padding:1px 6px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+  .stack .tag.to{border-style:dashed}
+  .chipcount{margin-top:8px}
+  .cgrid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px}
+  .cc{display:grid; justify-items:center; gap:6px; margin:0}
+  .cc input{text-align:center; padding:7px 2px}
+  .chipdot{--c:#1B1A1F; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-size:.72rem; font-weight:800; color:#fff; background:var(--c);
+    border:2.5px dashed rgba(255,255,255,.85); box-shadow:0 0 0 2.5px var(--c)}
+  .chipdot.white{--c:#F6F4EE; color:var(--ink); border-color:rgba(27,26,31,.3); box-shadow:0 0 0 2.5px #F6F4EE, 0 0 0 3.5px #B9B2A4}
+  .chipdot.blue{--c:#1F5FA8} .chipdot.red{--c:#C8102E} .chipdot.black{--c:#1B1A1F} .chipdot.green{--c:#1E7A49}
+  .ctotal{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px}
   .more summary{cursor:pointer; color:var(--ink-2); font-weight:700; font-size:.88rem}
   .more[open] summary{margin-bottom:8px}
   .more-row{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto; gap:6px; align-items:end}
@@ -276,6 +292,9 @@
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
   .ptile.left{background:transparent; border-style:dashed}
+  .ptile.win{background:#E2F3E8; border-color:#93CFAA}
+  .ptile.loss{background:#FBE3E6; border-color:#EBA2AB}
+  .ptile.even{background:#FBF0CF; border-color:#E3C470}
   .ptile.left .pt-name{color:var(--ink-2)}
   .outline{display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:.95rem}
   .live-dot.stopped{color:var(--ink-2)}
@@ -1047,6 +1066,19 @@ function confirmBox(title, text, yes, danger){
     document.body.append(d); d.showModal(); n.focus();
   });
 }
+// Your table's chip values: white 5, blue 10, red 20, black 50, green 100 (1 chip point = ₱1)
+const CHIPS = [[5, 'white', 'White'], [10, 'blue', 'Blue'], [20, 'red', 'Red'], [50, 'black', 'Black'], [100, 'green', 'Green']];
+function chipCounter(apply){
+  const total = h('b', {class:'num', text:peso(0)});
+  const rows = CHIPS.map(([v, c, lab]) => ({v, c, lab, i:h('input', {type:'number', inputMode:'numeric', min:0, step:1, placeholder:'0', 'aria-label':lab + ' chips, ₱' + v + ' each'})}));
+  const calc = () => sum(rows.map(r => Math.max(0, Math.floor(+r.i.value || 0)) * r.v));
+  rows.forEach(r => r.i.addEventListener('input', () => { total.textContent = peso(calc()); }));
+  const use = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Use this total'});
+  use.addEventListener('click', () => apply(calc()));
+  return h('details', {class:'more chipcount'}, h('summary', {text:'Count by chip colour'}),
+    h('div', {class:'cgrid'}, rows.map(r => h('label', {class:'cc'}, h('span', {class:'chipdot ' + r.c, 'aria-hidden':'true', text:String(r.v)}), r.i))),
+    h('div', {class:'ctotal'}, h('span', null, 'Total ', total), use));
+}
 function liveTyping(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#liveCard') && a.matches('input, select')); }
 function liveNote(text, type){ S.liveMsg = {text, type}; clearTimeout(liveNote.t); liveNote.t = setTimeout(() => { S.liveMsg = null; const m = $('#liveMsg'); if(m) setMsg(m, ''); }, 5000); const m = $('#liveMsg'); if(m) setMsg(m, text, type); }
 async function liveDo(op, flashName){
@@ -1091,6 +1123,11 @@ function renderLive(){
     h('div', null, h('div', {class:'eyebrow live-dot' + (counting ? ' stopped' : ''), text:(counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started))}), h('h2', {style:'margin:4px 0 0', text:L.date ? fmtDate(L.date) : 'Tonight'})),
     h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}), h('div', {class:'pot-k', text:'cashed in from ' + L.log.length + ' buy-in' + (L.log.length === 1 ? '' : 's') + (Object.keys(L.cashout).length && !counting && !allOut ? (totalIn - sum(Object.values(L.cashout)) >= 0 ? ', ' + peso(round(totalIn - sum(Object.values(L.cashout)))) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))), msg);
 
+  // Cash-outs can never be more than what went in
+  const outSum = sum(Object.values(L.cashout));
+  if(!counting && !allOut && outSum > totalIn + 0.004)
+    card.append(h('div', {class:'check bad', role:'alert', style:'margin-top:12px', text:'✗ Cash-outs (' + peso(outSum) + ') are ' + peso(round(outSum - totalIn)) + ' more than all cash-ins (' + peso(totalIn) + '). Check the last cash-out, or add a missing cash-in.'}));
+
   // Game stats
   if(L.log.length){
     const per = L.players.map(n => ({n, tin:sum(L.log.filter(e => key(e.name) === key(n)).map(e => e.amount)), out:L.cashout[key(n)]}));
@@ -1114,8 +1151,9 @@ function renderLive(){
     const es = L.log.filter(e => key(e.name) === key(n)); const tot = sum(es.map(e => e.amount));
     const tile = h('div', {class:'ptile' + (flash && key(flash) === key(n) ? ' flash' : '')},
       h('div', {class:'pt-head'}, h('div', {class:'pt-name', text:n}), h('div', {class:'pt-tot num' + (tot ? '' : ' zero'), text:tot ? peso(tot) : 'No buy-in yet'})),
-      h('div', {class:'stack', title:es.map(e => peso(e.amount) + (e.to ? ' paid to ' + e.to : '')).join(', ')}, es.map(e => h('span', {class:'mini ' + chipCls(e.amount)}))));
+      h('div', {class:'stack', title:es.map(e => peso(e.amount) + (e.to ? ' paid to ' + e.to : '')).join(', ')}, es.map(e => h('span', {class:'tag' + (e.to ? ' to' : ''), text:String(e.amount)}))));
     const out = L.cashout[key(n)];
+    if(out != null){ const net = round(out - tot); tile.classList.add(net > 0 ? 'win' : net < 0 ? 'loss' : 'even'); }
     if(!counting && out != null){
       const undo = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Undo cash-out'});
       undo.addEventListener('click', () => liveDo({op:'cashout', name:n, amount:''}));
@@ -1124,7 +1162,7 @@ function renderLive(){
     } else if(!counting){
       const quick = h('div', {class:'quick', role:'group', 'aria-label':'Cash in for ' + n});
       for(const a of [100, 200, 300, 500]){
-        const b = h('button', {type:'button', class:'pchip ' + chipCls(a), text:String(a), 'aria-label':'Add ' + peso(a) + ' buy-in for ' + n});
+        const b = h('button', {type:'button', class:'cashbtn', text:'+' + a, 'aria-label':'Add ' + peso(a) + ' buy-in for ' + n});
         b.addEventListener('click', async () => { if(await liveDo({op:'buyin', name:n, amount:a, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(a) + '.', 'ok'); });
         quick.append(b);
       }
@@ -1137,14 +1175,14 @@ function renderLive(){
       const coIn = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', 'aria-label':'Chips ' + n + ' is leaving with'});
       const coBtn = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Cash out'});
       coBtn.addEventListener('click', async () => { if(coIn.value.trim() === ''){ coIn.focus(); return; } if(await liveDo({op:'cashout', name:n, amount:coIn.value.trim()}, n)) liveNote(n + ' cashed out ' + peso(+coIn.value) + '.', 'ok'); });
-      const co = h('details', {class:'more'}, h('summary', {text:'Cash out'}), h('div', {class:'count-in'}, coIn, coBtn));
+      const co = h('details', {class:'more'}, h('summary', {text:'Cash out'}), h('div', {class:'co-row'}, coIn, coBtn), chipCounter(v => { coIn.value = v; coIn.focus(); }));
       if(!es.length){ const rm = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:8px', text:'Remove ' + n}); rm.addEventListener('click', () => liveDo({op:'drop', name:n})); more.append(rm); }
       tile.append(quick, h('div', {class:'tile-acts'}, more, co));
     } else {
       const v = L.cashout[key(n)];
       const inp = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', id:'co-' + key(n).replace(/\W+/g, '-')}); if(v != null) inp.value = v;
       inp.addEventListener('change', () => liveDo({op:'cashout', name:n, amount:inp.value.trim()}));
-      tile.append(h('div', {class:'count-in'}, h('label', {for:inp.id, text:'Chips at the end'}), inp));
+      tile.append(h('div', {class:'count-in'}, h('label', {for:inp.id, text:'Chips at the end'}), inp), chipCounter(v => { inp.value = v; inp.dispatchEvent(new Event('change')); }));
     }
     tiles.append(tile);
   }
