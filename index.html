@@ -3796,18 +3796,20 @@ function makeGL(T, host){
         if(k >= 1){ scene.remove(c.m); flying.splice(i, 1); } continue;
       }
       if(c.rest){
-        const k = Math.max(0, (t - c.rest) / 500); c.m.scale.setScalar(Math.max(.01, 1 - k)); c.m.position.y -= dt * .02;
+        const k = Math.max(0, (t - c.rest) / 500); c.m.scale.setScalar(Math.max(.01, 1 - k));
         if(k >= 1){ scene.remove(c.m); flying.splice(i, 1); } continue;
       }
       c.v.y -= c.g * dt; c.p.addScaledVector(c.v, dt);
       c.m.rotation.x += c.w.x * dt; c.m.rotation.y += c.w.y * dt; c.m.rotation.z += c.w.z * dt;
-      const floor = TY + CHT / 2 + .001;
+      // a tilted chip touches the felt with its edge, so keep its lowest point above the cloth
+      const tilt = Math.abs(Math.sin(c.m.rotation.x)) + Math.abs(Math.sin(c.m.rotation.z));
+      const floor = TY + CHT / 2 + .002 + Math.min(1, tilt) * CR;
       if(c.p.y < floor && c.v.y < 0){
         c.p.y = floor; c.bounces++;
         c.v.y *= -.38; c.v.x *= .55; c.v.z *= .55; c.w.multiplyScalar(.45);
         if(c.bounces === 1) sfx('clack');
         // land flat: pull the tilt toward lying down
-        c.m.rotation.x *= .4; c.m.rotation.z *= .4;
+        c.m.rotation.x = 0; c.m.rotation.z = 0; c.p.y = TY + CHT / 2 + .002;
         if(Math.abs(c.v.y) < .08 || c.bounces > 4){ c.v.set(0, 0, 0); c.m.rotation.x = 0; c.m.rotation.z = 0; c.rest = t + 350; }
       }
       c.m.position.copy(c.p);
