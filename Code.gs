@@ -1,17 +1,15 @@
 /**
  * Poker Night — Google Apps Script backend.
  * Paste this whole file into Extensions → Apps Script of a new Google Sheet.
- * 1. Change ADMIN_PIN below to your own host PIN.
- * 2. Run importPastGames once (optional) to load the earlier games.
- * 3. Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone.
- * 4. Copy the /exec URL into API_URL at the top of index.html's script.
+ * 1. Run importPastGames once (optional) to load the earlier games.
+ * 2. Deploy → New deployment → Web app → Execute as: Me, Who has access: Anyone.
+ * 3. Copy the /exec URL into API_URL at the top of index.html's script.
  */
-
-const ADMIN_PIN = '0000'; // CHANGE THIS before deploying. Only the host should know it.
 
 const POLL_H = ['id', 'created', 'data'];
 const VOTE_H = ['pollId', 'key', 'name', 'data', 'updated'];
 const SESS_H = ['id', 'date', 'created', 'data'];
+const LIVE_H = ['id', 'updated', 'data'];
 
 function ss_() { return SpreadsheetApp.getActiveSpreadsheet(); }
 function sheet_(name, headers) {
@@ -31,7 +29,7 @@ function money_(x) {
   if (!isFinite(n) || n < 0 || n > 10000000) throw new Error('Amounts must be positive numbers.');
   return Math.round(n * 100) / 100;
 }
-function needPin_(b) { if (String(b.pin || '') !== String(ADMIN_PIN)) throw new Error('Wrong host PIN.'); }
+function needPin_(b) { /* No host PIN: anyone with the link can manage polls and games. */ }
 
 function doGet() { return out_({ ok: true, service: 'poker-night' }); }
 
@@ -56,6 +54,7 @@ function handle_(b) {
     case 'saveSession': needPin_(b); return saveSession_(b);
     case 'deleteSession': needPin_(b); return deleteSession_(b);
     case 'markPaid': return markPaid_(b);
+    case 'live': return liveOp_(b);
   }
   throw new Error('Unknown action.');
 }
@@ -74,7 +73,7 @@ function state_() {
     ? rows_('Votes', VOTE_H).filter(r => r.vals[0] === poll.id).map(r => Object.assign({ name: String(r.vals[2]) }, JSON.parse(r.vals[3])))
     : [];
   const sessions = rows_('Sessions', SESS_H).filter(r => r.vals[3]).map(r => JSON.parse(r.vals[3]));
-  return { ok: true, poll: poll, votes: votes, sessions: sessions };
+  return { ok: true, poll: poll, votes: votes, sessions: sessions, live: getLive_() };
 }
 
 function vote_(b) {
@@ -137,7 +136,63 @@ function saveSession_(b) {
   if (Math.abs(tin - tout) > 0.009) throw new Error('Buy-ins and winnings don\'t match, so this game can\'t be saved yet.');
   const sess = { id: 'g' + Date.now(), date: date, note: clean_(s.note, 80), players: players, paid: {}, created: new Date().toISOString() };
   sheet_('Sessions', SESS_H).appendRow([sess.id, date ? "'" + date : '', new Date(), JSON.stringify(sess)]);
+  if (b.endLive) putLive_(null);
   return state_();
+}
+
+
+// ===== Live game (one running game at a time, stored in the "Live" tab) =====
+function liveRow_() { const r = rows_('Live', LIVE_H); return r.length ? r[r.length - 1] : null; }
+function getLive_() { const r = liveRow_(); return r && r.vals[2] ? JSON.parse(r.vals[2]) : null; }
+function putLive_(live) {
+  const sh = sheet_('Live', LIVE_H); const r = liveRow_();
+  if (!live) { if (r) sh.deleteRow(r.row); return; }
+  const vals = [live.id, new Date(), JSON.stringify(live)];
+  if (r) sh.getRange(r.row, 1, 1, 3).setValues([vals]); else sh.appendRow(vals);
+}
+function liveOp_(b) { putLive_(liveApply_(getLive_(), b)); return state_(); }
+
+// Live game rules. The same function runs in the page (instant feedback) and in Code.gs (the source of truth).
+function liveApply_(live, b){
+  const k = n => String(n || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const nm = n => String(n == null ? '' : n).replace(/[\u0000-\u001f]/g, ' ').trim().replace(/\s+/g, ' ').slice(0, 30);
+  const amt = x => { const n = Number(x); if(!isFinite(n) || n <= 0 || n > 1000000) throw new Error('Enter an amount above zero.'); return Math.round(n * 100) / 100; };
+  const now = new Date().toISOString();
+  if(b.op === 'start'){
+    if(live) return live;
+    return {id:'L' + Date.now(), date:/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : '', started:now, updated:now, phase:'play', players:[], log:[], cashout:{}};
+  }
+  if(!live) throw new Error('There’s no live game. Start one first.');
+  if(b.op === 'end') return null;
+  const join = name => {
+    const n = nm(name); if(!n) throw new Error('Enter a name.');
+    const hit = live.players.find(p => k(p) === k(n)); if(hit) return hit;
+    if(live.players.length >= 30) throw new Error('A game can have up to 30 players.');
+    live.players.push(n); return n;
+  };
+  if(b.op === 'join') join(b.name);
+  else if(b.op === 'buyin'){
+    if(b.eid && live.log.some(e => e.id === b.eid)) return live;
+    const n = join(b.name);
+    const to = b.to ? (live.players.find(p => k(p) === k(b.to)) || '') : '';
+    if(to && k(to) === k(n)) throw new Error('Pick someone else for “paid cash to”.');
+    if(live.log.length >= 600) throw new Error('This game has too many buy-ins.');
+    live.log.push({id:String(b.eid || ('e' + Date.now())).slice(0, 40), name:n, amount:amt(b.amount), to:to, t:now});
+  }
+  else if(b.op === 'undo') live.log = live.log.filter(e => e.id !== b.id);
+  else if(b.op === 'drop'){
+    if(live.log.some(e => k(e.name) === k(b.name))) throw new Error('Undo their buy-ins first.');
+    live.players = live.players.filter(p => k(p) !== k(b.name)); delete live.cashout[k(b.name)];
+  }
+  else if(b.op === 'cashout'){
+    const n = join(b.name);
+    if(b.amount === '' || b.amount == null) delete live.cashout[k(n)];
+    else { const v = Number(b.amount); if(!isFinite(v) || v < 0 || v > 10000000) throw new Error('Enter the chips in pesos.'); live.cashout[k(n)] = Math.round(v * 100) / 100; }
+  }
+  else if(b.op === 'phase') live.phase = b.phase === 'count' ? 'count' : 'play';
+  else throw new Error('Unknown live action.');
+  live.updated = now;
+  return live;
 }
 
 function deleteSession_(b) {
