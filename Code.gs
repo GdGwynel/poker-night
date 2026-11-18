@@ -36,8 +36,11 @@ function doGet() { return out_({ ok: true, service: 'poker-night' }); }
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return out_({ ok: false, error: 'Bad request.' }); }
+  if (body && body.action === 'state') {
+    try { return out_(state_()); } catch (err) { return out_({ ok: false, error: String((err && err.message) || err) }); }
+  }
   const lock = LockService.getScriptLock();
-  try { lock.waitLock(15000); } catch (err) { return out_({ ok: false, error: 'Busy. Try again in a moment.' }); }
+  try { lock.waitLock(25000); } catch (err) { return out_({ ok: false, error: 'Busy. Try again in a moment.' }); }
   try { return out_(handle_(body || {})); }
   catch (err) { return out_({ ok: false, error: String((err && err.message) || err) }); }
   finally { lock.releaseLock(); }

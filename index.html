@@ -364,6 +364,24 @@
   .start-row{grid-template-columns:minmax(0,180px) minmax(0,200px) auto}
   @media (max-width:640px){ .start-row{grid-template-columns:1fr 1fr} .start-row .btn{grid-column:1 / -1} }
   dialog.confirm input{margin:4px 0 4px}
+  .tags{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:6px}
+  .tags .grp-tag{margin-top:0}
+  .sync{display:inline-flex; align-items:center; gap:6px; font-size:.78rem; font-weight:700; border-radius:999px; padding:2px 10px}
+  .sync:empty{display:none}
+  .sync.saved{color:#8FD9AE; border:1px solid rgba(143,217,174,.4)}
+  .sync.saved::before{content:"✓"}
+  .sync.saving,.sync.retry{color:#1B1A1F; background:var(--gold-l)}
+  .sync.retry{background:#FFB4BD}
+  .sync.saving::before,.sync.retry::before{content:""; width:10px; height:10px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent}
+  @media (prefers-reduced-motion:no-preference){ .sync.saving::before,.sync.retry::before{animation:spin .8s linear infinite} @keyframes spin{to{transform:rotate(360deg)}} }
+  .livebar .sync{margin-bottom:3px}
+  .orow.editing{grid-template-columns:minmax(0,1fr) auto; align-items:start}
+  .orow.editing .eo{grid-column:1 / -1}
+  .orow.editing .eo-more{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between}
+  .orow.editing .co-row{grid-template-columns:minmax(0,1fr) auto auto}
+  .orow.editing input{background:#fff}
+  .spot{outline:3px solid var(--gold); outline-offset:3px}
+  @media (prefers-reduced-motion:no-preference){ .spot{animation:spot 1.6s ease-out forwards} @keyframes spot{0%,60%{outline-color:var(--gold)} 100%{outline-color:transparent}} }
   .btn-danger{background:var(--suit); color:#fff}
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
@@ -1219,26 +1237,61 @@ function alertBox(kind, title, text, figures, actions){
       text ? h('p', {text:text}) : null,
       actions && actions.length ? h('div', {class:'btns'}, actions) : null));
 }
-function jumpBtn(label, sel, open){
+function jumpBtn(label, sel, open, before){
   const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:label});
-  b.addEventListener('click', () => { const el = $(sel); if(!el) return; if(open && el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); });
+  b.addEventListener('click', () => {
+    if(before) before();
+    const el = $(sel); if(!el) return;
+    if(open && el.tagName === 'DETAILS'){ el.open = true; S.logOpen = true; }
+    el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'center'});
+    el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+    const f = el.querySelector('input'); if(f) setTimeout(() => f.focus({preventScroll:true}), 350);
+  });
   return b;
 }
 function liveTyping(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#liveCard') && a.matches('input, select')); }
 function liveNote(text, type){ S.liveMsg = {text, type}; clearTimeout(liveNote.t); liveNote.t = setTimeout(() => { S.liveMsg = null; const m = $('#liveMsg'); if(m) setMsg(m, ''); }, 5000); const m = $('#liveMsg'); if(m) setMsg(m, text, type); }
+// Retry saves that fail because the sheet is busy or the connection blips. Every live action is safe to repeat.
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function apiRetry(body, tries){
+  for(let i = 0; ; i++){
+    try{ return await api(body); }
+    catch(e){
+      const transient = /busy|fetch|network|load failed|timed? ?out|unexpected token|json/i.test(e.message || '');
+      if(!transient || i >= (tries || 4) - 1) throw e;
+      syncPill('retry'); await sleep(1500 * (i + 1));
+    }
+  }
+}
+function syncPill(state){
+  const els = document.querySelectorAll('.sync');
+  const st = state || (S.livePending ? 'saving' : 'saved');
+  const text = st === 'saving' ? 'Saving' + (S.livePending > 1 ? ' ' + S.livePending + ' changes' : '') + '… please wait'
+             : st === 'retry' ? 'Sheet is busy, retrying…' : 'All changes saved';
+  els.forEach(el => { el.className = 'sync ' + st; el.textContent = text; });
+}
+// Wait until every change has reached the sheet (used before Stop and Save)
+async function waitIdle(btn){
+  if(!S.livePending) return true;
+  const old = btn ? btn.textContent : ''; if(btn){ btn.disabled = true; btn.textContent = 'Syncing, please wait…'; }
+  for(let i = 0; i < 120 && S.livePending; i++) await sleep(250);
+  if(btn){ btn.disabled = false; btn.textContent = old; }
+  return !S.livePending;
+}
 async function liveDo(op, flashName){
   let next;
   try{ next = liveApply(S.live ? JSON.parse(JSON.stringify(S.live)) : null, op); }
   catch(e){ liveNote(e.message, 'err'); return false; }
-  S.live = next; S.livePending = (S.livePending || 0) + 1; S.liveFlash = flashName || null;
-  renderLive();
+  S.live = next; S.liveSeq = (S.liveSeq || 0) + 1; S.livePending = (S.livePending || 0) + 1; S.liveFlash = flashName || null;
+  renderLive(); syncPill();
   try{
-    const j = await api(Object.assign({action:'live'}, op));
+    const j = await apiRetry(Object.assign({action:'live'}, op));
     if(--S.livePending === 0){ applyState(j); if(!liveTyping()) renderLive(); }
+    syncPill();
   }catch(e){
-    S.livePending--; liveNote(e.message + ' Your last change wasn’t saved.', 'err');
-    try{ applyState(await api({action:'state'})); }catch(_){}
-    renderLive();
+    S.livePending--; liveNote(e.message + ' That change wasn’t saved, so please try it again.', 'err');
+    if(!S.livePending){ try{ applyState(await api({action:'state'})); }catch(_){} renderLive(); }
+    syncPill();
   }
   return true;
 }
@@ -1280,6 +1333,7 @@ function renderLive(){
   const overOut = outSum > totalIn + 0.004;
   const mismatch = allOut && Math.abs(outSum - totalIn) >= 0.005;
   const problem = overOut || mismatch;
+  if(!problem && S.editAllOut) S.editAllOut = false;
 
   // ----- 1. Table summary -----
   const mins = Math.max(0, Math.round((Date.now() - new Date(L.started)) / 60000));
@@ -1297,7 +1351,7 @@ function renderLive(){
       h('div', null,
         h('div', {class:'eyebrow live-dot' + (counting || allOut ? ' stopped' : ''), text:allOut ? 'Everyone has cashed out' : counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started)}),
         h('h2', {text:L.date ? fmtDate(L.date) : 'Tonight'}),
-        h('div', {class:'grp-tag', text:groupOf(L)})),
+        h('div', {class:'tags'}, h('span', {class:'grp-tag', text:groupOf(L)}), DEMO || S.test ? null : h('span', {class:'sync'}))),
       h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}),
         h('div', {class:'pot-k', text:'cashed in' + (done.length && !allOut ? (inPlay >= 0 ? ', ' + peso(inPlay) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))),
     L.log.length ? h('div', {class:'lstats'},
@@ -1315,7 +1369,7 @@ function renderLive(){
     wrap.append(alertBox('bad', 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot',
       'Players can’t take out more than went in. One of the cash-outs was probably typed wrong, or someone’s cash-in is missing.',
       [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)]],
-      [jumpBtn('Review cash-outs', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
+      [jumpBtn('Fix a cash-out', '#outCard', false, () => { S.editAllOut = true; renderLive(); }), jumpBtn('Check cash-in history', '#logDet', true)]));
 
   // ----- 2. At the table / count the chips -----
   if(!allOut){
@@ -1391,16 +1445,39 @@ function renderLive(){
   if(done.length){
     const sec = h('div', {class:'card', id:'outCard'});
     sec.append(h('div', {class:'sec-head'}, h('h2', {text:'Cashed out'}), h('span', {class:'count', text:done.length + ' of ' + L.players.length})));
+    S.editOut = S.editOut || {};
     for(const n of done){
       const tin = tinOf(n), out = L.cashout[key(n)], net = round(out - tin);
-      const undo = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Undo', 'aria-label':'Undo cash-out for ' + n});
-      undo.addEventListener('click', () => liveDo({op:'cashout', name:n, amount:''}));
-      sec.append(h('div', {class:'orow ' + (net > 0 ? 'win' : net < 0 ? 'loss' : 'even') + (flash && key(flash) === key(n) ? ' flash' : '')},
+      const rowCls = 'orow ' + (net > 0 ? 'win' : net < 0 ? 'loss' : 'even') + (flash && key(flash) === key(n) ? ' flash' : '');
+      if(S.editOut[key(n)] || S.editAllOut){
+        const inp = h('input', {type:'number', inputMode:'decimal', min:0, id:'eo-' + key(n).replace(/\W+/g, '-'), 'aria-label':'Chips ' + n + ' cashed out'}); inp.value = out;
+        const saveB = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Save'});
+        const doSave = async () => {
+          if(inp.value.trim() === ''){ inp.focus(); return; }
+          const v = +inp.value; delete S.editOut[key(n)];
+          if(v !== out){ if(await liveDo({op:'cashout', name:n, amount:inp.value.trim()}, n)) liveNote(n + '’s cash-out changed to ' + peso(v) + '.', 'ok'); } else renderLive();
+        };
+        saveB.addEventListener('click', doSave); inp.addEventListener('keydown', e => { if(e.key === 'Enter') doSave(); });
+        const cancelB = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Cancel'});
+        cancelB.addEventListener('click', () => { delete S.editOut[key(n)]; S.editAllOut = false; renderLive(); });
+        const back = h('button', {type:'button', class:'linkbtn', text:'Put ' + n + ' back in the game'});
+        back.addEventListener('click', () => { delete S.editOut[key(n)]; liveDo({op:'cashout', name:n, amount:''}); });
+        sec.append(h('div', {class:rowCls + ' editing'},
+          h('div', {class:'nm', text:n}),
+          h('div', {class:'io num', text:peso(tin) + ' in'}),
+          h('div', {class:'eo'}, h('label', {for:inp.id, text:'Cashed out'}), h('div', {class:'co-row'}, inp, saveB, cancelB)),
+          h('div', {class:'eo-more'}, chipCounter(v => { inp.value = v; inp.focus(); }), back)));
+        continue;
+      }
+      const edit = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Edit', 'aria-label':'Edit cash-out for ' + n});
+      edit.addEventListener('click', () => { S.editOut[key(n)] = true; renderLive(); const x = $('#eo-' + key(n).replace(/\W+/g, '-')); if(x){ x.focus(); x.select(); } });
+      sec.append(h('div', {class:rowCls},
         h('div', {class:'nm', text:n}),
         h('div', {class:'io num', text:peso(tin) + ' in, ' + peso(out) + ' out'}),
         h('div', {class:'net num ' + cls(net), text:net ? signed(net) : 'Even'}),
-        undo));
+        edit));
     }
+    if(S.editAllOut){ const fin = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:10px', text:'Done editing'}); fin.addEventListener('click', () => { S.editAllOut = false; S.editOut = {}; renderLive(); }); sec.append(fin); }
     wrap.append(sec);
   }
 
@@ -1410,10 +1487,10 @@ function renderLive(){
     const c = compute(players); const ok = Math.abs(c.diff) < 0.005;
     const sec = h('div', {class:'card settle-box'}, h('h2', {text:'Settle up'}));
     if(!ok) sec.append(alertBox('bad', 'Totals are off by ' + peso(Math.abs(c.diff)),
-      c.diff > 0 ? 'More came out than went in. A cash-out was probably entered too high, or someone’s cash-in is missing. Undo the wrong one above and enter it again.'
+      c.diff > 0 ? 'More came out than went in. A cash-out was probably entered too high, or someone’s cash-in is missing. Tap Fix a cash-out to correct the amount.'
                  : 'Less came out than went in. Some chips weren’t counted, a cash-out was entered too low, or a cash-in was added by mistake.',
       [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)], ['Difference', (c.diff > 0 ? '+' : '−') + peso(Math.abs(c.diff))]],
-      [jumpBtn('Review cash-outs', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
+      [jumpBtn('Fix a cash-out', '#outCard', false, () => { S.editAllOut = true; renderLive(); }), jumpBtn('Check cash-in history', '#logDet', true)]));
     else {
       sec.append(h('div', {class:'check ok', role:'status', text:'✓ Balanced: ' + peso(totalIn) + ' in, ' + peso(outSum) + ' out'}));
       sec.append(h('h3', {text:'Who pays who'}), transfersList(c));
@@ -1424,6 +1501,7 @@ function renderLive(){
       const save = h('button', {type:'button', class:'btn btn-red', text:'Save to leaderboard'});
       const smsg = h('div', {class:'msg', role:'status'});
       save.addEventListener('click', async () => {
+        if(!(await waitIdle(save))) return setMsg(smsg, 'Still saving the last change. Check your connection and try again.', 'err');
         save.disabled = true; save.textContent = 'Saving…';
         try{ setGroup(groupOf(L)); applyState(await api({action:'saveSession', endLive:true, session:{date:L.date, note:note.value.trim(), group:groupOf(L), players}})); renderAll(); location.hash = '#board'; }
         catch(e){ setMsg(smsg, e.message, 'err'); save.disabled = false; save.textContent = 'Save to leaderboard'; }
@@ -1454,23 +1532,26 @@ function renderLive(){
   act.append(foot);
   wrap.append(act);
 
+  setTimeout(() => syncPill(), 0);
   // ----- 6. Sticky action bar -----
   if(!allOut){
     const action = counting
       ? h('span', {class:'lb-hint', text:playing.length + ' left to count'})
       : h('button', {type:'button', class:'btn btn-red', text:'Stop the game', disabled:!L.log.length});
     if(!counting) action.addEventListener('click', async () => {
+      if(!(await waitIdle(action))) return liveNote('Still saving. Check your connection and try again.', 'err');
       if(await confirmBox('Stop the game?', 'No more cash-ins after this. ' + (playing.length ? playing.join(', ') + (playing.length === 1 ? ' still needs' : ' still need') + ' to enter their chips, then it works out who pays who.' : 'Everyone has cashed out, so you’ll go straight to who pays who.'), 'Stop the game')) liveDo({op:'phase', phase:'count'});
     });
     wrap.append(h('div', {class:'livebar' + (problem ? ' bad' : '')},
-      h('div', null, h('div', {class:'lb-v num', text:problem ? '⚠ Totals don’t match' : peso(Math.max(0, inPlay)) + ' in play'}), h('div', {class:'lb-k', text:problem ? 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot' : playing.length + ' of ' + L.players.length + ' still playing'})),
+      h('div', null, DEMO || S.test ? null : h('span', {class:'sync'}), h('div', {class:'lb-v num', text:problem ? '⚠ Totals don’t match' : peso(Math.max(0, inPlay)) + ' in play'}), h('div', {class:'lb-k', text:problem ? 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot' : playing.length + ' of ' + L.players.length + ' still playing'})),
       action));
   }
 }
 // Keep everyone's screen in step while the Settle up tab is open.
 setInterval(async () => {
   if(DEMO || S.test || document.hidden || $('#view-settle').hidden || S.livePending) return;
-  try{ const j = await api({action:'state'}); if(S.livePending) return; applyState(j); if(!liveTyping()) renderLive(); }catch(e){}
+  const seq = S.liveSeq || 0;
+  try{ const j = await api({action:'state'}); if(S.livePending || (S.liveSeq || 0) !== seq) return; applyState(j); if(!liveTyping()) renderLive(); }catch(e){}
 }, 6000);
 
 // ===== Routing & boot =====
