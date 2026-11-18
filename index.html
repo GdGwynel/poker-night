@@ -8,9 +8,9 @@
 <meta name="theme-color" content="#6E1420">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;0,6..96,900;1,6..96,700;1,6..96,900&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,600;0,700;1,700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Concept: the table is a card back (oxblood, woven lattice); every panel is card stock.
+  /* Type: Zilla Slab (display) + Hanken Grotesk (body). Concept: the table is a card back (oxblood, woven lattice); every panel is card stock.
      One bold moment: the next game is dealt in as a giant playing card. Top 3 on the board are a fanned hand. */
   :root{
     --back:#6E1420; --back-2:#8A1A29; --back-deep:#3A0910;
@@ -19,7 +19,7 @@
     --suit:#C8102E; --win:#167A4A; --loss:#C8102E; --maybe:#9A6200;
     --gold:#D9A93A; --gold-l:#F3D891;
     --on-back:#FFF4F2; --on-back-2:#EBC3C8;
-    --display:'Bodoni Moda', 'Didot', Georgia, serif;
+    --display:'Zilla Slab', 'Rockwell', Georgia, serif;
     --body:'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --r:16px;
     color-scheme:dark;
@@ -46,7 +46,7 @@
   /* Header */
   header.top{padding-block:26px 4px; display:flex; gap:14px; align-items:center}
   .logo{width:46px; height:58px; flex:none; filter:drop-shadow(0 6px 10px rgba(0,0,0,.35)); transform:rotate(-6deg)}
-  .top h1{font-family:var(--display); font-weight:900; font-style:italic; font-size:clamp(2.3rem,7vw,3.4rem); line-height:.95; margin:0; letter-spacing:-.01em; color:var(--paper)}
+  .top h1{font-family:var(--display); font-weight:700; font-style:italic; font-size:clamp(2.3rem,7vw,3.4rem); line-height:.95; margin:0; letter-spacing:-.01em; color:var(--paper)}
   .next{margin:6px 0 0; color:var(--on-back-2); font-size:.95rem}
   .next b{color:var(--gold-l); font-weight:700}
 
@@ -72,12 +72,12 @@
   /* Card stock panels */
   .card{background:var(--paper); color:var(--ink); border-radius:var(--r); padding:22px 24px; min-width:0; position:relative;
     box-shadow:0 0 0 1px rgba(0,0,0,.06), 0 2px 0 rgba(255,255,255,.7) inset, 0 18px 40px -12px rgba(25,2,6,.6)}
-  .card h2{font-family:var(--display); font-weight:900; font-size:1.7rem; line-height:1.1; margin:0 0 6px; letter-spacing:-.005em; text-wrap:balance}
+  .card h2{font-family:var(--display); font-weight:700; font-size:1.7rem; line-height:1.1; margin:0 0 6px; letter-spacing:-.005em; text-wrap:balance}
   .card h3{font-family:var(--display); font-weight:700; font-size:1.15rem; margin:22px 0 10px}
   .sub{color:var(--ink-2); margin:0 0 14px; font-size:.97rem; max-width:62ch}
   .eyebrow{font-size:.85rem; font-weight:700; color:var(--suit); display:flex; align-items:center; gap:6px}
   .eyebrow::before{content:"♥"}
-  .felt-h{font-family:var(--display); font-weight:900; font-style:italic; font-size:1.8rem; margin:10px 2px 0; color:var(--paper); line-height:1.1}
+  .felt-h{font-family:var(--display); font-weight:700; font-style:italic; font-size:1.8rem; margin:10px 2px 0; color:var(--paper); line-height:1.1}
 
   /* Buttons & inputs */
   .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1.5px solid transparent; border-radius:999px; padding:11px 20px; font-weight:800; cursor:pointer; line-height:1.1; text-decoration:none; letter-spacing:.005em}
@@ -103,7 +103,7 @@
   .pcard{position:relative; background:var(--paper); color:var(--ink); border-radius:14px; aspect-ratio:5 / 7;
     box-shadow:0 0 0 1px rgba(0,0,0,.08), 0 24px 50px -14px rgba(20,1,5,.75), 0 2px 0 #fff inset}
   .pcard::before{content:""; position:absolute; inset:10px; border:1px solid rgba(200,16,46,.22); border-radius:8px; pointer-events:none}
-  .pcard .ix{position:absolute; top:12px; left:14px; display:grid; justify-items:center; line-height:.9; font-family:var(--display); font-weight:900; font-size:1.5rem; color:var(--suit)}
+  .pcard .ix{position:absolute; top:12px; left:14px; display:grid; justify-items:center; line-height:.9; font-family:var(--display); font-weight:700; font-size:1.5rem; color:var(--suit)}
   .pcard .ix small{font-size:1.15rem; font-family:var(--body); margin-top:2px}
   .pcard .ix.br{top:auto; left:auto; bottom:12px; right:14px; transform:rotate(180deg)}
   .pcard.black .ix{color:var(--ink)}
@@ -118,10 +118,10 @@
   .hero{display:grid; grid-template-columns:minmax(200px,260px) minmax(0,1fr); gap:30px; align-items:center; padding:8px 4px 6px}
   .hero .pcard{width:100%; transform:rotate(-3deg)}
   .hero .wd{font-weight:700; font-size:.95rem; color:var(--ink-2)}
-  .hero .day{font-family:var(--display); font-weight:900; font-style:italic; font-size:clamp(5.5rem,16vw,8rem); line-height:.85; color:var(--suit); margin:4px 0 2px}
+  .hero .day{font-family:var(--display); font-weight:700; font-style:italic; font-size:clamp(5.5rem,16vw,8rem); line-height:.85; color:var(--suit); margin:4px 0 2px}
   .hero .mo{font-family:var(--display); font-weight:700; font-size:1.25rem}
-  .hero .back-txt{color:var(--paper); font-family:var(--display); font-weight:900; font-style:italic; font-size:1.6rem; line-height:1.1; text-shadow:0 2px 10px rgba(0,0,0,.4)}
-  .hero-txt h2{font-family:var(--display); font-weight:900; font-size:clamp(2rem,5.4vw,2.9rem); line-height:1.02; margin:0 0 10px; color:var(--paper); text-wrap:balance}
+  .hero .back-txt{color:var(--paper); font-family:var(--display); font-weight:700; font-style:italic; font-size:1.6rem; line-height:1.1; text-shadow:0 2px 10px rgba(0,0,0,.4)}
+  .hero-txt h2{font-family:var(--display); font-weight:700; font-size:clamp(2rem,5.4vw,2.9rem); line-height:1.02; margin:0 0 10px; color:var(--paper); text-wrap:balance}
   .hero-txt p{margin:0 0 14px; color:var(--on-back-2); font-size:1.05rem; max-width:44ch}
   .inlist{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 18px; padding:0; list-style:none}
   .inlist li{background:rgba(255,244,242,.12); border:1px solid rgba(255,244,242,.22); color:var(--paper); border-radius:999px; padding:5px 12px; font-weight:700; font-size:.92rem}
@@ -180,7 +180,7 @@
   .pay:first-child{border-top:0}
   .pay .who{font-weight:700; font-size:1.02rem}
   .pay .who .arrow{color:var(--suit); margin:0 8px}
-  .pay .amt{font-family:var(--display); font-weight:900; font-size:1.35rem}
+  .pay .amt{font-family:var(--display); font-weight:700; font-size:1.35rem}
   .pay.done .who,.pay.done .amt{text-decoration:line-through; color:var(--ink-2); opacity:.7}
   .pay input[type=checkbox]{width:22px; height:22px; accent-color:var(--win)}
   .note{font-size:.9rem; color:var(--ink-2); margin:10px 0 0; max-width:70ch}
@@ -192,16 +192,16 @@
   .hand .pcard:nth-child(2){transform:translateY(-6px); z-index:2; width:clamp(124px,30vw,190px)}
   .hand .pcard:nth-child(3){transform:rotate(9deg) translateY(14px)}
   .hand .face{padding:0 12%}
-  .hand .nm{font-family:var(--display); font-weight:900; font-size:clamp(1.25rem,4.2vw,2rem); line-height:1.05; overflow-wrap:anywhere}
+  .hand .nm{font-family:var(--display); font-weight:700; font-size:clamp(1.25rem,4.2vw,2rem); line-height:1.05; overflow-wrap:anywhere}
   .hand .nt{font-weight:800; margin-top:6px; font-size:clamp(.85rem,2.6vw,1rem)}
   .hand .gold::before{border-color:var(--gold); border-width:2px}
   .hand .gold .ix{color:#A97B12}
   .stats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
   .stat{background:rgba(25,3,7,.4); border:1px solid rgba(255,230,230,.14); border-radius:14px; padding:14px 16px; min-width:0}
   .stat .k{font-size:.85rem; color:var(--on-back-2); font-weight:600}
-  .stat .v{font-family:var(--display); font-weight:900; font-size:1.7rem; line-height:1.15; color:var(--paper); margin-top:2px; overflow-wrap:anywhere}
+  .stat .v{font-family:var(--display); font-weight:700; font-size:1.7rem; line-height:1.15; color:var(--paper); margin-top:2px; overflow-wrap:anywhere}
   .stat .s{font-size:.86rem; color:var(--on-back-2)}
-  .board td.rank{width:2.2em; font-family:var(--display); font-weight:900; font-size:1.1rem; color:var(--ink-2)}
+  .board td.rank{width:2.2em; font-family:var(--display); font-weight:700; font-size:1.1rem; color:var(--ink-2)}
   .board tr.top1 td.rank{color:#A97B12}
   .board .pname{font-weight:800}
   .form{display:inline-flex; gap:4px}
@@ -211,7 +211,7 @@
   .season select{width:auto; background:var(--paper)}
   .game summary{list-style:none; cursor:pointer; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; align-items:center}
   .game summary::-webkit-details-marker{display:none}
-  .game summary .t{font-weight:900; font-family:var(--display); font-size:1.25rem}
+  .game summary .t{font-weight:700; font-family:var(--display); font-size:1.25rem}
   .game summary .m{font-size:.9rem; color:var(--ink-2); grid-column:1}
   .game summary .badge{grid-row:1 / span 2; grid-column:2}
   .game{padding-block:18px}
@@ -228,7 +228,7 @@
   .live-dot{color:var(--suit)}
   .live-dot::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--suit); box-shadow:0 0 0 4px rgba(200,16,46,.18)}
   .pot{text-align:right}
-  .pot-v{font-family:var(--display); font-weight:900; font-size:clamp(2.2rem,7vw,3.2rem); line-height:1; letter-spacing:-.01em}
+  .pot-v{font-family:var(--display); font-weight:700; font-size:clamp(2.2rem,7vw,3.2rem); line-height:1; letter-spacing:-.01em}
   .pot-k{color:var(--ink-2); font-size:.92rem; margin-top:4px}
   .ptiles{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%,240px), 1fr)); gap:12px; margin-top:18px}
   .ptile{background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; gap:12px; min-width:0}
@@ -236,7 +236,7 @@
   @media (prefers-reduced-motion:no-preference){ .ptile.flash{animation:flash .6s ease-out} @keyframes flash{from{background:#FFF1C9}} }
   .pt-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
   .pt-name{font-weight:800; font-size:1.08rem; overflow-wrap:anywhere}
-  .pt-tot{font-family:var(--display); font-weight:900; font-size:1.55rem; line-height:1}
+  .pt-tot{font-family:var(--display); font-weight:700; font-size:1.55rem; line-height:1}
   .pt-tot.zero{color:var(--ink-2); font-weight:700; font-size:1.1rem}
   .stack{display:flex; flex-wrap:wrap; gap:3px; min-height:16px}
   .mini{width:16px; height:16px; border-radius:50%; background:var(--c); box-shadow:0 0 0 1.5px var(--c); border:2px dashed rgba(255,255,255,.8)}
@@ -274,7 +274,7 @@
   .live-dot.stopped::before{background:var(--ink-2); box-shadow:none}
   dialog.confirm{border:0; border-radius:18px; padding:24px; width:min(92vw,400px); background:var(--paper); color:var(--ink); box-shadow:0 30px 80px -20px rgba(20,1,5,.8)}
   dialog.confirm::backdrop{background:rgba(30,3,8,.62)}
-  dialog.confirm h2{font-family:var(--display); font-weight:900; font-size:1.6rem; margin:0 0 8px}
+  dialog.confirm h2{font-family:var(--display); font-weight:700; font-size:1.6rem; margin:0 0 8px}
   dialog.confirm .btns{justify-content:flex-end}
   .live-msg{position:sticky; top:72px; z-index:3}
   details.alt > summary{list-style:none; cursor:pointer; color:var(--paper); font-family:var(--display); font-style:italic; font-weight:700; font-size:1.25rem; padding:6px 2px; display:flex; align-items:center; gap:10px}
