@@ -726,6 +726,42 @@
   .mebar .cv.self{position:absolute; left:0; bottom:calc(100% + 8px); width:84px; height:84px; border-radius:50%; object-fit:cover; transform:scaleX(-1); border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111}
   .rbtn.on{background:#1E7A49; border-color:#1E7A49; color:#fff}
   .callbtns{display:contents}
+  html, body{overflow-x:hidden}
+  .room{min-width:0; max-width:100%}
+  .room > *{min-width:0; max-width:100%}
+  .myhand{max-width:100%; box-sizing:border-box; padding:0 4px}
+  .myhand .hole-side{min-width:0; flex:1 1 auto; max-width:56%}
+  .mebar.inhand{width:100%; box-sizing:border-box; gap:6px; padding:4px 10px 4px 4px}
+  .mebar.inhand .tag{flex:none}
+  .actbar{box-sizing:border-box; max-width:100%}
+
+  @media (max-width:640px){
+    .myhand{gap:8px}
+    .myhand .hole .hc{width:clamp(60px, 21vw, 96px)}
+    .hole-side .peek-hint{font-size:.8rem}
+    .hole-side .eye{font-size:.82rem; padding:6px 10px}
+    .mebar.inhand b{max-width:5.5em; overflow:hidden; text-overflow:ellipsis}
+    .actbar .abtn{min-width:0}
+  }
+  .turnbar{position:relative; width:min(100%, 420px); height:10px; border-radius:999px; background:#E9E2D6; overflow:visible; margin:2px 0 4px}
+  .turnbar i{position:absolute; inset:0; border-radius:999px; background:linear-gradient(90deg, #1E7A49, #49A877); transform-origin:left; transform:scaleX(var(--p, 1)); transition:transform .25s linear}
+  .turnbar span{position:absolute; right:-4px; top:50%; transform:translate(100%, -50%); font-weight:900; font-size:.85rem; color:var(--ink)}
+  .turnbar.hurry i{background:linear-gradient(90deg, #C8102E, #FF5A6E); animation:hurryPulse .5s ease-in-out infinite alternate}
+  .turnbar.hurry span{color:#C8102E}
+  @keyframes hurryPulse{to{opacity:.6}}
+  .turnbar.small{height:6px; width:min(100%, 300px)}
+  .gl .seat .plate::after{height:4px; bottom:-1px}
+  .mebar{white-space:nowrap; flex-wrap:nowrap}
+  .mebar .tag{white-space:nowrap}
+  .mebar.inhand{flex-wrap:wrap; row-gap:4px}
+  .clock-btn:not(:disabled){border-color:var(--suit, #C8102E); color:var(--suit, #C8102E)}
+  .seat.clocked .plate, .mebar.clocked{animation:clockPulse .6s ease-in-out 4}
+  @keyframes clockPulse{50%{box-shadow:0 0 0 3px #FF5A6E, 0 0 22px rgba(255,90,110,.8)}}
+  .fold-stamp{position:absolute; left:50%; top:30%; transform:translate(-50%,-50%) rotate(-14deg); font-weight:900; font-size:1.1rem; letter-spacing:.08em; color:#fff; background:#5a5560; border:2px solid #fff; border-radius:8px; padding:2px 10px; z-index:9; pointer-events:none; animation:stamp 1.5s cubic-bezier(.3,1.6,.5,1) forwards}
+  @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-14deg) scale(2.4); opacity:0} 18%{transform:translate(-50%,-50%) rotate(-14deg) scale(1); opacity:1} 75%{opacity:1} 100%{opacity:0; transform:translate(-50%,-90%) rotate(-14deg) scale(.9)}}
+  .muck-fly{animation:muckFly .75s cubic-bezier(.4,0,.6,1) forwards; transform-origin:50% 100%}
+  @keyframes muckFly{to{transform:translateY(-38vh) rotate(-24deg) scale(.35); opacity:0}}
+  .center-msg .winline .allfold{font-weight:800; color:#F3D891}
   .rbtn.gear{font-size:1rem}
   .set-group{display:grid; gap:2px; background:#F2ECE2; border-radius:16px; padding:6px; margin:8px 0}
   .set-h{font-size:.72rem; font-weight:800; color:var(--ink-2); padding:4px 10px 2px; letter-spacing:.02em}
@@ -2596,7 +2632,7 @@ function buildRoom(root){
   fs.addEventListener('click', () => toggleFull());
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
-    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, gear, leave)),
+    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, fs, gear, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
       h('div', {class:'mebar', id:'pMe', hidden:true}, h('div', {class:'av'}, h('span', {class:'ini'}), h('i', {class:'ring'})), h('b', {class:'nm'}), h('span', {class:'stk num'}), h('span', {class:'tag'})),
       h('div', {class:'ptable', id:'pTable'},
@@ -2702,7 +2738,7 @@ function updateRoom(s){
   potEl.querySelector('.stack').style.setProperty('--n', String(Math.min(6, Math.ceil(pot / (s.blinds.bb * 4)) || 1)));
   // center message
   const cm = $('#pMsg');
-  if(sd){ cm.replaceChildren(...sd.winners.map(w => h('div', {class:'winline'}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount)}), w.hand ? h('span', {text:w.hand}) : h('span', {text:'Everyone else folded'})))); cm.className = 'center-msg show win'; }
+  if(sd){ cm.replaceChildren(...sd.winners.map(w => h('div', {class:'winline'}, h('div', {class:'trophy', text:'🏆'}), h('b', {text:(w.seat === s.me ? 'You win ' : w.name + ' wins ') + peso(w.amount)}), w.hand ? h('span', {text:w.hand}) : h('span', {class:'allfold', text:(w.seat === s.me ? 'Everyone folded to you 🙌' : 'Everyone else folded')})))); cm.className = 'center-msg show win'; }
   else if(!h_ && s.nextHandAt){ const sec = Math.max(0, Math.ceil((s.nextHandAt - (Date.now() + P.skew)) / 1000)); cm.replaceChildren(h('span', {class:'count', text:'Next hand in ' + sec})); cm.className = 'center-msg show soft'; }
   else if(!h_){ const n = s.seats.filter(x => x && (x.stack > 0 || x.pendingRebuy)).length; cm.replaceChildren(h('span', {text:n < 2 ? 'Waiting for one more player…' : 'Ready when you are'})); cm.className = 'center-msg show soft'; }
   else { cm.className = 'center-msg'; cm.replaceChildren(); }
@@ -2766,7 +2802,7 @@ function renderActions(s){
       const rb = h('button', {type:'button', class:'abtn raise', text:(o.currentBet ? 'Raise' : 'Bet') + (P.raiseOpen ? ' ▾' : ' ▸')}); rb.addEventListener('click', () => { P.raiseOpen = !P.raiseOpen; bar.dataset.k = ''; renderActions(s); });
       row.append(rb);
     }
-    bar.append(h('div', {class:'act-msg turn', text:'Your turn' + (o.toCall ? ', ' + peso(o.toCall) + ' to call' : '')}), row);
+    bar.append(h('div', {class:'act-msg turn', text:'Your turn' + (o.toCall ? ', ' + peso(o.toCall) + ' to call' : '')}), h('div', {class:'turnbar', id:'pTurnBar'}, h('i'), h('span', {class:'num'})), row);
     if(o.canRaise && P.raiseOpen) bar.append(raisePanel(s, o));
     return;
   }
@@ -2786,7 +2822,13 @@ function renderActions(s){
   }
   if(s.hand){
     const who = s.hand.toAct >= 0 && s.seats[s.hand.toAct] ? s.seats[s.hand.toAct].name : '';
-    bar.append(h('div', {class:'act-msg', text:me.folded ? 'You folded. Next hand soon.' : me.allIn ? 'You’re all in. Good luck!' : (who ? 'Waiting for ' + who + '…' : '')}), emotes);
+    bar.append(h('div', {class:'act-msg', text:me.folded ? 'You folded. Next hand soon.' : me.allIn ? 'You’re all in. Good luck!' : (who ? 'Waiting for ' + who + '…' : '')}), who ? h('div', {class:'turnbar small', id:'pTurnBar'}, h('i'), h('span', {class:'num'})) : null, emotes);
+    const ta = s.hand.toAct >= 0 ? s.seats[s.hand.toAct] : null;
+    if(ta && !ta.bot && s.hand.toAct !== s.me){
+      const cb = h('button', {type:'button', class:'btn btn-ghost btn-sm clock-btn', id:'pClock', text:'⏱ Call the clock', title:'Give ' + ta.name + ' 20 seconds to decide', disabled:true});
+      cb.addEventListener('click', () => { psend({t:'clock'}); cb.disabled = true; });
+      bar.append(cb);
+    }
     return;
   }
   if(me.stack === 0 && !me.pendingRebuy){ const b = h('button', {type:'button', class:'btn btn-red', text:'Cash in again'}); b.addEventListener('click', () => rebuySheet(false)); bar.append(h('div', {class:'act-msg', text:'You’re out of chips.'}), b); return; }
@@ -2904,7 +2946,9 @@ function handleEvent(ev, prev, s){
     bubble(seat, ev.allIn ? 'ALL IN!' : ev.type === 'call' ? 'Call' : ev.type === 'bet' ? 'Bet ' + peso(ev.amount) : 'Raise ' + peso(ev.amount), ev.allIn ? 'hot' : ev.type === 'raise' ? 'warm' : '');
     if(ev.allIn){ flash('allin'); const t = $('#pScene'); t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); }
   } else if(ev.type === 'check'){ bubble(seat, 'Check'); sfx('check'); const el = P.seatEls[seat]; if(el){ el.classList.remove('knock'); void el.offsetWidth; el.classList.add('knock'); } }
-  else if(ev.type === 'fold'){ bubble(seat, 'Fold', 'cold'); sfx('fold'); fly(seatXY(seat), [50, 50], h('span', {class:'fcards'}, cardEl('??', 'sm'), cardEl('??', 'sm')), 500); }
+  else if(ev.type === 'fold'){ bubble(seat, 'Fold', 'cold'); sfx('fold'); { const el = seat === s.me ? P.meEl : P.seatEls[seat]; if(el){ const st = h('span', {class:'fold-stamp', text:'FOLD'}); el.append(st); setTimeout(() => st.remove(), 1500); } }
+    if(seat === s.me){ const hole = $('#pHole'); if(hole && !reduceMotion()){ const r = hole.getBoundingClientRect(), c = hole.cloneNode(true); c.removeAttribute('id'); c.classList.add('muck-fly'); Object.assign(c.style, {position:'fixed', left:r.left + 'px', top:r.top + 'px', width:r.width + 'px', height:r.height + 'px', margin:0, zIndex:80, pointerEvents:'none'}); document.body.append(c); setTimeout(() => c.remove(), 800); } }
+    if(!P.gl) fly(seatXY(seat), [50, 50], h('span', {class:'fcards'}, cardEl('??', 'sm'), cardEl('??', 'sm')), 500); }
   else if(ev.type === 'street' && prev){
     prev.seats.forEach((x, i) => { if(x && x.bet > 0) fly(betXY(i), [50, 60], chipEl(), 380); });
     sfx('chip');
@@ -2930,13 +2974,16 @@ function handleEvent(ev, prev, s){
     if(seat !== s.me) ptoast(ev.name + ' shows their cards 👀'); sfx('card'); updateRoom(s);
     setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5100);
   }
+  else if(ev.type === 'clock'){ ptoast('⏱ ' + ev.by + ' called the clock on ' + (seat === s.me ? 'you' : ev.name) + '. 20 seconds!', seat === s.me ? 'err' : ''); sfx('turn'); const el = seat === s.me ? P.meEl : P.seatEls[seat]; if(el){ el.classList.remove('clocked'); void el.offsetWidth; el.classList.add('clocked'); } }
   else if(ev.type === 'finishing'){ ptoast('Last hand! The game ends after this one.'); }
 }
 // countdown + turn timer ring
 setInterval(() => {
   const s = P.s; if(!s || $('#view-play').hidden || !$('#pTable')) return;
   const now = Date.now() + P.skew;
-  if(s.hand && s.deadline){ const left = Math.max(0, s.deadline - now); const el = s.hand.toAct === s.me ? (P.meEl || $('#pMe')) : P.seatEls[s.hand.toAct]; if(el) el.style.setProperty('--p', String(left / 45000)); if(el) el.classList.toggle('hurry', left < 10000); }
+  if(s.hand && s.deadline){ const left = Math.max(0, s.deadline - now); const el = s.hand.toAct === s.me ? (P.meEl || $('#pMe')) : P.seatEls[s.hand.toAct]; const full = Math.max(1000, s.deadline - (s.turnStart || s.deadline - 45000)); if(el) el.style.setProperty('--p', String(left / full));
+    const cb = $('#pClock'); if(cb) cb.disabled = now - (s.turnStart || now) < 10000 || left < 20500;
+    const tb = $('#pTurnBar'); if(tb){ tb.style.setProperty('--p', String(Math.min(1, left / full))); tb.querySelector('span').textContent = Math.ceil(left / 1000) + 's'; tb.classList.toggle('hurry', left < 10000); } if(el) el.classList.toggle('hurry', left < 10000); }
   if(!s.hand && s.nextHandAt){ const c = $('#pMsg .count'); if(c) c.textContent = 'Next hand in ' + Math.max(0, Math.ceil((s.nextHandAt - now) / 1000)); }
   if(P.showdown && Date.now() > P.showdown.until){ P.showdown = null; updateRoom(s); }
 }, 250);
@@ -3385,7 +3432,17 @@ function makeGL(T, host){
     a.hole.rotation.y = Math.atan2(p.n.x, p.n.y);
   }
   function setHole(a, key, shown){
-    for(const c of [...a.hole.children]) a.hole.remove(c);
+    const old = [...a.hole.children];
+    if(!key && old.length && a.holeKey !== undefined && !reduceMotion()){
+      // folded: toss the cards into the middle with a spin, then they disappear
+      old.forEach((c, k) => {
+        const from = c.getWorldPosition(new T.Vector3()); a.hole.remove(c); scene.add(c); c.position.copy(from); c.rotation.set(FACEDOWN, 0, c.rotation.z);
+        const to = new T.Vector3((Math.random() - .5) * .25, TY + .004, wz(52) + (Math.random() - .5) * .15), spin = (Math.random() < .5 ? -1 : 1) * (4 + Math.random() * 3);
+        tween(520, k * 60, e => { c.position.lerpVectors(from, to, e); c.position.y += Math.sin(e * Math.PI) * .18; c.rotation.z = spin * e; }, () => tween(400, 250, e => { c.position.y = TY + .004 - e * .01; c.scale.setScalar(1 - e * .6); }, () => scene.remove(c)));
+      });
+      return;
+    }
+    for(const c of old) a.hole.remove(c);
     if(!key) return;
     const cards = shown || [null, null];
     cards.forEach((c, k) => {
