@@ -776,21 +776,24 @@ function pollMessage(){
   if(p.slots.length === 1){
     const t = slotTally(p.slots[0].id);
     lines.push('♠️ Poker night, ' + long(p.slots[0].when), '');
-    lines.push(t.yes.length ? 'In (' + t.yes.length + '): ' + t.yes.join(', ') : 'Nobody has said they’re in yet.');
-    if(t.maybe.length) lines.push('Maybe (' + t.maybe.length + '): ' + t.maybe.join(', '));
+    const group = (title, names) => { lines.push(title); names.forEach(n => lines.push('• ' + n)); lines.push(''); };
+    if(t.yes.length) group('✅ Who’s in', t.yes); else lines.push('✅ Who’s in: nobody yet', '');
+    if(t.maybe.length) group('🤔 Maybe', t.maybe);
+    if(t.no.length) group('❌ Can’t make it', t.no);
   } else {
     lines.push('♠️ Poker night: which day works?', '');
     for(const s of p.slots){ const t = slotTally(s.id); lines.push(long(s.when) + ': ' + (t.yes.length ? t.yes.length + ' in (' + t.yes.join(', ') + ')' : 'nobody yet') + (t.maybe.length ? ', ' + t.maybe.length + ' maybe' : '')); }
   }
   if(p.hosts.length){
     const tally = [...hostTally()].filter(([, w]) => w.length).sort((a, b) => b[1].length - a[1].length);
-    if(!tally.length) lines.push('Where: not decided yet');
+    if(!tally.length) lines.push('📍 Where: not decided yet');
     else {
       const top = tally[0][1].length; const lead = tally.filter(([, w]) => w.length === top).map(([n]) => n + '’s place');
-      lines.push('Where: ' + (lead.length > 1 ? lead.join(' or ') + ' (tied, ' : lead[0] + ' (') + top + ' vote' + (top === 1 ? '' : 's') + ' so far)');
+      lines.push('📍 Where: ' + (lead.length > 1 ? lead.join(' or ') + ' (tied, ' : lead[0] + ' (') + top + ' vote' + (top === 1 ? '' : 's') + ' so far)');
     }
   }
-  lines.push('', 'Are you in? Tap to vote:', link);
+  if(lines[lines.length - 1] !== '') lines.push('');
+  lines.push('Are you in? Tap to vote:', link);
   return lines.join('\n');
 }
 function renderHero(){
