@@ -476,6 +476,15 @@
   .lobby-line{text-align:center; color:var(--ink-2); font-weight:600; margin:4px 0 6px}
   .lobby-line.live::before{content:"●"; color:#1E7A49; margin-right:6px}
   .lobby .chips{margin-top:6px}
+  .picker{display:grid; gap:10px; justify-items:start}
+  .picks{display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:8px; width:100%}
+  .pick{display:grid; justify-items:center; gap:2px; padding:4px 2px 8px; border-radius:16px; border:2px solid var(--line, #E4DDD2); background:#F4EFE6; cursor:pointer; transition:transform .15s, border-color .15s, box-shadow .15s}
+  .pick img{width:100%; max-width:110px; aspect-ratio:220/240; display:block}
+  .pick-ph{width:100%; max-width:110px; aspect-ratio:220/240; display:grid; place-items:center; font-size:2rem; border-radius:12px; background:radial-gradient(circle at 50% 40%, var(--c), #2a0a12)}
+  .pick-l{font-size:.78rem; font-weight:800; color:var(--ink)}
+  .pick:hover{transform:translateY(-2px)}
+  .pick[aria-checked="true"]{border-color:var(--suit, #C8102E); box-shadow:0 0 0 3px rgba(200,16,46,.18); background:#fff}
+  @media (max-width:640px){ .picks{grid-template-columns:repeat(3, minmax(0, 1fr))} }
   .enter-btn{min-width:240px}
 
   .room{display:grid; gap:10px; position:relative}
@@ -585,10 +594,13 @@
   }
 
   /* cards */
-  .pc{position:relative; width:52px; aspect-ratio:5/7; border-radius:6px; background:#fff; box-shadow:0 3px 8px rgba(0,0,0,.35); font-family:var(--display); font-weight:700; user-select:none; -webkit-user-select:none; flex:none}
-  .pc .r{position:absolute; top:3px; left:5px; font-size:clamp(.8rem,2.2vw,1.15rem); line-height:1}
-  .pc .su{position:absolute; top:calc(3px + 1.05em); left:5px; font-size:.75em; line-height:1}
-  .pc .big{position:absolute; right:4px; bottom:2px; font-size:clamp(1.1rem,3.4vw,1.9rem); line-height:1}
+  .pc{position:relative; width:52px; aspect-ratio:5/7; border-radius:7%/5%; background:linear-gradient(160deg, #FFFFFF, #F4F0E8); box-shadow:0 3px 8px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.08); font-family:var(--display); font-weight:800; user-select:none; -webkit-user-select:none; flex:none; container-type:inline-size; overflow:hidden}
+  .pc .idx{position:absolute; top:5%; left:7%; display:grid; justify-items:center; line-height:.9}
+  .pc .idx.b{top:auto; left:auto; bottom:5%; right:7%; transform:rotate(180deg)}
+  .pc .idx .r{font-size:26cqw; letter-spacing:-.04em}
+  .pc .idx .su{font-size:20cqw; font-family:serif; margin-top:2cqw}
+  .pc .big{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:serif; font-size:58cqw; line-height:1}
+  .pc.face-court .big{font-size:30cqw; white-space:nowrap; padding:6cqw 8cqw; border:1.5cqw solid currentColor; border-radius:6cqw; opacity:.92}
   .pc.red{color:#C8102E} .pc.blk{color:#1B1A1F}
   .pc.back{background:repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), #9E1A2D; border:2px solid #fff}
   .pc.sm{width:30px}
@@ -609,7 +621,7 @@
   .hole .hc .pc{position:absolute; inset:0; width:100%}
   .hole .hc.d0{transform:rotate(-9deg) translateY(6px)} .hole .hc.d1{transform:rotate(7deg) translateX(-22px)}
   .hole .cover{transform-origin:50% 100%; transition:transform .28s cubic-bezier(.3,.9,.3,1.2); z-index:2; box-shadow:0 6px 16px rgba(0,0,0,.45)}
-  .hole .face .r{font-size:1.5rem} .hole .face .big{font-size:2.6rem}
+
   .hole.peek .cover{transform:rotateX(78deg) translateY(-4px)}
   .hole.peek .hc.d0 .cover{transition-delay:0s} .hole.peek .hc.d1 .cover{transition-delay:.05s}
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
@@ -673,7 +685,10 @@
   .ptable-wrap.gl{background:#0d0306}
   .ptable-wrap.gl::before{display:none}
   .ptable-wrap.gl::after{box-shadow:inset 0 0 60px 8px rgba(8,0,3,.55)}
-  .gl .p-lamp, .gl .rail, .gl .felt, .gl .pboard, .gl .dealer-btn{display:none}
+  .gl .p-lamp, .gl .rail, .gl .felt, .gl .dealer-btn{display:none}
+  .gl .pboard{top:57%; gap:clamp(5px,1vw,10px); z-index:3; filter:drop-shadow(0 10px 14px rgba(0,0,0,.55))}
+  .gl .pboard .slot{width:clamp(50px,8.6vw,78px); border-color:transparent}
+  .gl .pboard .pc.win{transform:translateY(-8px)}
   .gl .ptable{left:0; top:0; bottom:auto; width:100%; height:100%; aspect-ratio:auto; transform:none !important; transform-style:flat; z-index:1}
   .gl .ptable > .layer{transform-style:flat}
   .gl .seat{transform:translate(-50%,-100%); padding-top:0; --sz:1; transition:opacity .4s}
@@ -686,6 +701,20 @@
   .gl .seat.turn .plate{box-shadow:0 0 0 2px var(--gold), 0 0 18px rgba(217,169,58,.6)}
   .gl .seat .plate::after{content:""; position:absolute; left:8px; right:8px; bottom:2px; height:2px; border-radius:2px; background:var(--gold); transform-origin:left; transform:scaleX(var(--p,1)); opacity:0}
   .gl .seat.turn .plate::after{opacity:1} .gl .seat.turn.hurry .plate::after{background:#FF5A6E}
+  .seat .cv{display:none}
+  .seat .cv.vis{display:block; position:absolute; left:50%; bottom:100%; width:78px; height:78px; transform:translate(-50%,-14px); border-radius:50%; object-fit:cover; border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111; z-index:5}
+  .fp:not(.gl) .seat .cv.vis{bottom:auto; top:0; transform:translate(-50%,-60%)}
+  .seat.micon .nm::after{content:' 🎙'} .gl .seat.micon .nm[data-mood]::after{content:' ' attr(data-mood) ' 🎙'}
+  .mebar .cv.self{position:absolute; left:0; bottom:calc(100% + 8px); width:84px; height:84px; border-radius:50%; object-fit:cover; transform:scaleX(-1); border:3px solid #FBFAF6; box-shadow:0 6px 18px rgba(0,0,0,.5); background:#111}
+  .rbtn.on{background:#1E7A49; border-color:#1E7A49; color:#fff}
+  .callbtns{display:contents}
+  .room.full{position:fixed; inset:0; z-index:60; background:#0d0306; padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); display:flex; flex-direction:column; gap:8px; overflow:auto}
+  .room.full .ptable-wrap{height:auto; flex:1 1 auto; min-height:300px; margin:0; border-radius:18px}
+  .room.full .myhand{margin-top:-130px}
+  .room.full .ticker{display:none}
+  body.table-full{overflow:hidden}
+  body.table-full .tabs, body.table-full header{visibility:hidden}
+  .seat.bot{cursor:pointer} .seat.bot .nm::before{content:'🤖 '}
   .gl .seat .nm[data-mood]::after{content:' ' attr(data-mood); font-size:.85em}
   .gl .seat.winner .plate{box-shadow:0 0 0 2px var(--gold-l), 0 0 26px rgba(243,216,145,.8)}
   .gl .bet{transform:translate(-50%,0); background:rgba(0,0,0,.55); padding:1px 7px} .gl .bet .chips3{display:none}
@@ -2051,6 +2080,7 @@ function pconnect(){
     else if(m.t === 'error'){ ptoast(m.error, 'err'); P.pendingEnter = false; }
     else if(m.t === 'peek') seatPeek(m.seat, m.on);
     else if(m.t === 'emote') floatEmote(m.seat, m.e);
+    else if(m.t === 'rtc') onRtc(m).catch(e => console.warn('call', e));
   };
   ws.onclose = () => { P.open = false; P.ws = null; renderPlay();
     const wait = Math.min(10000, 800 * Math.pow(1.7, P.tries++)); setTimeout(() => { if(!document.hidden || P.s && P.s.me >= 0) pconnect(); }, wait); };
@@ -2113,16 +2143,195 @@ function cardEl(c, cls){
   if(!c || c === '??'){ el.classList.add('back'); return el; }
   el.dataset.c = c;
   const r = c[0] === 'T' ? '10' : c[0]; const su = c[1]; el.classList.add(su === 'h' || su === 'd' ? 'red' : 'blk');
-  el.append(h('span', {class:'r', text:r}), h('span', {class:'su', text:SUIT[su]}), h('span', {class:'big', text:SUIT[su]}));
+  const idx = () => h('span', {class:'idx'}, h('span', {class:'r', text:r}), h('span', {class:'su', text:SUIT[su]}));
+  const b = idx(); b.classList.add('b');
+  el.append(idx(), h('span', {class:'big', text:'JQK'.includes(c[0]) ? c[0] + SUIT[su] : SUIT[su]}), b);
+  if('JQK'.includes(c[0])) el.classList.add('face-court');
   el.setAttribute('aria-label', r + ' of ' + {s:'spades', h:'hearts', d:'diamonds', c:'clubs'}[su]);
   return el;
 }
+
+
+// ---------- character picker in the lobby ----------
+const MOOD_LABELS = [['😄', 'Cheery'], ['😌', 'Chill'], ['😴', 'Sleepy'], ['😬', 'Nervous'], ['😎', 'Cocky'], ['🤪', 'Bouncy']];
+const newLook = () => ((Math.random() * 4294967295) >>> 0) || 1;
+const PICK = {looks:null, imgs:{}, busy:false};
+function pickLooks(fresh){
+  const mine = +store('pokerLook') || 0;
+  if(!PICK.looks || fresh){ PICK.looks = [mine || newLook()]; while(PICK.looks.length < 6) PICK.looks.push(newLook()); }
+  if(!P.look) P.look = PICK.looks[0];
+  return PICK.looks;
+}
+async function renderPicks(onDone){
+  if(PICK.busy || P.glFailed || !glOK()) return;
+  const todo = PICK.looks.filter(l => !PICK.imgs[l]); if(!todo.length) return;
+  PICK.busy = true;
+  try{
+    const T = await loadThree();
+    if(!PICK.r){
+      const R = new T.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true}); R.setPixelRatio(1); R.setSize(220, 240, false);
+      R.outputColorSpace = T.SRGBColorSpace; R.toneMapping = T.ACESFilmicToneMapping;
+      const scene = new T.Scene(); scene.add(new T.HemisphereLight(0xfff0e0, 0x401018, 1.6));
+      const d = new T.DirectionalLight(0xffe2c0, 2.2); d.position.set(.8, 2.4, 2); scene.add(d);
+      const cam = new T.PerspectiveCamera(30, 220 / 240, .05, 20); cam.position.set(0, 1.22, 1.55); cam.lookAt(0, 1.02, 0);
+      const M = {chair:new T.MeshStandardMaterial({color:0x1E0F0A, roughness:.55}), dark:new T.MeshStandardMaterial({color:0x14090a}), trim:new T.MeshStandardMaterial({color:0xC9A04A, roughness:.3, metalness:.85})};
+      const col = c => new T.Color(String(c).replace(/hsl\((\S+) (\S+) (\S+)\)/, 'hsl($1, $2, $3)'));
+      const hash = x => { let v = 2166136261; for(const ch of String(x)) v = Math.imul(v ^ ch.charCodeAt(0), 16777619); return v >>> 0; };
+      PICK.r = {R, T, scene, cam, kit:avatarKit(T, {col, hash, M})};
+    }
+    const {R, scene, cam, kit} = PICK.r;
+    for(const look of todo){
+      const a = kit.makeAvatar('x', lookColor({look, name:'x'}), look);
+      a.expr = null; a.eyes.forEach(e => { e.w.visible = e.pu.visible = true; e.arc.visible = false; });
+      a.head.rotation.set(.05, .25, -.06); scene.add(a.g); R.render(scene, cam);
+      PICK.imgs[look] = R.domElement.toDataURL('image/png');
+      scene.remove(a.g); a.g.traverse(o => { if(o.geometry) o.geometry.dispose(); });
+    }
+  }catch(e){ console.warn('picker', e); }
+  PICK.busy = false; if(onDone) onDone();
+}
+function characterPicker(){
+  const looks = pickLooks();
+  const grid = h('div', {class:'picks', role:'radiogroup', 'aria-label':'Pick your character'});
+  const paint = () => {
+    grid.replaceChildren(...looks.map(l => {
+      const [emo, label] = MOOD_LABELS[(l >>> 0) % 6];
+      const b = h('button', {type:'button', class:'pick', role:'radio', 'aria-checked':String(l === P.look), 'aria-label':label + ' character'},
+        PICK.imgs[l] ? h('img', {src:PICK.imgs[l], alt:''}) : h('span', {class:'pick-ph', style:'--c:' + lookColor({look:l, name:''}), text:emo}),
+        h('span', {class:'pick-l', text:emo + ' ' + label}));
+      b.addEventListener('click', () => { P.look = l; store('pokerLook', String(l)); sfx('chip'); paint(); });
+      return b;
+    }));
+  };
+  paint(); renderPicks(paint);
+  const shuffle = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🎲 Show me others'});
+  shuffle.addEventListener('click', () => { const keep = P.look; PICK.looks = null; pickLooks(true); PICK.looks[0] = keep; P.look = keep; characterPicker.re && characterPicker.re(); });
+  const box = h('div', {class:'picker'}, grid, shuffle);
+  characterPicker.re = () => { box.replaceWith(characterPicker()); };
+  return box;
+}
+
+
+// ---------- built-in call: camera + mic, phone to phone (WebRTC) ----------
+const RTC = {stream:null, cam:false, mic:false, pcs:{}, ice:null, remote:{}, early:{}};
+function rtcIce(){
+  if(RTC.ice) return Promise.resolve(RTC.ice);
+  return fetch(TABLE_URL.replace(/\/$/, '') + '/ice').then(r => r.json()).then(j => RTC.ice = j.iceServers).catch(() => RTC.ice = [{urls:'stun:stun.l.google.com:19302'}]);
+}
+async function toggleMedia(kind){
+  const want = !RTC[kind], tk = kind === 'cam' ? 'video' : 'audio';
+  if(want){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ ptoast('This browser can’t share a camera or mic.', 'err'); return; }
+    try{
+      const got = await navigator.mediaDevices.getUserMedia(kind === 'cam' ? {video:{width:{ideal:320}, height:{ideal:320}, facingMode:'user'}} : {audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+      RTC.stream = RTC.stream || new MediaStream();
+      RTC.stream.getTracks().filter(t => t.kind === tk).forEach(t => { t.stop(); RTC.stream.removeTrack(t); });
+      RTC.stream.addTrack(got.getTracks()[0]);
+    }catch(e){ ptoast((kind === 'cam' ? 'Camera' : 'Microphone') + ' is blocked. Allow it in your browser’s site settings, then try again.', 'err'); return; }
+  } else if(RTC.stream) RTC.stream.getTracks().filter(t => t.kind === tk).forEach(t => { t.stop(); RTC.stream.removeTrack(t); });
+  RTC[kind] = want;
+  for(const pc of Object.values(RTC.pcs)) setSenders(pc);
+  psend({t:'media', cam:RTC.cam, mic:RTC.mic});
+  callButtons(); if(P.s) rtcSync(P.s);
+}
+function stopMedia(){
+  if(RTC.stream) RTC.stream.getTracks().forEach(t => t.stop());
+  RTC.stream = null; RTC.cam = RTC.mic = false;
+  for(const j of Object.keys(RTC.pcs)) closePC(+j);
+  callButtons();
+}
+function setSenders(pc){
+  const v = RTC.stream && RTC.stream.getVideoTracks()[0] || null, a = RTC.stream && RTC.stream.getAudioTracks()[0] || null;
+  for(const tc of pc.getTransceivers()){ const k = tc.receiver.track && tc.receiver.track.kind; const t = k === 'video' ? v : a; if(tc.sender && tc.sender.track !== t) tc.sender.replaceTrack(t).catch(() => {}); }
+}
+function closePC(j){ const pc = RTC.pcs[j]; if(pc){ try{ pc.close(); }catch(e){} } delete RTC.pcs[j]; delete RTC.remote[j]; delete RTC.early[j]; }
+function makePC(j){
+  const pc = new RTCPeerConnection({iceServers:RTC.ice || []}); pc._name = P.s.seats[j] && P.s.seats[j].name; RTC.pcs[j] = pc;
+  pc.onicecandidate = e => { if(e.candidate) psend({t:'rtc', to:j, data:{ice:e.candidate}}); };
+  pc.ontrack = e => { const st = RTC.remote[j] || (RTC.remote[j] = new MediaStream()); if(!st.getTracks().includes(e.track)) st.addTrack(e.track); if(P.s) callUI(P.s); };
+  pc.onconnectionstatechange = () => { if(pc.connectionState === 'failed' && RTC.pcs[j] === pc){ closePC(j); setTimeout(() => P.s && rtcSync(P.s), 2000); } };
+  return pc;
+}
+async function offerTo(j){
+  const pc = makePC(j);
+  pc.addTransceiver('audio', {direction:'sendrecv'}); pc.addTransceiver('video', {direction:'sendrecv'}); setSenders(pc);
+  await pc.setLocalDescription(await pc.createOffer());
+  psend({t:'rtc', to:j, data:{sdp:pc.localDescription}});
+}
+async function onRtc(m){
+  const j = m.from, d = m.data || {}; let pc = RTC.pcs[j];
+  if(d.sdp){
+    if(d.sdp.type === 'offer'){
+      await rtcIce(); if(pc) closePC(j); pc = makePC(j);
+      await pc.setRemoteDescription(d.sdp);
+      pc.getTransceivers().forEach(tc => { tc.direction = 'sendrecv'; }); setSenders(pc);
+      await pc.setLocalDescription(await pc.createAnswer());
+      psend({t:'rtc', to:j, data:{sdp:pc.localDescription}});
+    } else if(pc && pc.signalingState === 'have-local-offer') await pc.setRemoteDescription(d.sdp);
+    if(pc) for(const c of RTC.early[j] || []) await pc.addIceCandidate(c).catch(() => {});
+    delete RTC.early[j];
+  } else if(d.ice){
+    if(pc && pc.remoteDescription) pc.addIceCandidate(d.ice).catch(() => {});
+    else (RTC.early[j] = RTC.early[j] || []).push(d.ice);
+  }
+}
+// connect to every real player at the table while either side has a camera or mic on
+function rtcSync(s){
+  if(s.me < 0){ if(RTC.stream || Object.keys(RTC.pcs).length) stopMedia(); return; }
+  if(!RTC.ice){ rtcIce().then(() => P.s && rtcSync(P.s)); return; }
+  const mineOn = RTC.cam || RTC.mic;
+  s.seats.forEach((x, j) => {
+    if(j === s.me) return;
+    const pc = RTC.pcs[j];
+    const want = x && !x.bot && x.connected && (mineOn || x.cam || x.mic);
+    if(pc && (!want || pc._name !== x.name)){ closePC(j); if(!want) return; }
+    if(want && !RTC.pcs[j] && s.me < j) offerTo(j).catch(e => console.warn('call', e));
+  });
+  for(const j of Object.keys(RTC.pcs)) if(!s.seats[j]) closePC(+j);
+  callUI(s);
+}
+function callButtons(){
+  const c = $('#pCam'), m = $('#pMic'); if(!c) return;
+  c.classList.toggle('on', RTC.cam); c.textContent = RTC.cam ? '📷 Camera on' : '📷 Camera'; c.setAttribute('aria-pressed', String(RTC.cam));
+  m.classList.toggle('on', RTC.mic); m.textContent = RTC.mic ? '🎙 Mic on' : '🎙 Mic'; m.setAttribute('aria-pressed', String(RTC.mic));
+}
+function callUI(s){
+  if(!P.seatEls) return;
+  s.seats.forEach((x, j) => {
+    const el = P.seatEls[j]; if(!el || j === s.me) return;
+    const st = RTC.remote[j]; let v = el.querySelector('video.cv');
+    if(x && st && (x.cam || x.mic)){
+      if(!v){ v = document.createElement('video'); v.className = 'cv'; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); el.append(v); }
+      if(v.srcObject !== st){ v.srcObject = st; v.play().catch(() => {}); }
+      v.classList.toggle('vis', !!x.cam);
+    } else if(v) v.remove();
+    el.classList.toggle('micon', !!(x && x.mic));
+  });
+  const mb = $('#pMe'); if(mb){ let v = mb.querySelector('video.cv');
+    if(RTC.cam && RTC.stream){ if(!v){ v = document.createElement('video'); v.className = 'cv vis self'; v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); mb.append(v); } if(v.srcObject !== RTC.stream){ v.srcObject = RTC.stream; v.play().catch(() => {}); } }
+    else if(v) v.remove(); }
+}
+
+// ---------- full screen table ----------
+function toggleFull(force){
+  const room = $('.room'); if(!room) return;
+  const on = force != null ? force : !room.classList.contains('full');
+  room.classList.toggle('full', on); document.body.classList.toggle('table-full', on);
+  const b = $('#pFull'); if(b){ b.textContent = on ? '✕' : '⛶'; b.title = on ? 'Exit full screen' : 'Full screen'; }
+  try{
+    if(on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(() => {});
+    if(!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }catch(e){}
+}
+document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement && $('.room.full')) toggleFull(false); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('.room.full') && !document.fullscreenElement) toggleFull(false); });
 
 // ---------- main render ----------
 function renderPlay(){
   const root = $('#playRoot'); if(!root || $('#view-play').hidden) return;
   if(!TABLE_URL){ root.replaceChildren(h('div', {class:'card'}, h('h2', {text:'Online table'}), h('p', {class:'sub', text:'The online table isn’t set up yet.'}))); P.built = false; return; }
   const s = P.s;
+  if((s && s.result) || !s || (s.me < 0 && !P.watching)) document.body.classList.remove('table-full');
   if(s && s.result){ renderResult(root, s); P.built = false; return; }
   if(!s || (s.me < 0 && !P.watching)){ renderLobby(root, s); P.built = false; return; }
   if(!P.built) buildRoom(root);
@@ -2150,7 +2359,7 @@ function renderLobby(root, s){
   go.addEventListener('click', () => {
     const n = canon(nameIn.value.trim()); if(!n){ nameIn.focus(); ptoast('Enter your name first.', 'err'); return; }
     store('pokerName', n); P.watching = false; P.pendingEnter = true; sfx('door');
-    if(!psend({t:'sit', name:n, buyin:buy})) P.pendingEnter = false;
+    if(!psend({t:'sit', name:n, buyin:buy, look:P.look || 0})) P.pendingEnter = false;
   });
   const watch = h('button', {type:'button', class:'btn btn-ghost', text:'Just watch', disabled:!P.open});
   watch.addEventListener('click', () => { P.watching = true; renderPlay(); });
@@ -2159,6 +2368,7 @@ function renderLobby(root, s){
       h('span', {class:'conn ' + (P.open ? 'on' : 'off'), text:P.open ? 'Table open' : 'Connecting…'})),
     mini, h('p', {class:'lobby-line' + (names.length ? ' live' : ''), text:line}),
     h('h3', {text:'Who are you?'}), regulars.length ? chipsBox : null, h('div', {style:'max-width:320px; margin-top:8px'}, nameIn),
+    h('h3', {text:'Pick your character'}), characterPicker(),
     h('h3', {text:'Cash in'}), buyBox,
     h('div', {class:'btns'}, go, watch),
     P.err ? h('div', {class:'msg err', text:P.err}) : null));
@@ -2166,13 +2376,19 @@ function renderLobby(root, s){
 
 function buildRoom(root){
   P.built = true; P.boardShown = 0; P.seatEls = {};
-  const vc = h('a', {class:'rbtn', href:'https://meet.jit.si/PokerNight-' + (location.host.replace(/\W/g, '') || 'local') + '-table', target:'_blank', rel:'noopener', title:'Open the video and voice call', text:'🎥 Call'});
+  const vc = h('span', {class:'callbtns'}, h('button', {type:'button', class:'rbtn', id:'pCam', 'aria-pressed':'false', title:'Show your camera to the table', text:'📷 Camera'}), h('button', {type:'button', class:'rbtn', id:'pMic', 'aria-pressed':'false', title:'Talk to the table', text:'🎙 Mic'}));
+  vc.querySelector('#pCam').addEventListener('click', () => toggleMedia('cam')); vc.querySelector('#pMic').addEventListener('click', () => toggleMedia('mic'));
   const sess = h('button', {type:'button', class:'rbtn', text:'📒 Session'}); sess.addEventListener('click', sessionSheet);
   const snd = h('button', {type:'button', class:'rbtn', id:'pSound', text:P.sound ? '🔊' : '🔈', 'aria-label':'Sound on or off'}); snd.addEventListener('click', () => { P.sound = !P.sound; store('pokerSound', P.sound ? '1' : '0'); snd.textContent = P.sound ? '🔊' : '🔈'; if(P.sound) sfx('chip'); });
   const leave = h('button', {type:'button', class:'rbtn leave', id:'pLeave', text:'Cash out'}); leave.addEventListener('click', leaveTable);
+  const dice = h('button', {type:'button', class:'rbtn', id:'pLook', text:'🎲', title:'Get a new random look', 'aria-label':'Get a new random look'}); dice.addEventListener('click', () => { if(psend({t:'look'})) ptoast('New look! Everyone sees your new character.'); });
+  const botB = h('button', {type:'button', class:'rbtn', id:'pBot', text:'🤖 Add bot', title:'Add a practice bot (test tables only)'}); botB.addEventListener('click', () => psend({t:'addbot'}));
+  botB.hidden = tableRoom() === 'main';
+  const fs = h('button', {type:'button', class:'rbtn', id:'pFull', title:'Full screen', 'aria-label':'Full screen', text:'⛶'});
+  fs.addEventListener('click', () => toggleFull());
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
-    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, sess, snd, leave)),
+    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, botB, dice, vc, sess, snd, fs, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
       h('div', {class:'mebar', id:'pMe', hidden:true}, h('div', {class:'av'}, h('span', {class:'ini'}), h('i', {class:'ring'})), h('b', {class:'nm'}), h('span', {class:'stk num'}), h('span', {class:'tag'})),
       h('div', {class:'ptable', id:'pTable'},
@@ -2224,11 +2440,12 @@ function updateRoom(s){
         h('div', {class:'av', style:'--c:' + avColor(x.name)}, h('span', {class:'ini', text:initials(x.name)}), h('i', {class:'ring'})),
         h('div', {class:'plate'}, h('div', {class:'nm', text:x.name}), h('div', {class:'stk num'})),
         h('div', {class:'scards'}), h('div', {class:'bubble'}), h('div', {class:'tag'}));
+      if(x.bot) el.addEventListener('click', async () => { if(await confirmBox('Remove ' + x.name + '?', 'Their chips are cashed out like any player leaving.', 'Remove bot', true, 'Keep')) psend({t:'kickbot', seat:i}); });
       layer.append(el); P.seatEls[i] = el;
       setTimeout(() => el.classList.remove('arrive'), 900);
     }
     if(!P.gl){ const [lx, ly] = seatXY(i); el.style.left = lx + '%'; el.style.top = ly + '%'; }
-    el.classList.toggle('me', !!x.me);
+    el.classList.toggle('me', !!x.me); el.classList.toggle('bot', !!x.bot);
     el.classList.toggle('turn', !!(h_ && h_.toAct === i));
     el.classList.toggle('folded', !!x.folded);
     el.classList.toggle('allin', !!x.allIn);
@@ -2276,6 +2493,7 @@ function updateRoom(s){
   renderMyHand(s, sd); renderActions(s);
   $('#pTicker').replaceChildren(...s.log.slice(-3).map(l => h('div', {text:l.text})));
   if(P.gl) P.gl.sync(s, sd);
+  rtcSync(s); callButtons();
 }
 
 // ---------- your cards: face down, hold to peek ----------
@@ -2509,6 +2727,7 @@ function playEnter(name){
 }
 
 // ===== 3D table (three.js, loaded on demand) =====
+const lookColor = x => x.look ? 'hsl(' + (x.look % 360) + ' ' + (50 + (x.look >>> 9) % 30) + '% ' + (38 + (x.look >>> 15) % 18) + '%)' : avColor(x.name);
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.187.0/+esm';
 let THREE_P = null;
 const loadThree = () => THREE_P || (THREE_P = import(THREE_URL));
@@ -2526,6 +2745,95 @@ function glStart(host){
     if(P.s) updateRoom(P.s);
     if(P.glEnter){ P.glEnter = false; P.gl.enter(); }
   }).catch(e => { P.glFailed = true; P.glEnter = false; console.warn('3D table off:', e); });
+}
+
+// characters, shared by the table and the picker in the lobby
+function avatarKit(T, {col, hash, M}){
+  const SKIN = ['#FFDCC2', '#F4C7A1', '#E0A87C', '#B97E57', '#8A5638', '#FBE3CF'];
+  const HAIR = ['#2A1A12', '#4A2C1A', '#7A4A24', '#14100E', '#C8873E', '#E8C46A', '#7A3B8F', '#2E5FA8'];
+  // personalities: how they idle, blink and carry their face
+  const MOODS = [
+    {k:'cheery',  e:'😄', bob:.012, bs:1.8, sway:.18, blink:3.2, mouth:'smile', lids:1},
+    {k:'chill',   e:'😌', bob:.006, bs:.7,  sway:.08, blink:4.6, mouth:'smirk', lids:.7},
+    {k:'sleepy',  e:'😴', bob:.012, bs:.45, sway:.22, blink:2.4, mouth:'flat',  lids:.42, yawn:true},
+    {k:'nervous', e:'😬', bob:.004, bs:5,   sway:.05, blink:1.5, mouth:'flat',  lids:1, fidget:true},
+    {k:'cocky',   e:'😎', bob:.006, bs:1.1, sway:.1,  blink:5,   mouth:'smirk', lids:1, shades:true},
+    {k:'bouncy',  e:'🤪', bob:.03,  bs:3.2, sway:.28, blink:2.8, mouth:'open',  lids:1},
+  ];
+  const inkM = new T.MeshStandardMaterial({color:0x1a1013, roughness:.3});
+  const whiteM = new T.MeshStandardMaterial({color:0xffffff, roughness:.25});
+  const shineM = new T.MeshBasicMaterial({color:0xffffff});
+  const blushM = new T.MeshBasicMaterial({color:0xff6f8a, transparent:true, opacity:.6, depthWrite:false});
+  const IRIS = ['#5B3A1E', '#3B6FB6', '#3E8A55', '#7A4FB0', '#2A2A2A', '#B5722A'];
+  const mouthM = new T.MeshStandardMaterial({color:0x5a1520, roughness:.5});
+  function makeAvatar(name, color, look){
+    const hsh = look ? look >>> 0 : hash(name), mood = MOODS[hsh % MOODS.length];
+    const g = new T.Group(); const inner = new T.Group(); g.add(inner);
+    const cloth = new T.MeshStandardMaterial({color:col(color), roughness:.7});
+    const skin = new T.MeshStandardMaterial({color:new T.Color(SKIN[(hsh >> 4) % SKIN.length]), roughness:.55});
+    const hairM = new T.MeshStandardMaterial({color:new T.Color(HAIR[(hsh >> 7) % HAIR.length]), roughness:.7});
+    const irisM = new T.MeshStandardMaterial({color:new T.Color(IRIS[(hsh >> 17) % IRIS.length]), roughness:.2});
+    const acc = new T.MeshStandardMaterial({color:new T.Color('hsl(' + ((hsh >> 9) % 360) + ', 70%, 55%)'), roughness:.5});
+    const mesh = (geo, mat, parent, x, y, z) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); m.castShadow = true; (parent || inner).add(m); return m; };
+    // chair
+    mesh(new T.BoxGeometry(.5, .07, .48), M.chair, inner, 0, .47, -.06);
+    const back = mesh(new T.BoxGeometry(.5, .6, .07), M.chair, inner, 0, .8, -.3); back.rotation.x = -.08;
+    for(const [lx, lz] of [[-.21, .14], [.21, .14], [-.21, -.26], [.21, -.26]]) mesh(new T.CylinderGeometry(.018, .018, .45), M.dark, inner, lx, .225, lz);
+    // round little body
+    const body = new T.Group(); body.position.set(0, .52, 0); inner.add(body);
+    const torso = mesh(new T.SphereGeometry(.175, 28, 20), cloth, body, 0, .19, 0); torso.scale.set(1, 1.12, .92);
+    // arms pivot at the shoulders so they can wave, clap and tap
+    const arms = [];
+    for(const sx of [-1, 1]){
+      const sh = new T.Group(); sh.position.set(sx * .17, .32, .02); body.add(sh);
+      const arm = mesh(new T.CapsuleGeometry(.055, .2, 4, 12), cloth, sh, 0, -.06, .12); arm.rotation.x = 1.15;
+      const hand = mesh(new T.SphereGeometry(.06, 16, 12), skin, sh, 0, -.12, .26);
+      sh.userData = {sx, hand}; arms.push(sh);
+    }
+    // big round head
+    const head = new T.Group(); head.position.set(0, .6, .02); body.add(head); head.scale.setScalar(1.14);
+    const skull = mesh(new T.SphereGeometry(.21, 32, 24), skin, head); skull.scale.set(1.08, .98, 1);
+    for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.045, 12, 10), skin, head, sx * .215, 0, 0);
+    // eyes: white, pupil, shine; lids for blinking and moods
+    const eyes = [];
+    for(const sx of [-1, 1]){
+      const eg = new T.Group(); eg.position.set(sx * .082, -.012, .178); head.add(eg);
+      const w = mesh(new T.SphereGeometry(.062, 24, 16), whiteM, eg); w.scale.set(1, 1.22, .5);
+      const pu = new T.Group(); pu.position.set(0, -.004, .016); eg.add(pu);
+      const iris = mesh(new T.SphereGeometry(.047, 20, 14), irisM, pu); iris.scale.set(1, 1.12, .5);
+      const dot = mesh(new T.SphereGeometry(.026, 14, 10), inkM, pu, 0, -.002, .012); dot.scale.set(1, 1.1, .5);
+      const sh = new T.Mesh(new T.SphereGeometry(.016, 10, 8), shineM); sh.position.set(.016, .022, .03); pu.add(sh);
+      const sh2 = new T.Mesh(new T.SphereGeometry(.008, 8, 6), shineM); sh2.position.set(-.014, -.016, .03); pu.add(sh2);
+      const arc = new T.Mesh(new T.TorusGeometry(.035, .008, 6, 16, Math.PI), inkM); arc.position.set(0, -.01, .02); arc.visible = false; eg.add(arc);
+      eyes.push({eg, w, pu, arc, sx});
+    }
+    const brows = [-1, 1].map(sx => { const b = mesh(new T.CapsuleGeometry(.007, .04, 4, 8), hairM, head, sx * .085, .1, .19); b.rotation.z = Math.PI / 2; b.userData.sx = sx; return b; });
+    for(const sx of [-1, 1]){ const bl = new T.Mesh(new T.CircleGeometry(.045, 20), blushM); bl.position.set(sx * .135, -.075, .168); bl.rotation.y = sx * .6; bl.scale.y = .7; head.add(bl); }
+    const smile = mesh(new T.TorusGeometry(.028, .008, 8, 20, Math.PI), mouthM, head, 0, -.095, .198); smile.rotation.z = Math.PI;
+    const oMouth = mesh(new T.SphereGeometry(.024, 14, 10), mouthM, head, 0, -.1, .195); oMouth.scale.set(1, 1.2, .4); oMouth.visible = false;
+    // hair
+    const style = (hsh >> 11) % 6;
+    const cap = mesh(new T.SphereGeometry(.222, 28, 14, 0, Math.PI * 2, 0, style === 3 ? 1.9 : 1.3), hairM, head, 0, .015, -.01); cap.rotation.x = -.28; cap.scale.set(1.07, 1.02, 1.02);
+    if(style === 1) for(let k = 0; k < 7; k++){ const sp = mesh(new T.ConeGeometry(.05, .14, 8), hairM, head); const an = -1.2 + k * .4; sp.position.set(Math.sin(an) * .15, .19, Math.cos(an) * .05 - .04); sp.rotation.set(-.3, 0, -an * .6); }
+    if(style === 2) mesh(new T.SphereGeometry(.08, 14, 12), hairM, head, 0, .17, -.15);
+    if(style === 3) for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.075, 14, 12), hairM, head, sx * .23, -.02, -.06);
+    if(style === 4){ mesh(new T.SphereGeometry(.23, 24, 14, 0, Math.PI * 2, 0, 1.15), acc, head, 0, .04, -.01).rotation.x = -.2; mesh(new T.SphereGeometry(.05, 12, 10), whiteM, head, 0, .27, -.03); }
+    if(style === 5) mesh(new T.SphereGeometry(.2, 20, 14), hairM, head, 0, -.03, -.08).scale.set(1.12, 1.15, .8);
+    // accessories
+    const accK = mood.shades ? 0 : (hsh >> 14) % 6;
+    if(accK === 0){ for(const sx of [-1, 1]) mesh(new T.BoxGeometry(.085, .055, .02), inkM, head, sx * .075, .02, .22); mesh(new T.BoxGeometry(.06, .012, .01), inkM, head, 0, .035, .22); }
+    if(accK === 1){ for(const sx of [-1, 1]){ const r = mesh(new T.TorusGeometry(.045, .007, 8, 20), M.trim, head, sx * .075, .015, .215); } mesh(new T.BoxGeometry(.04, .008, .008), M.trim, head, 0, .02, .215); }
+    if(accK === 2){ mesh(new T.CylinderGeometry(.2, .22, .08, 24), acc, head, 0, .17, -.01); const brim = mesh(new T.CylinderGeometry(.16, .16, .015, 24), acc, head, 0, .135, .14); brim.scale.z = .8; }
+    if(accK === 3){ const band = mesh(new T.TorusGeometry(.225, .018, 8, 24, Math.PI), M.dark, head, 0, 0, 0); for(const sx of [-1, 1]) mesh(new T.CylinderGeometry(.065, .065, .05, 16), acc, head, sx * .225, -.01, 0).rotation.z = Math.PI / 2; }
+    if(accK === 4){ for(const sx of [-1, 1]){ const c = mesh(new T.ConeGeometry(.05, .09, 10), acc, head, sx * .055, .2, .04); c.rotation.z = sx * Math.PI / 2; } mesh(new T.SphereGeometry(.025, 10, 8), acc, head, 0, .2, .04); }
+    if(accK === 5){ const cr = mesh(new T.CylinderGeometry(.09, .08, .07, 5, 1, true), M.trim, head, 0, .24, -.02); cr.material = M.trim; }
+    const ring = new T.Mesh(new T.RingGeometry(.24, .27, 48), new T.MeshBasicMaterial({color:0xF3D891, transparent:true, opacity:0, toneMapped:false, side:T.DoubleSide, depthWrite:false}));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(0, .01, .05); g.add(ring);
+    const hole = new T.Group();
+    return {g, inner, body, head, torso, cloth, skin, ring, hole, arms, eyes, brows, smile, oMouth, mood, name, color,
+      born:performance.now(), seed:(hsh % 1000) / 100, pos:null, holeKey:null, expr:'happy', exprUntil:performance.now() + 2600, act:'wave', actT:performance.now() + 500, actDur:1700, nextBlink:performance.now() + 1000 + Math.random() * 3000, blinkT:0, glance:null};
+  }
+  return {makeAvatar, MOODS, SKIN};
 }
 
 function makeGL(T, host){
@@ -2660,7 +2968,8 @@ function makeGL(T, host){
       g.fillStyle = red ? '#C8102E' : '#16151A'; g.textAlign = 'center'; g.textBaseline = 'middle';
       const corner = () => { g.font = '800 ' + (r === '10' ? 150 : 180) + 'px ' + DISPLAY; g.fillText(r, 118, 128); g.font = '130px serif'; g.fillText(su, 118, 262); };
       corner(); g.save(); g.translate(w, h); g.rotate(Math.PI); corner(); g.restore();
-      g.font = '300px serif'; g.fillText(su, w / 2 + 70, h / 2 + 70);
+      if('JQK'.includes(c[0])){ g.lineWidth = 8; g.strokeStyle = g.fillStyle; rrect(g, 120, 200, w - 240, h - 400, 26); g.stroke(); g.font = '800 170px ' + DISPLAY; g.fillText(c[0], w / 2, h / 2 - 50); g.font = '130px serif'; g.fillText(su, w / 2, h / 2 + 90); }
+      else { g.font = '300px serif'; g.fillText(su, w / 2, h / 2 + 10); }
     });
   }
   function makeCard(c){
@@ -2704,87 +3013,10 @@ function makeGL(T, host){
   function seatPose(x, y){ const a = Math.atan2((y - 50) / 46, (x - 50) / 47); const c = Math.cos(a), s = Math.sin(a); const n = new T.Vector2(c / RX, s / RZ).normalize(); return {rim:new T.Vector3(RX * c, 0, RZ * s), n, a}; }
 
   // ---------- players ----------
-  const SKIN = ['#FFDCC2', '#F4C7A1', '#E0A87C', '#B97E57', '#8A5638', '#FBE3CF'];
-  const HAIR = ['#2A1A12', '#4A2C1A', '#7A4A24', '#14100E', '#C8873E', '#E8C46A', '#7A3B8F', '#2E5FA8'];
-  // personalities: how they idle, blink and carry their face
-  const MOODS = [
-    {k:'cheery',  e:'😄', bob:.012, bs:1.8, sway:.18, blink:3.2, mouth:'smile', lids:1},
-    {k:'chill',   e:'😌', bob:.006, bs:.7,  sway:.08, blink:4.6, mouth:'smirk', lids:.7},
-    {k:'sleepy',  e:'😴', bob:.012, bs:.45, sway:.22, blink:2.4, mouth:'flat',  lids:.42, yawn:true},
-    {k:'nervous', e:'😬', bob:.004, bs:5,   sway:.05, blink:1.5, mouth:'flat',  lids:1, fidget:true},
-    {k:'cocky',   e:'😎', bob:.006, bs:1.1, sway:.1,  blink:5,   mouth:'smirk', lids:1, shades:true},
-    {k:'bouncy',  e:'🤪', bob:.03,  bs:3.2, sway:.28, blink:2.8, mouth:'open',  lids:1},
-  ];
+  const KIT = avatarKit(T, {col, hash, M});
+  const {SKIN, MOODS} = KIT;
   const avs = {};
-  const inkM = new T.MeshStandardMaterial({color:0x1a1013, roughness:.3});
-  const whiteM = new T.MeshStandardMaterial({color:0xffffff, roughness:.25});
-  const shineM = new T.MeshBasicMaterial({color:0xffffff});
-  const blushM = new T.MeshBasicMaterial({color:0xff7b8e, transparent:true, opacity:.45, depthWrite:false});
-  const mouthM = new T.MeshStandardMaterial({color:0x5a1520, roughness:.5});
-  function makeAvatar(name, color){
-    const hsh = hash(name), mood = MOODS[hsh % MOODS.length];
-    const g = new T.Group(); const inner = new T.Group(); g.add(inner);
-    const cloth = new T.MeshStandardMaterial({color:col(color), roughness:.7});
-    const skin = new T.MeshStandardMaterial({color:new T.Color(SKIN[(hsh >> 4) % SKIN.length]), roughness:.55});
-    const hairM = new T.MeshStandardMaterial({color:new T.Color(HAIR[(hsh >> 7) % HAIR.length]), roughness:.7});
-    const acc = new T.MeshStandardMaterial({color:new T.Color('hsl(' + ((hsh >> 9) % 360) + ', 70%, 55%)'), roughness:.5});
-    const mesh = (geo, mat, parent, x, y, z) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); m.castShadow = true; (parent || inner).add(m); return m; };
-    // chair
-    mesh(new T.BoxGeometry(.5, .07, .48), M.chair, inner, 0, .47, -.06);
-    const back = mesh(new T.BoxGeometry(.5, .6, .07), M.chair, inner, 0, .8, -.3); back.rotation.x = -.08;
-    for(const [lx, lz] of [[-.21, .14], [.21, .14], [-.21, -.26], [.21, -.26]]) mesh(new T.CylinderGeometry(.018, .018, .45), M.dark, inner, lx, .225, lz);
-    // round little body
-    const body = new T.Group(); body.position.set(0, .52, 0); inner.add(body);
-    const torso = mesh(new T.SphereGeometry(.2, 28, 20), cloth, body, 0, .2, 0); torso.scale.set(1, 1.08, .9);
-    // arms pivot at the shoulders so they can wave, clap and tap
-    const arms = [];
-    for(const sx of [-1, 1]){
-      const sh = new T.Group(); sh.position.set(sx * .17, .32, .02); body.add(sh);
-      const arm = mesh(new T.CapsuleGeometry(.055, .2, 4, 12), cloth, sh, 0, -.06, .12); arm.rotation.x = 1.15;
-      const hand = mesh(new T.SphereGeometry(.06, 16, 12), skin, sh, 0, -.12, .26);
-      sh.userData = {sx, hand}; arms.push(sh);
-    }
-    // big round head
-    const head = new T.Group(); head.position.set(0, .62, .02); body.add(head);
-    const skull = mesh(new T.SphereGeometry(.21, 32, 24), skin, head); skull.scale.set(1.06, 1, 1);
-    for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.045, 12, 10), skin, head, sx * .215, 0, 0);
-    // eyes: white, pupil, shine; lids for blinking and moods
-    const eyes = [];
-    for(const sx of [-1, 1]){
-      const eg = new T.Group(); eg.position.set(sx * .075, .015, .185); head.add(eg);
-      const w = mesh(new T.SphereGeometry(.05, 20, 14), whiteM, eg); w.scale.set(1, 1.2, .5);
-      const pu = mesh(new T.SphereGeometry(.033, 16, 12), inkM, eg, 0, -.004, .016); pu.scale.set(1, 1.1, .55);
-      const sh = new T.Mesh(new T.SphereGeometry(.011, 8, 6), shineM); sh.position.set(.012, .018, .03); pu.add(sh);
-      const arc = new T.Mesh(new T.TorusGeometry(.035, .008, 6, 16, Math.PI), inkM); arc.position.set(0, -.01, .02); arc.visible = false; eg.add(arc);
-      eyes.push({eg, w, pu, arc, sx});
-    }
-    const brows = [-1, 1].map(sx => { const b = mesh(new T.BoxGeometry(.065, .014, .012), hairM, head, sx * .078, .1, .19); b.userData.sx = sx; return b; });
-    for(const sx of [-1, 1]){ const bl = new T.Mesh(new T.CircleGeometry(.035, 16), blushM); bl.position.set(sx * .13, -.06, .172); bl.rotation.y = sx * .55; head.add(bl); }
-    const smile = mesh(new T.TorusGeometry(.04, .009, 8, 20, Math.PI), mouthM, head, 0, -.075, .2); smile.rotation.z = Math.PI;
-    const oMouth = mesh(new T.SphereGeometry(.03, 14, 10), mouthM, head, 0, -.085, .195); oMouth.scale.set(1, 1.2, .4); oMouth.visible = false;
-    // hair
-    const style = (hsh >> 11) % 6;
-    const cap = mesh(new T.SphereGeometry(.222, 28, 14, 0, Math.PI * 2, 0, style === 3 ? 1.9 : 1.3), hairM, head, 0, .015, -.01); cap.rotation.x = -.28; cap.scale.set(1.07, 1.02, 1.02);
-    if(style === 1) for(let k = 0; k < 7; k++){ const sp = mesh(new T.ConeGeometry(.05, .14, 8), hairM, head); const an = -1.2 + k * .4; sp.position.set(Math.sin(an) * .15, .19, Math.cos(an) * .05 - .04); sp.rotation.set(-.3, 0, -an * .6); }
-    if(style === 2) mesh(new T.SphereGeometry(.08, 14, 12), hairM, head, 0, .17, -.15);
-    if(style === 3) for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.075, 14, 12), hairM, head, sx * .23, -.02, -.06);
-    if(style === 4){ mesh(new T.SphereGeometry(.23, 24, 14, 0, Math.PI * 2, 0, 1.15), acc, head, 0, .04, -.01).rotation.x = -.2; mesh(new T.SphereGeometry(.05, 12, 10), whiteM, head, 0, .27, -.03); }
-    if(style === 5) mesh(new T.SphereGeometry(.2, 20, 14), hairM, head, 0, -.03, -.08).scale.set(1.12, 1.15, .8);
-    // accessories
-    const accK = mood.shades ? 0 : (hsh >> 14) % 6;
-    if(accK === 0){ for(const sx of [-1, 1]) mesh(new T.BoxGeometry(.085, .055, .02), inkM, head, sx * .075, .02, .22); mesh(new T.BoxGeometry(.06, .012, .01), inkM, head, 0, .035, .22); }
-    if(accK === 1){ for(const sx of [-1, 1]){ const r = mesh(new T.TorusGeometry(.045, .007, 8, 20), M.trim, head, sx * .075, .015, .215); } mesh(new T.BoxGeometry(.04, .008, .008), M.trim, head, 0, .02, .215); }
-    if(accK === 2){ mesh(new T.CylinderGeometry(.2, .22, .08, 24), acc, head, 0, .17, -.01); const brim = mesh(new T.CylinderGeometry(.16, .16, .015, 24), acc, head, 0, .135, .14); brim.scale.z = .8; }
-    if(accK === 3){ const band = mesh(new T.TorusGeometry(.225, .018, 8, 24, Math.PI), M.dark, head, 0, 0, 0); for(const sx of [-1, 1]) mesh(new T.CylinderGeometry(.065, .065, .05, 16), acc, head, sx * .225, -.01, 0).rotation.z = Math.PI / 2; }
-    if(accK === 4){ for(const sx of [-1, 1]){ const c = mesh(new T.ConeGeometry(.05, .09, 10), acc, head, sx * .055, .2, .04); c.rotation.z = sx * Math.PI / 2; } mesh(new T.SphereGeometry(.025, 10, 8), acc, head, 0, .2, .04); }
-    if(accK === 5){ const cr = mesh(new T.CylinderGeometry(.09, .08, .07, 5, 1, true), M.trim, head, 0, .24, -.02); cr.material = M.trim; }
-    const ring = new T.Mesh(new T.RingGeometry(.24, .27, 48), new T.MeshBasicMaterial({color:0xF3D891, transparent:true, opacity:0, toneMapped:false, side:T.DoubleSide, depthWrite:false}));
-    ring.rotation.x = -Math.PI / 2; ring.position.set(0, .01, .05); g.add(ring);
-    scene.add(g);
-    const hole = new T.Group(); scene.add(hole);
-    return {g, inner, body, head, torso, cloth, skin, ring, hole, arms, eyes, brows, smile, oMouth, mood, name, color,
-      born:performance.now(), seed:(hsh % 1000) / 100, pos:null, holeKey:null, expr:'happy', exprUntil:performance.now() + 2600, act:'wave', actT:performance.now() + 500, actDur:1700, nextBlink:performance.now() + 1000 + Math.random() * 3000, blinkT:0, glance:null};
-  }
+  function makeAvatar(name, color, look){ const a = KIT.makeAvatar(name, color, look); scene.add(a.g); scene.add(a.hole); return a; }
   function removeAv(i){
     const a = avs[i]; if(!a) return; delete avs[i];
     a.leaving = performance.now();
@@ -2818,7 +3050,7 @@ function makeGL(T, host){
     const fa = new T.Mesh(new T.CapsuleGeometry(.055, .36, 4, 12), meCloth); fa.position.set(sx * .3, TY + .12, .02); fa.rotation.set(Math.PI / 2 - .25, 0, sx * .5); fa.castShadow = true; meArms.add(fa);
     const hd = new T.Mesh(new T.SphereGeometry(.06, 16, 12), meSkin); hd.scale.set(1, .85, 1); hd.position.set(sx * .21, TY + .09, -.15); hd.castShadow = true; meArms.add(hd);
   }
-  function setMe(name){ if(!name || meArms.userData.n === name) return; meArms.userData.n = name; meCloth.color.copy(col(avColor(name))); meSkin.color.set(SKIN[hash(name) % SKIN.length]); }
+  function setMe(x){ const k = x.name + (x.look || 0); if(meArms.userData.n === k) return; meArms.userData.n = k; meCloth.color.copy(col(lookColor(x))); meSkin.color.set(SKIN[((x.look || hash(x.name)) >>> 4) % SKIN.length]); }
 
   // ---------- expressions & reactions ----------
   const camWorld = new T.Vector3();
@@ -2905,13 +3137,13 @@ function makeGL(T, host){
     a.eyes.forEach(e => {
       e.w.visible = e.pu.visible = !closed; e.arc.visible = closed;
       e.eg.scale.y = lerp(e.eg.scale.y, Math.max(.06, lids * blink), .35);
-      const ps = ex === 'shock' ? .7 : 1; e.pu.scale.set(ps, ps * 1.1, .55);
-      e.pu.position.x = lerp(e.pu.position.x, pdx, .2); e.pu.position.y = lerp(e.pu.position.y, -.004 + pdy, .2);
+      const ps = ex === 'shock' ? .7 : 1; e.pu.scale.set(ps, ps, 1);
+      e.pu.position.x = lerp(e.pu.position.x, pdx * 1.2, .2); e.pu.position.y = lerp(e.pu.position.y, -.004 + pdy, .2);
     });
     // brows
     a.brows.forEach(b => { const sx = b.userData.sx;
       const rz = ex === 'fierce' ? -sx * .45 : ex === 'sad' || ex === 'worried' ? sx * .4 : ex === 'smug' ? (sx > 0 ? .3 : -.1) : ex === 'think' ? (sx > 0 ? -.25 : .1) : 0;
-      const by = ex === 'shock' ? .13 : ex === 'happy' ? .115 : ex === 'fierce' ? .085 : .1;
+      const by = ex === 'shock' ? .125 : ex === 'happy' ? .11 : ex === 'fierce' ? .085 : .098;
       b.rotation.z = lerp(b.rotation.z, rz, .2); b.position.y = lerp(b.position.y, by, .2); });
     // mouth
     const mo = ex === 'shock' || ex === 'yawn' ? 'o' : ex === 'happy' ? 'grin' : ex === 'sad' ? 'frown' : ex === 'smug' ? 'smirk' : ex === 'fierce' || ex === 'think' || ex === 'meh' || ex === 'worried' ? 'flat' : ex === 'calm' ? 'smile' : md.mouth;
@@ -2920,7 +3152,7 @@ function makeGL(T, host){
     else if(mo === 'o') a.oMouth.scale.set(1, ex === 'yawn' ? 1.8 : 1.3, .4);
     a.smile.rotation.z = mo === 'frown' ? 0 : Math.PI + (mo === 'smirk' ? .35 : 0);
     a.smile.scale.set(mo === 'grin' ? 1.35 : mo === 'smirk' ? .8 : 1, mo === 'flat' ? .15 : mo === 'grin' ? 1.3 : 1, 1);
-    a.smile.position.y = mo === 'frown' ? -.105 : -.075;
+    a.smile.position.y = mo === 'frown' ? -.12 : -.095;
     // glow + ring on their turn / win
     const glow = a.win ? .3 + Math.sin(t / 150) * .15 : a.turn ? .12 + Math.sin(t / 300) * .08 : 0;
     a.cloth.emissive.set(0xD9A93A); a.cloth.emissiveIntensity = glow;
@@ -3026,11 +3258,11 @@ function makeGL(T, host){
   function sync(s, sd, instant){
     last.s = s; last.sd = sd;
     const meI = s.me, h_ = s.hand; const seen = new Set();
-    if(meI >= 0 && s.seats[meI]) setMe(s.seats[meI].name);
+    if(meI >= 0 && s.seats[meI]) setMe(s.seats[meI]);
     s.seats.forEach((x, i) => {
       if(!x || i === meI) return; seen.add(i);
       let a = avs[i];
-      if(!a || a.name !== x.name){ if(a) removeAv(i); a = avs[i] = makeAvatar(x.name, avColor(x.name)); }
+      if(!a || a.name !== x.name || a.look !== (x.look || 0)){ if(a) removeAv(i); a = avs[i] = makeAvatar(x.name, lookColor(x), x.look || 0); a.look = x.look || 0; }
       const [sx, sy] = seatXY(i); placeAvatar(a, sx, sy);
       a.folded = !!x.folded; a.away = !x.connected; a.turn = !!(h_ && h_.toAct === i);
       a.win = !!(sd && sd.winners.some(w => w.seat === i));
@@ -3071,6 +3303,7 @@ function makeGL(T, host){
     const meTurn = last.s && last.s.hand && last.s.hand.toAct === last.s.me && last.s.me >= 0;
     const actor = last.s && last.s.hand ? last.s.hand.toAct : -1;
     for(const [i, a] of Object.entries(avs)) animateAvatar(a, +i, t, dt, meTurn, actor);
+    board.forEach(m => { m.visible = false; }); // the flat card row on top shows the board
     board.forEach(m => { const want = TY + .03 + (m.userData.lift || 0); if(!tweens.length) m.position.y += (want - m.position.y) * .2; });
     // camera: your head moves a little
     par.x += (par.tx - par.x) * .06; par.y += (par.ty - par.y) * .06;
@@ -3153,7 +3386,7 @@ if(DEMO) $('#demoBanner').hidden = false;
 S.pinOk = true;
 
 // ===== Hidden test mode: tap the header card 5 times, or open the page with ?test =====
-function enterTest(){
+function enterTest(keepTab){
   if(S.test || DEMO) return;
   S.test = true;
   if(P.ws){ P.ws.onclose = null; try{ P.ws.close(); }catch(e){} P.ws = null; P.open = false; } P.s = null; P.built = false; P.status = null;   // practice table
@@ -3162,7 +3395,7 @@ function enterTest(){
   S.live = null; S.calc = [];
   $('#testBanner').hidden = false; document.body.classList.add('testing');
   if(!/[?&]test\b/.test(location.search)) history.replaceState(null, '', '?test' + location.hash);
-  renderAll(); location.hash = '#settle';
+  renderAll(); if(!keepTab) location.hash = '#settle'; else route();
 }
 (() => {
   let taps = 0, timer;
@@ -3179,7 +3412,7 @@ function enterTest(){
 })();
 
 route(); renderAll();
-load().then(() => { if(/[?&]test\b/.test(location.search)) enterTest(); pollTableStatus(); });
+load().then(() => { if(/[?&]test\b/.test(location.search)) enterTest(true); pollTableStatus(); });
 </script>
 </body>
 </html>
