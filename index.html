@@ -823,6 +823,8 @@
   body.table-full .tabs, body.table-full header{visibility:hidden}
   .seat .tag{left:50%; right:auto; transform:translateX(-50%); white-space:nowrap; font-size:.68rem; padding:2px 8px; box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .gl .seat .tag{top:auto; bottom:calc(100% + 2px)}
+  .gl .seat .bubble{top:auto; bottom:calc(100% + 30px)}
+  .room > .ptable-wrap{margin-left:0; margin-right:0; width:100%}
   .gl .seat.winner .tag{display:none}
   .seat .tag[data-role="sb"], .mebar .tag[data-role="sb"]{background:#1F5FA8; color:#fff}
   .seat .tag[data-role="bb"], .mebar .tag[data-role="bb"]{background:#D9A93A; color:#2A1800}
@@ -3213,10 +3215,10 @@ function avatarKit(T, {col, hash, M}){
     const hsh = look ? look >>> 0 : hash(name), mood = MOODS[hsh % MOODS.length];
     const g = new T.Group(); const inner = new T.Group(); g.add(inner);
     const cloth = new T.MeshStandardMaterial({color:col(color), roughness:.7});
-    const skin = new T.MeshStandardMaterial({color:new T.Color(SKIN[(hsh >> 4) % SKIN.length]), roughness:.55});
-    const hairM = new T.MeshStandardMaterial({color:new T.Color(HAIR[(hsh >> 7) % HAIR.length]), roughness:.7});
-    const irisM = new T.MeshStandardMaterial({color:new T.Color(IRIS[(hsh >> 17) % IRIS.length]), roughness:.2});
-    const acc = new T.MeshStandardMaterial({color:new T.Color('hsl(' + ((hsh >> 9) % 360) + ', 70%, 55%)'), roughness:.5});
+    const skin = new T.MeshStandardMaterial({color:new T.Color(SKIN[(hsh >>> 4) % SKIN.length]), roughness:.55});
+    const hairM = new T.MeshStandardMaterial({color:new T.Color(HAIR[(hsh >>> 7) % HAIR.length]), roughness:.7});
+    const irisM = new T.MeshStandardMaterial({color:new T.Color(IRIS[(hsh >>> 17) % IRIS.length]), roughness:.2});
+    const acc = new T.MeshStandardMaterial({color:new T.Color('hsl(' + ((hsh >>> 9) % 360) + ', 70%, 55%)'), roughness:.5});
     const mesh = (geo, mat, parent, x, y, z) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); m.castShadow = true; (parent || inner).add(m); return m; };
     // chair
     mesh(new T.BoxGeometry(.5, .07, .48), M.chair, inner, 0, .47, -.06);
@@ -3255,7 +3257,7 @@ function avatarKit(T, {col, hash, M}){
     const smile = mesh(new T.TorusGeometry(.028, .008, 8, 20, Math.PI), mouthM, head, 0, -.095, .198); smile.rotation.z = Math.PI;
     const oMouth = mesh(new T.SphereGeometry(.024, 14, 10), mouthM, head, 0, -.1, .195); oMouth.scale.set(1, 1.2, .4); oMouth.visible = false;
     // hair
-    const style = (hsh >> 11) % 6;
+    const style = (hsh >>> 11) % 6;
     const cap = mesh(new T.SphereGeometry(.222, 28, 14, 0, Math.PI * 2, 0, style === 3 ? 1.9 : 1.3), hairM, head, 0, .015, -.01); cap.rotation.x = -.28; cap.scale.set(1.07, 1.02, 1.02);
     if(style === 1) for(let k = 0; k < 7; k++){ const sp = mesh(new T.ConeGeometry(.05, .14, 8), hairM, head); const an = -1.2 + k * .4; sp.position.set(Math.sin(an) * .15, .19, Math.cos(an) * .05 - .04); sp.rotation.set(-.3, 0, -an * .6); }
     if(style === 2) mesh(new T.SphereGeometry(.08, 14, 12), hairM, head, 0, .17, -.15);
@@ -3263,7 +3265,7 @@ function avatarKit(T, {col, hash, M}){
     if(style === 4){ mesh(new T.SphereGeometry(.23, 24, 14, 0, Math.PI * 2, 0, 1.15), acc, head, 0, .04, -.01).rotation.x = -.2; mesh(new T.SphereGeometry(.05, 12, 10), whiteM, head, 0, .27, -.03); }
     if(style === 5) mesh(new T.SphereGeometry(.2, 20, 14), hairM, head, 0, -.03, -.08).scale.set(1.12, 1.15, .8);
     // accessories
-    const accK = mood.shades ? 0 : (hsh >> 14) % 6;
+    const accK = mood.shades ? 0 : (hsh >>> 14) % 6;
     if(accK === 0){ for(const sx of [-1, 1]) mesh(new T.BoxGeometry(.085, .055, .02), inkM, head, sx * .075, .02, .22); mesh(new T.BoxGeometry(.06, .012, .01), inkM, head, 0, .035, .22); }
     if(accK === 1){ for(const sx of [-1, 1]){ const r = mesh(new T.TorusGeometry(.045, .007, 8, 20), M.trim, head, sx * .075, .015, .215); } mesh(new T.BoxGeometry(.04, .008, .008), M.trim, head, 0, .02, .215); }
     if(accK === 2){ mesh(new T.CylinderGeometry(.2, .22, .08, 24), acc, head, 0, .17, -.01); const brim = mesh(new T.CylinderGeometry(.16, .16, .015, 24), acc, head, 0, .135, .14); brim.scale.z = .8; }
