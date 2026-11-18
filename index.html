@@ -496,15 +496,15 @@
   .p-lamp{position:absolute; left:50%; top:0; width:120px; height:34px; transform:translateX(-50%); background:linear-gradient(#2A1A10, #0E0806); border-radius:0 0 60px 60px / 0 0 34px 34px; box-shadow:0 14px 40px 10px rgba(255,210,140,.35); z-index:3}
   .p-lamp::after{content:""; position:absolute; left:50%; top:100%; width:min(90vw,820px); height:60vh; transform:translateX(-50%); background:radial-gradient(ellipse 50% 100% at 50% 0%, rgba(255,226,170,.16), transparent 70%); pointer-events:none}
   .ptable{position:absolute; left:4%; width:92%; bottom:-4%; aspect-ratio:1.55; transform-origin:50% 100%; transform:rotateX(var(--tilt)); transform-style:preserve-3d; transition:transform .2s}
-  .ptable > .layer, .ptable > .board{transform-style:preserve-3d}
+  .ptable > .layer, .ptable > .pboard{transform-style:preserve-3d}
   .ptable .rail{position:absolute; inset:7% 5%; border-radius:999px; background:linear-gradient(160deg, #6B4428, #2E1C10 70%); box-shadow:0 30px 60px -20px rgba(0,0,0,.8), inset 0 2px 0 rgba(255,255,255,.15), 0 0 0 2px #D9A93A66}
   .ptable .felt{position:absolute; inset:calc(7% + 16px) calc(5% + 16px); border-radius:999px; background:radial-gradient(ellipse at 50% 38%, #B0243F 0%, #7F1424 55%, #4F0B16 100%); box-shadow:inset 0 0 60px rgba(0,0,0,.6), inset 0 0 0 2px rgba(217,169,58,.35); background-image:radial-gradient(ellipse at 50% 42%, rgba(255,220,180,.18), transparent 55%), radial-gradient(ellipse at 50% 38%, #B0243F 0%, #7F1424 55%, #4F0B16 100%)}
   .ptable .felt::after{content:""; position:absolute; inset:9%; border-radius:999px; border:2px solid rgba(243,216,145,.16)}
   .felt-logo{position:absolute; left:50%; top:74%; transform:translate(-50%,-50%); font-family:var(--display); font-weight:700; font-style:italic; color:rgba(255,255,255,.1); font-size:clamp(.9rem,2.6vw,1.6rem); white-space:nowrap; pointer-events:none}
   .layer{position:absolute; inset:0; pointer-events:none}
   .layer .seat, .layer .bet{pointer-events:auto}
-  .board{position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); display:flex; gap:clamp(3px,.8vw,8px)}
-  .board .slot{width:clamp(44px,9vw,78px); aspect-ratio:5/7; border-radius:6px; border:1.5px dashed rgba(255,255,255,.12)}
+  .pboard{position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); display:flex; gap:clamp(3px,.8vw,8px)}
+  .pboard .slot{width:clamp(44px,9vw,78px); aspect-ratio:5/7; border-radius:6px; border:1.5px dashed rgba(255,255,255,.12)}
   .pot{position:absolute; left:50%; top:64%; transform-origin:50% 100%; transform:translate(-50%,-100%) rotateX(calc(-1 * var(--tilt))); display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.35); color:var(--paper); border-radius:999px; padding:4px 12px 4px 6px; font-size:.9rem; white-space:nowrap}
   .pot .stack{width:22px; height:22px; border-radius:50%; background:#D9A93A; border:2px dashed #fff; box-shadow:0 calc(var(--n,1) * -2px) 0 -2px #C8102E, 0 calc(var(--n,1) * -4px) 0 -2px #1F5FA8}
   .center-msg{position:absolute; left:50%; top:46%; transform:translate(-50%,-50%) scale(.9); opacity:0; pointer-events:none; text-align:center; transition:opacity .3s, transform .3s; z-index:3}
@@ -592,8 +592,8 @@
   .pc.red{color:#C8102E} .pc.blk{color:#1B1A1F}
   .pc.back{background:repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), #9E1A2D; border:2px solid #fff}
   .pc.sm{width:30px}
-  .board .pc{width:100%}
-  .board .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
+  .pboard .pc{width:100%}
+  .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media (prefers-reduced-motion:no-preference){
     .pc.flipin{animation:flipin .55s cubic-bezier(.3,.8,.3,1) both} @keyframes flipin{0%{transform:translateY(-40px) rotateY(180deg) scale(.6); opacity:0} 50%{opacity:1} 100%{transform:none}}
   }
@@ -673,7 +673,7 @@
   .ptable-wrap.gl{background:#0d0306}
   .ptable-wrap.gl::before{display:none}
   .ptable-wrap.gl::after{box-shadow:inset 0 0 60px 8px rgba(8,0,3,.55)}
-  .gl .p-lamp, .gl .rail, .gl .felt, .gl .board, .gl .dealer-btn{display:none}
+  .gl .p-lamp, .gl .rail, .gl .felt, .gl .pboard, .gl .dealer-btn{display:none}
   .gl .ptable{left:0; top:0; bottom:auto; width:100%; height:100%; aspect-ratio:auto; transform:none !important; transform-style:flat; z-index:1}
   .gl .ptable > .layer{transform-style:flat}
   .gl .seat{transform:translate(-50%,-100%); padding-top:0; --sz:1; transition:opacity .4s}
@@ -697,7 +697,7 @@
     .ptable-wrap{--tilt:50deg; height:clamp(400px, 60vh, 560px); perspective:640px; margin:0 -14px; border-radius:0}
     .ptable{left:-12%; width:124%; aspect-ratio:.95; bottom:-6%}
     .ptable .rail{inset:4% 8%} .ptable .felt{inset:calc(4% + 12px) calc(8% + 12px)}
-    .board{top:44%} .board .slot{width:clamp(40px,13vw,60px)}
+    .pboard{top:44%} .pboard .slot{width:clamp(40px,13vw,60px)}
     .seat{--sz:1.15}
     .myhand{margin-top:-104px}
     .p-lamp{width:90px; height:26px}
@@ -2170,7 +2170,7 @@ function buildRoom(root){
   const sess = h('button', {type:'button', class:'rbtn', text:'📒 Session'}); sess.addEventListener('click', sessionSheet);
   const snd = h('button', {type:'button', class:'rbtn', id:'pSound', text:P.sound ? '🔊' : '🔈', 'aria-label':'Sound on or off'}); snd.addEventListener('click', () => { P.sound = !P.sound; store('pokerSound', P.sound ? '1' : '0'); snd.textContent = P.sound ? '🔊' : '🔈'; if(P.sound) sfx('chip'); });
   const leave = h('button', {type:'button', class:'rbtn leave', id:'pLeave', text:'Cash out'}); leave.addEventListener('click', leaveTable);
-  const board = h('div', {class:'board', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
+  const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
     h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, sess, snd, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
