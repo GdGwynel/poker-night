@@ -1199,9 +1199,10 @@ function renderLive(){
     add.addEventListener('click', go); inp.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
     card.append(h('div', {class:'addp'}, inp, add));
     const inNames = new Set(L.players.map(key));
+    // Poll voters first, then regulars (2+ games), most games first
     let sugg = []; if(S.poll && S.poll.slots[0]){ const t = slotTally(S.poll.slots[0].id); sugg = [...t.yes, ...t.maybe]; }
-    if(!sugg.length) sugg = standings(S.sessions).map(p => p.name);
-    sugg = [...new Set(sugg)].filter(n => !inNames.has(key(n))).slice(0, 10);
+    sugg = sugg.concat(standings(S.sessions).filter(p => p.games >= 2).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name)).map(p => p.name)); // regulars: 2+ games
+    const seen = new Set(); sugg = sugg.filter(n => { const k = key(n); if(seen.has(k) || inNames.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
     if(sugg.length){
       const box = h('div', {class:'suggest', 'aria-label':'Quick add with ' + peso(START_BUYIN)});
       for(const n of sugg){ const b = h('button', {type:'button', text:'+ ' + n}); b.addEventListener('click', () => join(n)); box.append(b); }
