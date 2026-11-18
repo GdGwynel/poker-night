@@ -288,6 +288,74 @@
   .lstat .v{font-weight:800; font-size:1rem; overflow-wrap:anywhere}
   .settle-box{margin-top:20px; padding-top:18px; border-top:2px solid var(--ink)}
   @media (max-width:640px){ .lstats{grid-template-columns:1fr 1fr} }
+  /* Live game sections */
+  .live-wrap{display:grid; gap:14px}
+  .table-sum{background:var(--ink); color:var(--paper); box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 18px 40px -12px rgba(25,2,6,.7)}
+  .table-sum h2{color:var(--paper); margin:4px 0 0}
+  .table-sum .pot-k{color:#BFB7AC}
+  .table-sum .live-dot{color:#FF8E9C}
+  .table-sum .live-dot.stopped{color:#BFB7AC}
+  .table-sum .live-dot.stopped::before{background:#BFB7AC}
+  .table-sum .lstat{background:rgba(255,255,255,.07)}
+  .table-sum .lstat .k{color:#BFB7AC}
+  .steps{list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+  .steps li{border-top:3px solid rgba(255,255,255,.16); padding-top:9px; min-width:0}
+  .steps li.done{border-color:#5FC08A}
+  .steps li.cur{border-color:var(--gold)}
+  .steps .st-n{font-weight:800; font-size:.95rem; white-space:pre}
+  .steps li:not(.cur):not(.done) .st-n{color:#BFB7AC}
+  .steps .st-s{font-size:.8rem; color:#BFB7AC; margin-top:2px}
+  .steps.light li{border-color:var(--line)} .steps.light .st-n{color:var(--ink)!important} .steps.light .st-s{color:var(--ink-2)}
+  .steps.light{margin:6px 0 20px}
+  .sec-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:4px}
+  .sec-head h2{margin:0}
+  .sec-head .count{font-weight:700; color:var(--ink-2); font-size:.92rem; white-space:nowrap}
+  .add-sec{margin-top:22px; padding-top:18px; border-top:1px dashed var(--line)}
+  .add-sec h3{margin:0 0 4px}
+  .add-sec .addp{margin-top:8px}
+  .orow{display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; gap:14px; align-items:center; padding:10px 12px; border-radius:12px; margin-top:8px; border:1px solid transparent}
+  .orow.win{background:#E2F3E8; border-color:#B5DEC4} .orow.loss{background:#FBE3E6; border-color:#F0BCC2} .orow.even{background:#FBF0CF; border-color:#ECD592}
+  .orow .nm{font-weight:800}
+  .orow .io{font-size:.88rem; color:var(--ink-2)}
+  .orow .net{font-weight:800; min-width:5em; text-align:right}
+  .orow.flash{animation:none}
+  .card.quiet{background:rgba(251,250,246,.92); padding-block:14px}
+  .card.quiet .log{margin:0; border:0; padding:0}
+  .act-foot{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap}
+  .act-foot .linkbtn{margin-left:auto}
+  .linkbtn{background:none; border:0; padding:4px 2px; color:var(--ink-2); font-weight:700; text-decoration:underline; text-underline-offset:3px; cursor:pointer; font-size:.88rem}
+  .linkbtn:hover{color:var(--loss)}
+  .results{margin-top:16px}
+  .livebar{position:sticky; bottom:max(12px, env(safe-area-inset-bottom,0px)); z-index:4; display:flex; justify-content:space-between; align-items:center; gap:12px;
+    background:var(--ink); color:var(--paper); border-radius:999px; padding:10px 10px 10px 22px; box-shadow:0 14px 34px -8px rgba(10,0,3,.75), 0 0 0 1px rgba(255,255,255,.08)}
+  .livebar .lb-v{font-family:var(--display); font-weight:700; font-size:1.2rem; line-height:1.1}
+  .livebar .lb-k{font-size:.82rem; color:#BFB7AC}
+  .livebar .btn-red{background:var(--suit)} .livebar .btn-red:hover:not(:disabled){background:#9E0C24}
+  .livebar .lb-hint{font-weight:700; color:var(--gold-l); padding-right:12px}
+  @media (max-width:560px){
+    .orow{grid-template-columns:minmax(0,1fr) auto; gap:4px 10px}
+    .orow .io{grid-column:1; grid-row:2}
+    .orow .net{grid-column:2; grid-row:1}
+    .orow .btn{grid-column:2; grid-row:2}
+    .steps .st-s{display:none}
+  }
+  .alert{display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px; align-items:start; background:#FFF1F2; color:var(--ink); border:2px solid var(--suit); border-radius:16px; padding:16px 18px; box-shadow:0 14px 30px -14px rgba(20,1,5,.6)}
+  .alert .al-ic{width:34px; height:34px; border-radius:50%; background:var(--suit); color:#fff; display:grid; place-items:center; font-weight:900; font-size:1.2rem; font-family:var(--display)}
+  .alert .al-t{font-family:var(--display); font-weight:700; font-size:1.3rem; line-height:1.15; color:#9E0C24}
+  .alert p{margin:6px 0 0; font-size:.95rem; color:#4A2A2E; max-width:62ch}
+  .alert .al-fig{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .alert .al-fig div{background:#fff; border:1px solid #F0BCC2; border-radius:10px; padding:6px 12px; display:grid}
+  .alert .al-fig span{font-size:.78rem; color:var(--ink-2); font-weight:600}
+  .alert .al-fig b{font-size:1.05rem}
+  .alert .btns{margin-top:12px}
+  .alert.warn{background:#FFF8E6; border-color:#D9A93A} .alert.warn .al-ic{background:#B07D10} .alert.warn .al-t{color:#6B4A05}
+  .settle-box .alert{margin-top:6px}
+  .steps li.bad{border-color:#FF6B7D!important}
+  .steps li.bad .st-s{color:#FF9AA6}
+  .ptile.warnt{border:2px solid #E3B341; background:#FFF8E6}
+  .ptile.warnt .pt-tot{color:#8A5D00}
+  .livebar.bad{background:#9E0C24}
+  .livebar.bad .lb-k{color:#FFD3D8}
   .btn-danger{background:var(--suit); color:#fff}
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
@@ -303,7 +371,10 @@
   dialog.confirm::backdrop{background:rgba(30,3,8,.62)}
   dialog.confirm h2{font-family:var(--display); font-weight:700; font-size:1.6rem; margin:0 0 8px}
   dialog.confirm .btns{justify-content:flex-end}
-  .live-msg{position:sticky; top:72px; z-index:3}
+  .live-msg{position:sticky; top:72px; z-index:3; margin:0; justify-self:start}
+  .live-msg:has(.msg:empty){display:none}
+  .live-msg{background:var(--paper); border-radius:999px; padding:8px 16px; box-shadow:0 8px 20px -8px rgba(20,1,5,.6)}
+  .live-msg .msg{margin:0}
   details.alt > summary{list-style:none; cursor:pointer; color:var(--paper); font-family:var(--display); font-style:italic; font-weight:700; font-size:1.25rem; padding:6px 2px; display:flex; align-items:center; gap:10px}
   details.alt > summary::-webkit-details-marker{display:none}
   details.alt > summary::before{content:"+"; font-family:var(--body); font-style:normal; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; border:1.5px solid rgba(255,244,242,.4); font-weight:700}
@@ -372,7 +443,7 @@
 
     <!-- SETTLE -->
     <section class="view" id="view-settle" hidden>
-      <div class="card" id="liveCard"><div class="empty">Loading…</div></div>
+      <div class="live-wrap" id="liveCard"><div class="card"><div class="empty">Loading…</div></div></div>
       <details class="alt" id="pasteMode">
         <summary>Or paste the list from the group chat</summary>
         <div class="alt-body">
@@ -1054,11 +1125,11 @@ function livePlayers(L, all){
     return {name:n, buyins:es.map(e => e.amount), winnings:(key(n) in L.cashout) ? L.cashout[key(n)] : null, prepaid:sum(pre.map(e => e.amount)), prepaidTo:pre.length ? pre[pre.length - 1].to : ''};
   }).filter(p => all || p.buyins.length || p.winnings != null);
 }
-function confirmBox(title, text, yes, danger){
+function confirmBox(title, text, yes, danger, noText){
   return new Promise(res => {
     const d = h('dialog', {class:'confirm', 'aria-labelledby':'cfT'});
     const y = h('button', {type:'button', class:'btn ' + (danger ? 'btn-danger' : 'btn-red'), text:yes});
-    const n = h('button', {type:'button', class:'btn btn-ghost', text:'Keep playing'});
+    const n = h('button', {type:'button', class:'btn btn-ghost', text:noText || 'Keep playing'});
     const done = v => { d.close(); d.remove(); res(v); };
     y.addEventListener('click', () => done(true)); n.addEventListener('click', () => done(false));
     d.addEventListener('cancel', e => { e.preventDefault(); done(false); });
@@ -1079,6 +1150,20 @@ function chipCounter(apply){
     h('div', {class:'cgrid'}, rows.map(r => h('label', {class:'cc'}, h('span', {class:'chipdot ' + r.c, 'aria-hidden':'true', text:String(r.v)}), r.i))),
     h('div', {class:'ctotal'}, h('span', null, 'Total ', total), use));
 }
+function alertBox(kind, title, text, figures, actions){
+  return h('div', {class:'alert ' + kind, role:kind === 'bad' ? 'alert' : 'status'},
+    h('div', {class:'al-ic', 'aria-hidden':'true', text:kind === 'bad' ? '!' : kind === 'ok' ? '✓' : 'i'}),
+    h('div', {class:'al-body'},
+      h('div', {class:'al-t', text:title}),
+      figures ? h('div', {class:'al-fig'}, figures.map(([k, v]) => h('div', null, h('span', {text:k}), h('b', {class:'num', text:v})))) : null,
+      text ? h('p', {text:text}) : null,
+      actions && actions.length ? h('div', {class:'btns'}, actions) : null));
+}
+function jumpBtn(label, sel, open){
+  const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:label});
+  b.addEventListener('click', () => { const el = $(sel); if(!el) return; if(open && el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}); });
+  return b;
+}
 function liveTyping(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#liveCard') && a.matches('input, select')); }
 function liveNote(text, type){ S.liveMsg = {text, type}; clearTimeout(liveNote.t); liveNote.t = setTimeout(() => { S.liveMsg = null; const m = $('#liveMsg'); if(m) setMsg(m, ''); }, 5000); const m = $('#liveMsg'); if(m) setMsg(m, text, type); }
 async function liveDo(op, flashName){
@@ -1098,133 +1183,179 @@ async function liveDo(op, flashName){
   return true;
 }
 function renderLive(){
-  const card = $('#liveCard'); if(!card) return;
+  const wrap = $('#liveCard'); if(!wrap) return;
   const flash = S.liveFlash; S.liveFlash = null;
-  card.replaceChildren();
-  if(!S.loaded){ card.append(h('div', {class:'empty', text:'Loading…'})); return; }
-  if(S.live === undefined){ card.hidden = true; $('#pasteMode').open = true; return; }
-  card.hidden = false;
-  const msg = h('div', {class:'msg live-msg', id:'liveMsg', role:'status'}); if(S.liveMsg) setMsg(msg, S.liveMsg.text, S.liveMsg.type);
+  wrap.replaceChildren();
+  if(!S.loaded){ wrap.append(h('div', {class:'card'}, h('div', {class:'empty', text:'Loading…'}))); return; }
+  if(S.live === undefined){ wrap.hidden = true; $('#pasteMode').open = true; return; }
+  wrap.hidden = false;
+  const msg = h('div', {class:'msg', id:'liveMsg', role:'status'}); if(S.liveMsg) setMsg(msg, S.liveMsg.text, S.liveMsg.type);
   const L = S.live;
+
+  // ----- No game yet -----
   if(!L){
     const pollDate = S.poll && S.poll.slots[0] ? S.poll.slots[0].when.slice(0, 10) : '';
     const date = h('input', {type:'date', id:'liveDate'}); date.value = pollDate || today();
     const go = h('button', {type:'button', class:'btn btn-red btn-lg', text:'Start tonight’s game'});
     go.addEventListener('click', () => liveDo({op:'start', date:date.value}));
-    card.append(h('h2', {text:'Live game'}),
-      h('p', {class:'sub', text:'Start it when the first chips hit the table. Anyone can cash players in or out from their own phone, and everyone sees the same totals. When you stop the game, it works out who pays who.'}),
-      h('div', {class:'start-row'}, h('div', null, h('label', {for:'liveDate', text:pollDate ? 'Date (from the poll)' : 'Date'}), date), go), msg);
+    wrap.append(h('div', {class:'card'}, h('h2', {text:'Live game'}),
+      h('p', {class:'sub', text:'Start it when the first chips hit the table. Anyone can cash players in or out from their own phone, and everyone sees the same totals. When everyone’s out, it works out who pays who.'}),
+      h('ol', {class:'steps light'}, ['Cash in', 'Cash out', 'Settle up'].map((t, i) => h('li', null, h('div', {class:'st-n', text:(i + 1) + '  ' + t}), h('div', {class:'st-s', text:['Everyone starts with ' + peso(START_BUYIN), 'Leave early or count at the end', 'Who pays who, then save'][i]})))),
+      h('div', {class:'start-row'}, h('div', null, h('label', {for:'liveDate', text:pollDate ? 'Date (from the poll)' : 'Date'}), date), go), msg));
     return;
   }
+
+  // ----- Derived numbers -----
   const counting = L.phase === 'count';
-  const allOut = L.players.length > 0 && L.players.every(p => L.cashout[key(p)] != null);
+  const tinOf = n => sum(L.log.filter(e => key(e.name) === key(n)).map(e => e.amount));
+  const playing = L.players.filter(p => L.cashout[key(p)] == null);
+  const done = L.players.filter(p => L.cashout[key(p)] != null);
+  const allOut = L.players.length > 0 && !playing.length;
   const totalIn = sum(L.log.map(e => e.amount));
-  card.append(h('div', {class:'live-head'},
-    h('div', null, h('div', {class:'eyebrow live-dot' + (counting ? ' stopped' : ''), text:(counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started))}), h('h2', {style:'margin:4px 0 0', text:L.date ? fmtDate(L.date) : 'Tonight'})),
-    h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}), h('div', {class:'pot-k', text:'cashed in from ' + L.log.length + ' buy-in' + (L.log.length === 1 ? '' : 's') + (Object.keys(L.cashout).length && !counting && !allOut ? (totalIn - sum(Object.values(L.cashout)) >= 0 ? ', ' + peso(round(totalIn - sum(Object.values(L.cashout)))) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))), msg);
+  const outSum = sum(Object.values(L.cashout));
+  const inPlay = round(totalIn - outSum);
+  const stage = allOut ? 3 : counting ? 2 : 1;
+  const overOut = outSum > totalIn + 0.004;
+  const mismatch = allOut && Math.abs(outSum - totalIn) >= 0.005;
+  const problem = overOut || mismatch;
+
+  // ----- 1. Table summary -----
+  const mins = Math.max(0, Math.round((Date.now() - new Date(L.started)) / 60000));
+  const nets = done.map(n => ({n, net:round(L.cashout[key(n)] - tinOf(n))}));
+  const up = nets.length ? nets.reduce((a, b) => b.net > a.net ? b : a) : null;
+  const big = L.players.length ? L.players.map(n => ({n, t:tinOf(n)})).reduce((a, b) => b.t > a.t ? b : a) : null;
+  const rebuys = Math.max(0, L.log.length - L.players.filter(n => tinOf(n) > 0).length);
+  const stat = (k, v) => h('div', {class:'lstat'}, h('div', {class:'k', text:k}), h('div', {class:'v num', text:v}));
+  const stepSub = [
+    L.players.length + ' player' + (L.players.length === 1 ? '' : 's') + ', ' + L.log.length + ' cash-in' + (L.log.length === 1 ? '' : 's'),
+    done.length + ' of ' + L.players.length + ' out',
+    problem ? 'Totals don’t match' : allOut ? 'Ready' : 'When everyone’s out'];
+  wrap.append(h('div', {class:'card table-sum'},
+    h('div', {class:'live-head'},
+      h('div', null,
+        h('div', {class:'eyebrow live-dot' + (counting || allOut ? ' stopped' : ''), text:allOut ? 'Everyone has cashed out' : counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started)}),
+        h('h2', {text:L.date ? fmtDate(L.date) : 'Tonight'})),
+      h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}),
+        h('div', {class:'pot-k', text:'cashed in' + (done.length && !allOut ? (inPlay >= 0 ? ', ' + peso(inPlay) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))),
+    L.log.length ? h('div', {class:'lstats'},
+      stat(counting || allOut ? 'Played' : 'Playing for', mins >= 60 ? Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm' : mins + ' min'),
+      stat('Rebuys', String(rebuys)),
+      stat('Biggest cash-in', big && big.t ? big.n + ' ' + peso(big.t) : '–'),
+      stat('Up the most', up && up.net > 0 ? up.n + ' ' + signed(up.net) : 'Nobody yet')) : null,
+    h('ol', {class:'steps', 'aria-label':'Game progress'}, ['Cash in', 'Cash out', 'Settle up'].map((t, i) =>
+      h('li', {class:(i + 1 < stage ? 'done' : i + 1 === stage ? 'cur' : '') + (i === 2 && problem ? ' bad' : ''), 'aria-current':i + 1 === stage ? 'step' : null},
+        h('div', {class:'st-n', text:(i + 1 < stage ? '✓ ' : (i + 1) + '  ') + t}), h('div', {class:'st-s', text:stepSub[i]}))))));
+  wrap.append(h('div', {class:'live-msg'}, msg));
 
   // Cash-outs can never be more than what went in
-  const outSum = sum(Object.values(L.cashout));
-  if(!counting && !allOut && outSum > totalIn + 0.004)
-    card.append(h('div', {class:'check bad', role:'alert', style:'margin-top:12px', text:'✗ Cash-outs (' + peso(outSum) + ') are ' + peso(round(outSum - totalIn)) + ' more than all cash-ins (' + peso(totalIn) + '). Check the last cash-out, or add a missing cash-in.'}));
+  if(!allOut && overOut)
+    wrap.append(alertBox('bad', 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot',
+      'Players can’t take out more than went in. One of the cash-outs was probably typed wrong, or someone’s cash-in is missing.',
+      [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)]],
+      [jumpBtn('Review cash-outs', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
 
-  // Game stats
-  if(L.log.length){
-    const per = L.players.map(n => ({n, tin:sum(L.log.filter(e => key(e.name) === key(n)).map(e => e.amount)), out:L.cashout[key(n)]}));
-    const mins = Math.max(0, Math.round((Date.now() - new Date(L.started)) / 60000));
-    const rebuys = L.log.length - per.filter(p => p.tin > 0).length;
-    const big = per.reduce((a, b) => b.tin > a.tin ? b : a, per[0]);
-    const done = per.filter(p => p.out != null).map(p => Object.assign(p, {net:round(p.out - p.tin)}));
-    const up = done.length ? done.reduce((a, b) => b.net > a.net ? b : a) : null;
-    const stat = (k, v) => h('div', {class:'lstat'}, h('div', {class:'k', text:k}), h('div', {class:'v num', text:v}));
-    card.append(h('div', {class:'lstats'},
-      stat(counting ? 'Played' : 'Playing for', mins >= 60 ? Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm' : mins + ' min'),
-      stat('Rebuys', String(Math.max(0, rebuys))),
-      stat('Biggest cash-in', big ? big.n + ' ' + peso(big.tin) : '–'),
-      stat('Up the most', up && up.net > 0 ? up.n + ' ' + signed(up.net) : 'Nobody yet')));
-  }
-
-  // Player tiles
-  const tiles = h('div', {class:'ptiles'});
-  const names = [...L.players].sort((a, b) => sum(L.log.filter(e => key(e.name) === key(b)).map(e => e.amount)) - sum(L.log.filter(e => key(e.name) === key(a)).map(e => e.amount)));
-  for(const n of L.players){
-    const es = L.log.filter(e => key(e.name) === key(n)); const tot = sum(es.map(e => e.amount));
-    const tile = h('div', {class:'ptile' + (flash && key(flash) === key(n) ? ' flash' : '')},
-      h('div', {class:'pt-head'}, h('div', {class:'pt-name', text:n}), h('div', {class:'pt-tot num' + (tot ? '' : ' zero'), text:tot ? peso(tot) : 'No buy-in yet'})),
-      h('div', {class:'stack', title:es.map(e => peso(e.amount) + (e.to ? ' paid to ' + e.to : '')).join(', ')}, es.map(e => h('span', {class:'tag' + (e.to ? ' to' : ''), text:String(e.amount)}))));
-    const out = L.cashout[key(n)];
-    if(out != null){ const net = round(out - tot); tile.classList.add(net > 0 ? 'win' : net < 0 ? 'loss' : 'even'); }
-    if(!counting && out != null){
-      const undo = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Undo cash-out'});
-      undo.addEventListener('click', () => liveDo({op:'cashout', name:n, amount:''}));
-      tile.classList.add('left');
-      tile.append(h('div', {class:'outline'}, h('span', null, 'Cashed out ', h('b', {class:'num', text:peso(out)})), h('span', {class:'num ' + cls(round(out - tot)), text:signed(round(out - tot))})), h('div', null, undo));
-    } else if(!counting){
-      const quick = h('div', {class:'quick', role:'group', 'aria-label':'Cash in for ' + n});
-      for(const a of [100, 200, 300, 500]){
-        const b = h('button', {type:'button', class:'cashbtn', text:'+' + a, 'aria-label':'Add ' + peso(a) + ' buy-in for ' + n});
-        b.addEventListener('click', async () => { if(await liveDo({op:'buyin', name:n, amount:a, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(a) + '.', 'ok'); });
-        quick.append(b);
-      }
-      const amtIn = h('input', {type:'number', inputMode:'decimal', min:1, placeholder:'Amount', 'aria-label':'Other amount for ' + n});
-      const toSel = h('select', {'aria-label':'Paid cash straight to'}, h('option', {value:'', text:'Normal buy-in'}), L.players.filter(p => key(p) !== key(n)).map(p => h('option', {value:p, text:'Paid cash to ' + p})));
-      const add = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Add'});
-      add.addEventListener('click', async () => { if(await liveDo({op:'buyin', name:n, amount:amtIn.value, to:toSel.value, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(+amtIn.value) + (toSel.value ? ', paid to ' + toSel.value : '') + '.', 'ok'); });
-      const more = h('details', {class:'more'}, h('summary', {text:'Other amount'}),
-        h('div', {class:'more-row'}, amtIn, toSel, add));
-      const coIn = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', 'aria-label':'Chips ' + n + ' is leaving with'});
+  // ----- 2. At the table / count the chips -----
+  if(!allOut){
+    const sec = h('div', {class:'card'});
+    sec.append(h('div', {class:'sec-head'},
+      h('h2', {text:counting ? 'Count the chips' : 'At the table'}),
+      h('span', {class:'count', text:counting ? playing.length + ' left to count' : playing.length + ' playing'})));
+    if(counting) sec.append(h('p', {class:'sub', text:'Enter what each player is left with. Use the chip colours if that’s easier.'}));
+    const tiles = h('div', {class:'ptiles'});
+    for(const n of playing){
+      const es = L.log.filter(e => key(e.name) === key(n)); const tot = sum(es.map(e => e.amount));
+      const tile = h('div', {class:'ptile' + (tot ? '' : ' warnt') + (flash && key(flash) === key(n) ? ' flash' : '')},
+        h('div', {class:'pt-head'}, h('div', {class:'pt-name', text:n}), h('div', {class:'pt-tot num' + (tot ? '' : ' zero'), text:tot ? peso(tot) : '⚠ No cash-in yet'})),
+        h('div', {class:'stack', title:es.map(e => peso(e.amount) + (e.to ? ' paid to ' + e.to : '')).join(', ')}, es.map(e => h('span', {class:'tag' + (e.to ? ' to' : ''), text:String(e.amount)}))));
+      const coIn = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', id:'co-' + key(n).replace(/\W+/g, '-'), 'aria-label':'Chips ' + n + ' has'});
       const coBtn = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Cash out'});
-      coBtn.addEventListener('click', async () => { if(coIn.value.trim() === ''){ coIn.focus(); return; } if(await liveDo({op:'cashout', name:n, amount:coIn.value.trim()}, n)) liveNote(n + ' cashed out ' + peso(+coIn.value) + '.', 'ok'); });
-      const co = h('details', {class:'more'}, h('summary', {text:'Cash out'}), h('div', {class:'co-row'}, coIn, coBtn), chipCounter(v => { coIn.value = v; coIn.focus(); }));
-      if(!es.length){ const rm = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:8px', text:'Remove ' + n}); rm.addEventListener('click', () => liveDo({op:'drop', name:n})); more.append(rm); }
-      tile.append(quick, h('div', {class:'tile-acts'}, more, co));
-    } else {
-      const v = L.cashout[key(n)];
-      const inp = h('input', {type:'number', inputMode:'decimal', min:0, placeholder:'₱ in chips', id:'co-' + key(n).replace(/\W+/g, '-')}); if(v != null) inp.value = v;
-      inp.addEventListener('change', () => liveDo({op:'cashout', name:n, amount:inp.value.trim()}));
-      tile.append(h('div', {class:'count-in'}, h('label', {for:inp.id, text:'Chips at the end'}), inp), chipCounter(v => { inp.value = v; inp.dispatchEvent(new Event('change')); }));
+      const doOut = async () => {
+        if(coIn.value.trim() === ''){ coIn.focus(); return; }
+        const v = +coIn.value;
+        if(v > inPlay + 0.004 && !(await confirmBox('That’s more than what’s left', n + ' is cashing out ' + peso(v) + ', but only ' + peso(Math.max(0, inPlay)) + ' is still in play. Check the chip count before saving it.', 'Cash out anyway', true, 'Fix the count'))) { coIn.focus(); return; }
+        if(await liveDo({op:'cashout', name:n, amount:coIn.value.trim()}, n)) liveNote(n + ' cashed out ' + peso(v) + '.', 'ok');
+      };
+      coBtn.addEventListener('click', doOut); coIn.addEventListener('keydown', e => { if(e.key === 'Enter') doOut(); });
+      const coRow = h('div', {class:'co-row'}, coIn, coBtn);
+      const counter = chipCounter(v => { coIn.value = v; coIn.focus(); });
+      if(!counting){
+        const quick = h('div', {class:'quick', role:'group', 'aria-label':'Cash in for ' + n});
+        for(const a of [100, 200, 300, 500]){
+          const b = h('button', {type:'button', class:'cashbtn', text:'+' + a, 'aria-label':'Add ' + peso(a) + ' buy-in for ' + n});
+          b.addEventListener('click', async () => { if(await liveDo({op:'buyin', name:n, amount:a, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(a) + '.', 'ok'); });
+          quick.append(b);
+        }
+        const amtIn = h('input', {type:'number', inputMode:'decimal', min:1, placeholder:'Amount', 'aria-label':'Other amount for ' + n});
+        const toSel = h('select', {'aria-label':'Paid cash straight to'}, h('option', {value:'', text:'Into the pot'}), L.players.filter(p => key(p) !== key(n)).map(p => h('option', {value:p, text:'Cash went to ' + p})));
+        const add = h('button', {type:'button', class:'btn btn-red btn-sm', text:'Add'});
+        add.addEventListener('click', async () => { const v = +amtIn.value, to = toSel.value; if(await liveDo({op:'buyin', name:n, amount:amtIn.value, to, eid:newId()}, n)) liveNote(n + ' cashed in ' + peso(v) + (to ? ', cash went to ' + to : '') + '.', 'ok'); });
+        const more = h('details', {class:'more'}, h('summary', {text:'Other amount'}), h('div', {class:'more-row'}, amtIn, toSel, add));
+        if(!es.length){ const rm = h('button', {type:'button', class:'btn btn-ghost btn-sm', style:'margin-top:8px', text:'Remove ' + n}); rm.addEventListener('click', () => liveDo({op:'drop', name:n})); more.append(rm); }
+        const co = h('details', {class:'more'}, h('summary', {text:'Cash out'}), coRow, counter);
+        tile.append(quick, h('div', {class:'tile-acts'}, more, co));
+      } else {
+        tile.append(h('label', {for:coIn.id, style:'margin:0', text:'Chips at the end'}), coRow, counter);
+      }
+      tiles.append(tile);
     }
-    tiles.append(tile);
-  }
-  [...tiles.children].filter(t => t.classList.contains('left')).forEach(t => tiles.append(t));
-  if(!L.players.length) tiles.append(h('p', {class:'sub', text:'Add players below. Each one starts with a ' + peso(START_BUYIN) + ' cash-in, and the chip buttons are for rebuys.'}));
-  card.append(tiles);
+    if(!L.players.length) tiles.append(h('p', {class:'sub', text:'Nobody yet. Each player starts with a ' + peso(START_BUYIN) + ' cash-in, and the + buttons are for rebuys.'}));
+    sec.append(tiles);
 
-  // Add player (with suggestions from this week's poll)
-  if(!counting){
-    const inp = h('input', {id:'liveAdd', maxLength:30, placeholder:'Player name', list:'knownPlayers', autocomplete:'off'});
-    const add = h('button', {type:'button', class:'btn btn-ghost', text:'Add player, ' + peso(START_BUYIN) + ' in'});
-    const join = async n => { if(await liveDo({op:'buyin', name:n, amount:START_BUYIN, eid:newId()}, n)) liveNote(n + ' joined with ' + peso(START_BUYIN) + '.', 'ok'); };
-    const go = async () => { const n = inp.value.trim(); if(!n) { inp.focus(); return; } inp.value = ''; await join(canon(n)); const x = $('#liveAdd'); if(x) x.focus(); };
-    add.addEventListener('click', go); inp.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
-    card.append(h('div', {class:'addp'}, inp, add));
-    const inNames = new Set(L.players.map(key));
-    // Poll voters first, then regulars (2+ games), most games first
-    let sugg = []; if(S.poll && S.poll.slots[0]){ const t = slotTally(S.poll.slots[0].id); sugg = [...t.yes, ...t.maybe]; }
-    sugg = sugg.concat(standings(S.sessions).filter(p => p.games >= 2).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name)).map(p => p.name)); // regulars: 2+ games
-    const seen = new Set(); sugg = sugg.filter(n => { const k = key(n); if(seen.has(k) || inNames.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
-    if(sugg.length){
-      const box = h('div', {class:'suggest', 'aria-label':'Quick add with ' + peso(START_BUYIN)});
-      for(const n of sugg){ const b = h('button', {type:'button', text:'+ ' + n}); b.addEventListener('click', () => join(n)); box.append(b); }
-      card.append(box);
+    // Add a player
+    if(!counting){
+      const inp = h('input', {id:'liveAdd', maxLength:30, placeholder:'Player name', list:'knownPlayers', autocomplete:'off'});
+      const add = h('button', {type:'button', class:'btn btn-ghost', text:'Add player, ' + peso(START_BUYIN) + ' in'});
+      const join = async n => { if(await liveDo({op:'buyin', name:n, amount:START_BUYIN, eid:newId()}, n)) liveNote(n + ' joined with ' + peso(START_BUYIN) + '.', 'ok'); };
+      const go = async () => { const n = inp.value.trim(); if(!n){ inp.focus(); return; } inp.value = ''; await join(canon(n)); const x = $('#liveAdd'); if(x) x.focus(); };
+      add.addEventListener('click', go); inp.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
+      const addSec = h('div', {class:'add-sec'}, h('h3', {text:'Add a player'}), h('div', {class:'addp'}, inp, add));
+      const inNames = new Set(L.players.map(key));
+      // Poll voters first, then regulars (2+ games), most games first
+      let sugg = []; if(S.poll && S.poll.slots[0]){ const t = slotTally(S.poll.slots[0].id); sugg = [...t.yes, ...t.maybe]; }
+      sugg = sugg.concat(standings(S.sessions).filter(p => p.games >= 2).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name)).map(p => p.name));
+      const seen = new Set(); sugg = sugg.filter(n => { const k = key(n); if(seen.has(k) || inNames.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
+      if(sugg.length){
+        const box = h('div', {class:'suggest', 'aria-label':'Quick add with ' + peso(START_BUYIN)});
+        for(const n of sugg){ const b = h('button', {type:'button', text:'+ ' + n}); b.addEventListener('click', () => join(n)); box.append(b); }
+        addSec.append(box);
+      }
+      sec.append(addSec);
     }
+    wrap.append(sec);
   }
 
-  // Counting: balance check, who pays who, save
-  if(counting || allOut){
+  // ----- 3. Cashed out -----
+  if(done.length){
+    const sec = h('div', {class:'card', id:'outCard'});
+    sec.append(h('div', {class:'sec-head'}, h('h2', {text:'Cashed out'}), h('span', {class:'count', text:done.length + ' of ' + L.players.length})));
+    for(const n of done){
+      const tin = tinOf(n), out = L.cashout[key(n)], net = round(out - tin);
+      const undo = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Undo', 'aria-label':'Undo cash-out for ' + n});
+      undo.addEventListener('click', () => liveDo({op:'cashout', name:n, amount:''}));
+      sec.append(h('div', {class:'orow ' + (net > 0 ? 'win' : net < 0 ? 'loss' : 'even') + (flash && key(flash) === key(n) ? ' flash' : '')},
+        h('div', {class:'nm', text:n}),
+        h('div', {class:'io num', text:peso(tin) + ' in, ' + peso(out) + ' out'}),
+        h('div', {class:'net num ' + cls(net), text:net ? signed(net) : 'Even'}),
+        undo));
+    }
+    wrap.append(sec);
+  }
+
+  // ----- 4. Settle up -----
+  if(allOut){
     const players = livePlayers(L);
-    const missing = players.filter(p => p.winnings == null);
     const c = compute(players); const ok = Math.abs(c.diff) < 0.005;
-    const counted = sum(players.map(p => p.winnings || 0));
-    const box = h('div', {class:'settle-box'});
-    if(allOut && !counting) box.append(h('h3', {style:'margin-top:0', text:'Everyone has cashed out'}));
-    if(missing.length) box.append(h('div', {class:'check bad', role:'status', text:'Still to count: ' + missing.map(p => p.name).join(', ') + '. Counted ' + peso(counted) + ' of ' + peso(totalIn) + '.'}));
-    else if(!ok) box.append(h('div', {class:'check bad', role:'status', text:'✗ Off by ' + peso(Math.abs(c.diff)) + ': chips add up to ' + peso(counted) + ' but ' + peso(totalIn) + ' was cashed in. ' + (counting ? 'Recount, or resume the game and add a missing cash-in.' : 'Undo the wrong cash-out and enter it again, or add a missing cash-in.')}));
+    const sec = h('div', {class:'card settle-box'}, h('h2', {text:'Settle up'}));
+    if(!ok) sec.append(alertBox('bad', 'Totals are off by ' + peso(Math.abs(c.diff)),
+      c.diff > 0 ? 'More came out than went in. A cash-out was probably entered too high, or someone’s cash-in is missing. Undo the wrong one above and enter it again.'
+                 : 'Less came out than went in. Some chips weren’t counted, a cash-out was entered too low, or a cash-in was added by mistake.',
+      [['Cashed in', peso(totalIn)], ['Cashed out', peso(outSum)], ['Difference', (c.diff > 0 ? '+' : '−') + peso(Math.abs(c.diff))]],
+      [jumpBtn('Review cash-outs', '#outCard'), jumpBtn('Check cash-in history', '#logDet', true)]));
     else {
-      box.append(h('div', {class:'check ok', role:'status', text:'✓ Balanced: ' + peso(totalIn) + ' in, ' + peso(counted) + ' out'}));
-      box.append(h('h3', {text:'Who pays who'}), transfersList(c));
-      if(c.prepaid.length) box.append(h('p', {class:'note', text:'Already settled at the table: ' + c.prepaid.map(x => x.from + ' paid ' + x.to + ' ' + peso(x.amount)).join(', ') + '. Counted, so nobody pays twice.'}));
-      box.append(h('h3', {text:'Results'}), resultsTable(c));
+      sec.append(h('div', {class:'check ok', role:'status', text:'✓ Balanced: ' + peso(totalIn) + ' in, ' + peso(outSum) + ' out'}));
+      sec.append(h('h3', {text:'Who pays who'}), transfersList(c));
+      if(c.prepaid.length) sec.append(h('p', {class:'note', text:'Already settled at the table: ' + c.prepaid.map(x => x.from + ' paid ' + x.to + ' ' + peso(x.amount)).join(', ') + '. Counted, so nobody pays twice.'}));
+      sec.append(h('details', {class:'more results'}, h('summary', {text:'Full results'}), resultsTable(c)));
       const note = h('input', {id:'liveNoteIn', maxLength:80, placeholder:'At Bill’s'});
       const copy = h('button', {type:'button', class:'btn btn-ghost', text:'Copy for Messenger'}); copy.addEventListener('click', () => copyText(settleMessage(c, L.date), copy));
       const save = h('button', {type:'button', class:'btn btn-red', text:'Save to leaderboard'});
@@ -1234,40 +1365,43 @@ function renderLive(){
         try{ applyState(await api({action:'saveSession', endLive:true, session:{date:L.date, note:note.value.trim(), players}})); renderAll(); location.hash = '#board'; }
         catch(e){ setMsg(smsg, e.message, 'err'); save.disabled = false; save.textContent = 'Save to leaderboard'; }
       });
-      box.append(h('div', {style:'margin-top:14px; max-width:320px'}, h('label', {for:'liveNoteIn', text:'Note (optional)'}), note), h('div', {class:'btns'}, copy, save), smsg);
+      sec.append(h('div', {style:'margin-top:16px; max-width:320px'}, h('label', {for:'liveNoteIn', text:'Note (optional)'}), note), h('div', {class:'btns'}, copy, save), smsg);
     }
-    card.append(box);
+    wrap.append(sec);
   }
 
-  // Phase controls
-  const phase = h('div', {class:'phase'});
-  if(!counting){
-    const b = h('button', {type:'button', class:'btn ' + (allOut ? 'btn-ghost' : 'btn-red'), text:'Stop the game', disabled:!L.log.length});
-    b.addEventListener('click', async () => {
-      const still = L.players.filter(p => L.cashout[key(p)] == null);
-      if(await confirmBox('Stop the game?', 'No more cash-ins after this. ' + (still.length ? still.join(', ') + (still.length === 1 ? ' still needs' : ' still need') + ' to enter their chips, then it works out who pays who.' : 'Everyone has cashed out, so you’ll go straight to who pays who.'), 'Stop the game')) liveDo({op:'phase', phase:'count'});
-    });
-    phase.append(b);
-  } else {
-    const b = h('button', {type:'button', class:'btn btn-ghost', text:'Resume the game'});
-    b.addEventListener('click', () => liveDo({op:'phase', phase:'play'}));
-    phase.append(b);
-  }
-  const cancel = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Cancel this game'});
-  cancel.addEventListener('click', async () => { if(await confirmBox('Delete this live game?', 'All ' + L.log.length + ' cash-ins and every cash-out will be erased, and nothing goes to the leaderboard. This can’t be undone.', 'Delete game', true)) liveDo({op:'end'}); });
-  phase.append(cancel);
-  card.append(phase);
-
-  // Buy-in log with undo
+  // ----- 5. Activity -----
+  const act = h('div', {class:'card quiet'});
   if(L.log.length){
     const ol = h('ol');
-    for(const e of [...L.log].reverse().slice(0, 15)){
+    for(const e of [...L.log].reverse()){
       const u = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Undo', 'aria-label':'Undo ' + e.name + ' ' + peso(e.amount)});
       u.addEventListener('click', () => liveDo({op:'undo', id:e.id}));
-      ol.append(h('li', null, h('time', {text:clock(e.t)}), h('span', null, h('b', {text:e.name}), ' cashed in ' + peso(e.amount) + (e.to ? ', paid cash to ' + e.to : '')), counting ? h('span') : u));
+      ol.append(h('li', null, h('time', {text:clock(e.t)}), h('span', null, h('b', {text:e.name}), ' cashed in ' + peso(e.amount) + (e.to ? ', cash went to ' + e.to : '')), u));
     }
-    card.append(h('details', {class:'log', open:S.logOpen !== false}, h('summary', {text:'Cash-ins so far (' + L.log.length + ')'}), ol));
-    card.querySelector('details.log').addEventListener('toggle', ev => S.logOpen = ev.target.open);
+    const det = h('details', {class:'log', id:'logDet', open:S.logOpen === true}, h('summary', {text:'Cash-in history (' + L.log.length + ')'}), ol);
+    det.addEventListener('toggle', () => S.logOpen = det.open);
+    act.append(det);
+  }
+  const foot = h('div', {class:'act-foot'});
+  if(counting){ const r = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Resume the game'}); r.addEventListener('click', () => liveDo({op:'phase', phase:'play'})); foot.append(r); }
+  const cancel = h('button', {type:'button', class:'linkbtn', text:'Cancel this game'});
+  cancel.addEventListener('click', async () => { if(await confirmBox('Delete this live game?', 'All ' + L.log.length + ' cash-ins and every cash-out will be erased, and nothing goes to the leaderboard. This can’t be undone.', 'Delete game', true)) liveDo({op:'end'}); });
+  foot.append(cancel);
+  act.append(foot);
+  wrap.append(act);
+
+  // ----- 6. Sticky action bar -----
+  if(!allOut){
+    const action = counting
+      ? h('span', {class:'lb-hint', text:playing.length + ' left to count'})
+      : h('button', {type:'button', class:'btn btn-red', text:'Stop the game', disabled:!L.log.length});
+    if(!counting) action.addEventListener('click', async () => {
+      if(await confirmBox('Stop the game?', 'No more cash-ins after this. ' + (playing.length ? playing.join(', ') + (playing.length === 1 ? ' still needs' : ' still need') + ' to enter their chips, then it works out who pays who.' : 'Everyone has cashed out, so you’ll go straight to who pays who.'), 'Stop the game')) liveDo({op:'phase', phase:'count'});
+    });
+    wrap.append(h('div', {class:'livebar' + (problem ? ' bad' : '')},
+      h('div', null, h('div', {class:'lb-v num', text:problem ? '⚠ Totals don’t match' : peso(Math.max(0, inPlay)) + ' in play'}), h('div', {class:'lb-k', text:problem ? 'Cash-outs are ' + peso(round(outSum - totalIn)) + ' more than the pot' : playing.length + ' of ' + L.players.length + ' still playing'})),
+      action));
   }
 }
 // Keep everyone's screen in step while the Settle up tab is open.
