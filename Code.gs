@@ -134,7 +134,7 @@ function saveSession_(b) {
   const tin = players.reduce((a, p) => a + p.buyins.reduce((x, y) => x + y, 0), 0);
   const tout = players.reduce((a, p) => a + p.winnings, 0);
   if (Math.abs(tin - tout) > 0.009) throw new Error('Buy-ins and winnings don\'t match, so this game can\'t be saved yet.');
-  const sess = { id: 'g' + Date.now(), date: date, note: clean_(s.note, 80), players: players, paid: {}, created: new Date().toISOString() };
+  const sess = { id: 'g' + Date.now(), date: date, note: clean_(s.note, 80), group: clean_(s.group, 30), players: players, paid: {}, created: new Date().toISOString() };
   sheet_('Sessions', SESS_H).appendRow([sess.id, date ? "'" + date : '', new Date(), JSON.stringify(sess)]);
   if (b.endLive) putLive_(null);
   return state_();
@@ -160,7 +160,7 @@ function liveApply_(live, b){
   const now = new Date().toISOString();
   if(b.op === 'start'){
     if(live) return live;
-    return {id:'L' + Date.now(), date:/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : '', started:now, updated:now, phase:'play', players:[], log:[], cashout:{}};
+    return {id:'L' + Date.now(), date:/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : '', started:now, updated:now, phase:'play', group:nm(b.group), players:[], log:[], cashout:{}};
   }
   if(!live) throw new Error('There’s no live game. Start one first.');
   if(b.op === 'end') return null;

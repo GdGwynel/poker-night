@@ -356,6 +356,14 @@
   .ptile.warnt .pt-tot{color:#8A5D00}
   .livebar.bad{background:#9E0C24}
   .livebar.bad .lb-k{color:#FFD3D8}
+  .season-sels{display:flex; gap:8px; flex-wrap:wrap}
+  .season-sels select{width:auto; background:var(--paper)}
+  .grp-name{color:var(--gold-l); font-weight:700; margin:2px 2px 0}
+  .grp-name:empty{display:none}
+  .grp-tag{display:inline-block; margin-top:6px; font-size:.82rem; font-weight:700; color:var(--gold-l); border:1px solid rgba(243,216,145,.45); border-radius:999px; padding:2px 10px}
+  .start-row{grid-template-columns:minmax(0,180px) minmax(0,200px) auto}
+  @media (max-width:640px){ .start-row{grid-template-columns:1fr 1fr} .start-row .btn{grid-column:1 / -1} }
+  dialog.confirm input{margin:4px 0 4px}
   .btn-danger{background:var(--suit); color:#fff}
   .btn-danger:hover{background:#9E0C24}
   .tile-acts{display:grid; gap:8px}
@@ -489,8 +497,8 @@ Khelvin = 0"></textarea>
     <!-- LEADERBOARD -->
     <section class="view" id="view-board" hidden>
       <div class="season">
-        <h2 class="felt-h">Season standings</h2>
-        <select id="seasonSel" aria-label="Season"></select>
+        <div><h2 class="felt-h">Season standings</h2><div class="grp-name" id="boardGroupName"></div></div>
+        <div class="season-sels"><span id="groupBox"></span><select id="seasonSel" aria-label="Season"></select></div>
       </div>
       <div class="hand" id="podium" aria-label="Top three"></div>
       <div class="stats" id="stats"></div>
@@ -968,15 +976,61 @@ function renderSettleResults(){
     save.disabled = true; save.textContent = 'Saving…';
     try{
       if(!S.pinOk) await checkPin(pinIn.value.trim());
-      applyState(await api({action:'saveSession', pin:pin(), session:{date:date.value, note:note.value.trim(), players}}));
+      setGroup(pgrp);
+      applyState(await api({action:'saveSession', pin:pin(), session:{date:date.value, note:note.value.trim(), group:pgrp, players}}));
       S.calc = []; S.gameNote = ''; $('#paste').value = '';
       renderAll(); location.hash = '#board';
     }catch(e){ setMsg(msg, e.message, 'err'); save.disabled = false; save.textContent = 'Save to leaderboard'; }
   });
+  let pgrp = currentGroup();
+  const pgsel = groupPicker('pasteGroup', pgrp, g => { pgrp = g; });
   card.append(h('h3', {text:'Save this game'}),
     h('div', {class:'grid2'}, h('div', null, h('label', {for:'gameDate', text:'Date played'}), date), h('div', null, h('label', {for:'gameNote', text:'Note (optional)'}), note)),
+    h('div', {style:'margin-top:10px; max-width:280px'}, h('label', {for:'pasteGroup', text:'Group'}), pgsel),
     S.pinOk ? null : h('div', {style:'margin-top:10px; max-width:220px'}, h('label', {for:'savePin', text:'Host PIN'}), pinIn),
     h('div', {class:'btns'}, copy, save), msg);
+}
+
+// ===== Groups (separate leaderboards for different friend groups) =====
+const DEFAULT_GROUP = 'Poker Night';
+const groupOf = s => (s && s.group ? String(s.group).trim() : '') || DEFAULT_GROUP;
+function allGroups(){
+  let extra = []; try{ extra = JSON.parse(store('pokerGroups') || '[]'); }catch(e){}
+  const list = [DEFAULT_GROUP, ...S.sessions.map(groupOf), ...extra, ...(S.live ? [groupOf(S.live)] : [])];
+  const seen = new Set(); return list.filter(g => { const k = key(g); if(!g || seen.has(k)) return false; seen.add(k); return true; });
+}
+function currentGroup(){ const g = store('pokerGroup'); return g && allGroups().some(x => key(x) === key(g)) ? g : DEFAULT_GROUP; }
+function setGroup(g){ store('pokerGroup', g); }
+function inputBox(title, text, placeholder, yes){
+  return new Promise(res => {
+    const d = h('dialog', {class:'confirm', 'aria-labelledby':'ibT'});
+    const inp = h('input', {maxLength:30, placeholder, autocomplete:'off'});
+    const y = h('button', {type:'button', class:'btn btn-red', text:yes});
+    const n = h('button', {type:'button', class:'btn btn-ghost', text:'Cancel'});
+    const done = v => { d.close(); d.remove(); res(v); };
+    y.addEventListener('click', () => { const v = inp.value.trim().replace(/\s+/g, ' '); if(!v){ inp.focus(); return; } done(v); });
+    inp.addEventListener('keydown', e => { if(e.key === 'Enter') y.click(); });
+    n.addEventListener('click', () => done(null)); d.addEventListener('cancel', e => { e.preventDefault(); done(null); });
+    d.append(h('h2', {id:'ibT', text:title}), h('p', {class:'sub', text:text}), inp, h('div', {class:'btns'}, n, y));
+    document.body.append(d); d.showModal(); inp.focus();
+  });
+}
+// A group <select> with a "New group" option at the end
+function groupPicker(id, value, onChange){
+  const sel = h('select', {id, 'aria-label':'Group'});
+  const fill = v => { sel.replaceChildren(...allGroups().map(g => h('option', {value:g, text:g})), h('option', {value:'__new', text:'+ New group…'})); sel.value = v; };
+  fill(value);
+  let last = value;
+  sel.addEventListener('change', async () => {
+    if(sel.value !== '__new'){ last = sel.value; onChange(sel.value); return; }
+    const g = await inputBox('New group', 'Games for this group get their own leaderboard, separate from ' + DEFAULT_GROUP + '.', 'e.g. Office friends', 'Create group');
+    if(!g){ fill(last); return; }
+    let extra = []; try{ extra = JSON.parse(store('pokerGroups') || '[]'); }catch(e){}
+    if(!allGroups().some(x => key(x) === key(g))){ extra.push(g); store('pokerGroups', JSON.stringify(extra)); }
+    const name = allGroups().find(x => key(x) === key(g));
+    last = name; fill(name); onChange(name);
+  });
+  return sel;
 }
 
 // ===== Leaderboard =====
@@ -996,12 +1050,18 @@ function standings(sessions){
 }
 function renderBoard(){
   const sel = $('#seasonSel');
-  const seasons = [...new Set(S.sessions.map(seasonOf).filter(Boolean))].sort().reverse();
+  const grp = currentGroup();
+  const gs = allGroups();
+  const gbox = $('#groupBox'); gbox.replaceChildren();
+  if(gs.length > 1) gbox.append(groupPicker('groupSel', grp, g => { setGroup(g); renderBoard(); }));
+  $('#boardGroupName').textContent = gs.length > 1 ? grp : '';
+  const groupSessions = S.sessions.filter(s => key(groupOf(s)) === key(grp));
+  const seasons = [...new Set(groupSessions.map(seasonOf).filter(Boolean))].sort().reverse();
   const prev = sel.value || 'all';
   sel.replaceChildren(h('option', {value:'all', text:'All time'}), seasons.map(y => h('option', {value:y, text:y + ' season'})));
   sel.value = [...sel.options].some(o => o.value === prev) ? prev : 'all';
   const season = sel.value;
-  const list = S.sessions.filter(s => season === 'all' || seasonOf(s) === season);
+  const list = groupSessions.filter(s => season === 'all' || seasonOf(s) === season);
   const st = standings(list);
   // Summary
   const stats = $('#stats'); stats.replaceChildren();
@@ -1079,7 +1139,7 @@ function liveApply(live, b){
   const now = new Date().toISOString();
   if(b.op === 'start'){
     if(live) return live;
-    return {id:'L' + Date.now(), date:/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : '', started:now, updated:now, phase:'play', players:[], log:[], cashout:{}};
+    return {id:'L' + Date.now(), date:/^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : '', started:now, updated:now, phase:'play', group:nm(b.group), players:[], log:[], cashout:{}};
   }
   if(!live) throw new Error('There’s no live game. Start one first.');
   if(b.op === 'end') return null;
@@ -1196,12 +1256,14 @@ function renderLive(){
   if(!L){
     const pollDate = S.poll && S.poll.slots[0] ? S.poll.slots[0].when.slice(0, 10) : '';
     const date = h('input', {type:'date', id:'liveDate'}); date.value = pollDate || today();
+    let grp = currentGroup();
+    const gsel = groupPicker('liveGroup', grp, g => { grp = g; setGroup(g); });
     const go = h('button', {type:'button', class:'btn btn-red btn-lg', text:'Start tonight’s game'});
-    go.addEventListener('click', () => liveDo({op:'start', date:date.value}));
+    go.addEventListener('click', () => liveDo({op:'start', date:date.value, group:grp}));
     wrap.append(h('div', {class:'card'}, h('h2', {text:'Live game'}),
       h('p', {class:'sub', text:'Start it when the first chips hit the table. Anyone can cash players in or out from their own phone, and everyone sees the same totals. When everyone’s out, it works out who pays who.'}),
       h('ol', {class:'steps light'}, ['Cash in', 'Cash out', 'Settle up'].map((t, i) => h('li', null, h('div', {class:'st-n', text:(i + 1) + '  ' + t}), h('div', {class:'st-s', text:['Everyone starts with ' + peso(START_BUYIN), 'Leave early or count at the end', 'Who pays who, then save'][i]})))),
-      h('div', {class:'start-row'}, h('div', null, h('label', {for:'liveDate', text:pollDate ? 'Date (from the poll)' : 'Date'}), date), go), msg));
+      h('div', {class:'start-row'}, h('div', null, h('label', {for:'liveDate', text:pollDate ? 'Date (from the poll)' : 'Date'}), date), h('div', null, h('label', {for:'liveGroup', text:'Group'}), gsel), go), msg));
     return;
   }
 
@@ -1234,7 +1296,8 @@ function renderLive(){
     h('div', {class:'live-head'},
       h('div', null,
         h('div', {class:'eyebrow live-dot' + (counting || allOut ? ' stopped' : ''), text:allOut ? 'Everyone has cashed out' : counting ? 'Game stopped, counting chips' : 'Live since ' + clock(L.started)}),
-        h('h2', {text:L.date ? fmtDate(L.date) : 'Tonight'})),
+        h('h2', {text:L.date ? fmtDate(L.date) : 'Tonight'}),
+        h('div', {class:'grp-tag', text:groupOf(L)})),
       h('div', {class:'pot'}, h('div', {class:'pot-v num', text:peso(totalIn)}),
         h('div', {class:'pot-k', text:'cashed in' + (done.length && !allOut ? (inPlay >= 0 ? ', ' + peso(inPlay) + ' still in play' : ', cash-outs already exceed cash-ins') : '')}))),
     L.log.length ? h('div', {class:'lstats'},
@@ -1311,8 +1374,8 @@ function renderLive(){
       const addSec = h('div', {class:'add-sec'}, h('h3', {text:'Add a player'}), h('div', {class:'addp'}, inp, add));
       const inNames = new Set(L.players.map(key));
       // Poll voters first, then regulars (2+ games), most games first
-      let sugg = []; if(S.poll && S.poll.slots[0]){ const t = slotTally(S.poll.slots[0].id); sugg = [...t.yes, ...t.maybe]; }
-      sugg = sugg.concat(standings(S.sessions).filter(p => p.games >= 2).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name)).map(p => p.name));
+      let sugg = []; if(S.poll && S.poll.slots[0] && key(groupOf(L)) === key(DEFAULT_GROUP)){ const t = slotTally(S.poll.slots[0].id); sugg = [...t.yes, ...t.maybe]; }
+      sugg = sugg.concat(standings(S.sessions.filter(x => key(groupOf(x)) === key(groupOf(L)))).filter(p => p.games >= 2).sort((a, b) => b.games - a.games || a.name.localeCompare(b.name)).map(p => p.name));
       const seen = new Set(); sugg = sugg.filter(n => { const k = key(n); if(seen.has(k) || inNames.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
       if(sugg.length){
         const box = h('div', {class:'suggest', 'aria-label':'Quick add with ' + peso(START_BUYIN)});
@@ -1362,7 +1425,7 @@ function renderLive(){
       const smsg = h('div', {class:'msg', role:'status'});
       save.addEventListener('click', async () => {
         save.disabled = true; save.textContent = 'Saving…';
-        try{ applyState(await api({action:'saveSession', endLive:true, session:{date:L.date, note:note.value.trim(), players}})); renderAll(); location.hash = '#board'; }
+        try{ setGroup(groupOf(L)); applyState(await api({action:'saveSession', endLive:true, session:{date:L.date, note:note.value.trim(), group:groupOf(L), players}})); renderAll(); location.hash = '#board'; }
         catch(e){ setMsg(smsg, e.message, 'err'); save.disabled = false; save.textContent = 'Save to leaderboard'; }
       });
       sec.append(h('div', {style:'margin-top:16px; max-width:320px'}, h('label', {for:'liveNoteIn', text:'Note (optional)'}), note), h('div', {class:'btns'}, copy, save), smsg);
