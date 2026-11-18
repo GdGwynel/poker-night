@@ -2196,6 +2196,7 @@ function sfx(kind){
     else if(kind === 'allin'){ duckMusic(1.6); aTone(fx, 70, t, .6, {type:'sine', vol:.5, glide:40}); aNoise(fx, t, .5, {f:300, q:.5, vol:.25, type:'lowpass'});
       aNoise(fx, t + .15, 1.4, {f:500, q:3, vol:.06, attack:.4, sweep:700}); aNoise(fx, t + .15, 1.4, {f:900, q:4, vol:.04, attack:.5, sweep:1100}); }
     else if(kind === 'raise'){ for(let i = 0; i < 7; i++) clack(i * .03, .15); aNoise(fx, t, .25, {f:1200, q:.8, vol:.08, sweep:2400}); }
+    else if(kind === 'clack'){ clack(0, .1 + Math.random() * .08); }
     else if(kind === 'pop'){ aTone(fx, 600, t, .12, {vol:.1, glide:1200}); }
   }catch(e){}
 }
@@ -3127,20 +3128,20 @@ function realKit(T){
 // characters, shared by the table and the picker in the lobby
 function avatarKit(T, {col, hash, M}){
   const SKIN = ['#FFDCC2', '#F4C7A1', '#E0A87C', '#B97E57', '#8A5638', '#FBE3CF'];
-  const HAIR = ['#2A1A12', '#4A2C1A', '#7A4A24', '#14100E', '#C8873E', '#E8C46A', '#7A3B8F', '#2E5FA8'];
+  const HAIR = ['#24160F', '#3B2314', '#5A2E16', '#14100E', '#C8742E', '#F2C14E', '#8A3FA8', '#2E5FD0', '#E0507A', '#2F9E73'];
   // personalities: how they idle, blink and carry their face
   const MOODS = [
     {k:'cheery',  e:'😄', bob:.012, bs:1.8, sway:.18, blink:3.2, mouth:'smile', lids:1},
-    {k:'chill',   e:'😌', bob:.006, bs:.7,  sway:.08, blink:4.6, mouth:'smirk', lids:.7},
-    {k:'sleepy',  e:'😴', bob:.012, bs:.45, sway:.22, blink:2.4, mouth:'flat',  lids:.42, yawn:true},
-    {k:'nervous', e:'😬', bob:.004, bs:5,   sway:.05, blink:1.5, mouth:'flat',  lids:1, fidget:true},
+    {k:'chill',   e:'😌', bob:.006, bs:.7,  sway:.08, blink:4.6, mouth:'smirk', lids:.86},
+    {k:'sleepy',  e:'😴', bob:.012, bs:.45, sway:.22, blink:2.4, mouth:'smile', lids:.68, yawn:true},
+    {k:'nervous', e:'😬', bob:.004, bs:5,   sway:.05, blink:1.5, mouth:'smile', lids:1, fidget:true},
     {k:'cocky',   e:'😎', bob:.006, bs:1.1, sway:.1,  blink:5,   mouth:'smirk', lids:1, shades:true},
     {k:'bouncy',  e:'🤪', bob:.03,  bs:3.2, sway:.28, blink:2.8, mouth:'open',  lids:1},
   ];
   const inkM = new T.MeshStandardMaterial({color:0x1a1013, roughness:.3});
   const whiteM = new T.MeshStandardMaterial({color:0xffffff, roughness:.25});
   const shineM = new T.MeshBasicMaterial({color:0xffffff});
-  const blushM = new T.MeshBasicMaterial({color:0xff6f8a, transparent:true, opacity:.6, depthWrite:false});
+  const blushM = new T.MeshBasicMaterial({color:0xff6f8a, transparent:true, opacity:.72, depthWrite:false});
   const IRIS = ['#5B3A1E', '#3B6FB6', '#3E8A55', '#7A4FB0', '#2A2A2A', '#B5722A'];
   const mouthM = new T.MeshStandardMaterial({color:0x5a1520, roughness:.5});
   function makeAvatar(name, color, look){
@@ -3158,7 +3159,7 @@ function avatarKit(T, {col, hash, M}){
     for(const [lx, lz] of [[-.21, .14], [.21, .14], [-.21, -.26], [.21, -.26]]) mesh(new T.CylinderGeometry(.018, .018, .45), M.dark, inner, lx, .225, lz);
     // round little body
     const body = new T.Group(); body.position.set(0, .52, 0); inner.add(body);
-    const torso = mesh(new T.SphereGeometry(.175, 28, 20), cloth, body, 0, .19, 0); torso.scale.set(1, 1.12, .92);
+    const torso = mesh(new T.SphereGeometry(.16, 28, 20), cloth, body, 0, .18, 0); torso.scale.set(1, 1.12, .92);
     // arms pivot at the shoulders so they can wave, clap and tap
     const arms = [];
     for(const sx of [-1, 1]){
@@ -3168,18 +3169,18 @@ function avatarKit(T, {col, hash, M}){
       sh.userData = {sx, hand}; arms.push(sh);
     }
     // big round head
-    const head = new T.Group(); head.position.set(0, .6, .02); body.add(head); head.scale.setScalar(1.14);
+    const head = new T.Group(); head.position.set(0, .6, .02); body.add(head); head.scale.setScalar(1.22);
     const skull = mesh(new T.SphereGeometry(.21, 32, 24), skin, head); skull.scale.set(1.08, .98, 1);
     for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.045, 12, 10), skin, head, sx * .215, 0, 0);
     // eyes: white, pupil, shine; lids for blinking and moods
     const eyes = [];
     for(const sx of [-1, 1]){
       const eg = new T.Group(); eg.position.set(sx * .082, -.012, .178); head.add(eg);
-      const w = mesh(new T.SphereGeometry(.062, 24, 16), whiteM, eg); w.scale.set(1, 1.22, .5);
+      const w = mesh(new T.SphereGeometry(.068, 24, 16), whiteM, eg); w.scale.set(1, 1.25, .5);
       const pu = new T.Group(); pu.position.set(0, -.004, .016); eg.add(pu);
-      const iris = mesh(new T.SphereGeometry(.047, 20, 14), irisM, pu); iris.scale.set(1, 1.12, .5);
-      const dot = mesh(new T.SphereGeometry(.026, 14, 10), inkM, pu, 0, -.002, .012); dot.scale.set(1, 1.1, .5);
-      const sh = new T.Mesh(new T.SphereGeometry(.016, 10, 8), shineM); sh.position.set(.016, .022, .03); pu.add(sh);
+      const iris = mesh(new T.SphereGeometry(.054, 20, 14), irisM, pu); iris.scale.set(1, 1.14, .5);
+      const dot = mesh(new T.SphereGeometry(.03, 14, 10), inkM, pu, 0, -.002, .012); dot.scale.set(1, 1.1, .5);
+      const sh = new T.Mesh(new T.SphereGeometry(.019, 10, 8), shineM); sh.position.set(.018, .026, .032); pu.add(sh);
       const sh2 = new T.Mesh(new T.SphereGeometry(.008, 8, 6), shineM); sh2.position.set(-.014, -.016, .03); pu.add(sh2);
       const arc = new T.Mesh(new T.TorusGeometry(.035, .008, 6, 16, Math.PI), inkM); arc.position.set(0, -.01, .02); arc.visible = false; eg.add(arc);
       eyes.push({eg, w, pu, arc, sx});
@@ -3674,10 +3675,47 @@ function makeGL(T, host){
     const a = new T.Vector3(wx(from[0]), TY + .02, wz(from[1])), b = new T.Vector3(wx(to[0]), TY + .02, wz(to[1]));
     const fixMe = (v, p) => { if(P.s && p[1] > 100){ v.y = TY + .25; } };
     fixMe(a, from); fixMe(b, to);
-    const o = kind === 'chip' ? makeStack(rnd(1, 3) > 2 ? 30 : 25) : makeCard(null);
-    if(kind !== 'chip') o.rotation.set(FACEDOWN, 0, rnd(-1, 1));
+    if(kind === 'chip'){ throwChips(a, b, ms, delay); return; }
+    const o = makeCard(null);
+    o.rotation.set(FACEDOWN, 0, rnd(-1, 1));
     o.visible = false; scene.add(o);
     tween(ms * 1.15, delay, e => { o.visible = true; o.position.lerpVectors(a, b, e); o.position.y += Math.sin(e * Math.PI) * (kind === 'chip' ? .1 : .14); if(kind !== 'chip') o.rotation.z += .08; }, () => scene.remove(o));
+  }
+
+  // ---------- chip physics: chips are thrown, fall, bounce and settle ----------
+  const flying = [];
+  const DEN = [5, 10, 20, 50, 100];
+  function throwChips(a, b, ms, delay){
+    const n = 3 + Math.floor(Math.random() * 4), T0 = Math.max(.35, (ms || 450) / 1000);
+    for(let k = 0; k < n; k++){
+      const m = chipMesh(DEN[Math.floor(Math.random() * DEN.length)]); m.visible = false; scene.add(m);
+      const tgt = b.clone().add(new T.Vector3(rnd(-.06, .06), 0, rnd(-.06, .06)));
+      const start = a.clone().add(new T.Vector3(rnd(-.03, .03), .04 + k * .012, rnd(-.03, .03)));
+      const Tt = T0 * rnd(.85, 1.15), g = 9.8 * .35;
+      const vel = new T.Vector3((tgt.x - start.x) / Tt, (tgt.y - start.y + .5 * g * Tt * Tt) / Tt, (tgt.z - start.z) / Tt);
+      flying.push({m, p:start, v:vel, w:new T.Vector3(rnd(-12, 12), rnd(-6, 6), rnd(-12, 12)), g, t0:performance.now() + (delay || 0) + k * 35, rest:0, bounces:0});
+    }
+  }
+  function stepChips(t, dt){
+    for(let i = flying.length - 1; i >= 0; i--){
+      const c = flying[i]; if(t < c.t0) continue; c.m.visible = true;
+      if(c.rest){
+        const k = Math.max(0, (t - c.rest) / 500); c.m.scale.setScalar(Math.max(.01, 1 - k)); c.m.position.y -= dt * .02;
+        if(k >= 1){ scene.remove(c.m); flying.splice(i, 1); } continue;
+      }
+      c.v.y -= c.g * dt; c.p.addScaledVector(c.v, dt);
+      c.m.rotation.x += c.w.x * dt; c.m.rotation.y += c.w.y * dt; c.m.rotation.z += c.w.z * dt;
+      const floor = TY + CHT / 2 + .001;
+      if(c.p.y < floor && c.v.y < 0){
+        c.p.y = floor; c.bounces++;
+        c.v.y *= -.38; c.v.x *= .55; c.v.z *= .55; c.w.multiplyScalar(.45);
+        if(c.bounces === 1) sfx('clack');
+        // land flat: pull the tilt toward lying down
+        c.m.rotation.x *= .4; c.m.rotation.z *= .4;
+        if(Math.abs(c.v.y) < .08 || c.bounces > 4){ c.v.set(0, 0, 0); c.m.rotation.x = 0; c.m.rotation.z = 0; c.rest = t + 350; }
+      }
+      c.m.position.copy(c.p);
+    }
   }
 
   // ---------- camera ----------
@@ -3772,6 +3810,7 @@ function makeGL(T, host){
     if(!cv.isConnected){ dispose(); return; }
     if(document.hidden || $('#view-play').hidden) return;
     const dt = Math.min(.05, (t - prevT) / 1000); prevT = t;
+    stepChips(t, dt);
     for(let i = tweens.length - 1; i >= 0; i--){ const tw = tweens[i]; const k = (t - tw.t0) / tw.dur; if(k < 0) continue; tw.fn(ease(Math.min(1, k))); if(k >= 1){ tweens.splice(i, 1); if(tw.done) tw.done(); } }
     // players: idle by personality, look around, react, light up on their turn
     const meTurn = last.s && last.s.hand && last.s.hand.toAct === last.s.me && last.s.me >= 0;
