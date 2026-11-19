@@ -641,6 +641,8 @@
   .seg-b{flex:1 1 0; min-width:44px; border:1.5px solid #E2DBCF; background:#FBFAF6; color:var(--ink); border-radius:999px; padding:7px 0; font-weight:800; cursor:pointer}
   .seg-b[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   html.calm *, html.calm *::before, html.calm *::after{animation-duration:.001ms !important; animation-delay:0s !important; transition-duration:.001ms !important}
+  .my-read{font-family:var(--display); font-weight:700; color:var(--gold-l); font-size:.95rem; min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .my-read.pop{animation:readPop .45s cubic-bezier(.3,1.6,.5,1)} @keyframes readPop{from{transform:scale(.7); opacity:0}}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media all{
@@ -2228,6 +2230,15 @@ P.token = store('pokerSeatToken') || (() => { const t = 'k' + Math.random().toSt
 const tableRoom = () => (new URLSearchParams(location.search).get('room') || '').replace(/[^a-z0-9-]/gi, '') || ((S.test || /[?&]test\b/.test(location.search)) ? 'test' : 'main');
 // motion is the game's own setting (some phones turn animations off system-wide, which hid the dealing)
 const reduceMotion = () => store('pokerCalm') === '1';
+// phone buzz, if the phone allows it
+function buzz(p){ try{ if(store('pokerBuzz') !== '0' && navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+// when it's your turn and you're in another tab, the tab title blinks
+let turnTitle = null;
+function turnAlert(on){
+  if(on && document.hidden && !turnTitle){ const base = document.title; let k = 0; turnTitle = {base, id:setInterval(() => { document.title = (k++ % 2) ? base : '🔔 Your turn!'; }, 900)}; }
+  if(!on && turnTitle){ clearInterval(turnTitle.id); document.title = turnTitle.base; turnTitle = null; }
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden && turnTitle){ clearInterval(turnTitle.id); document.title = turnTitle.base; turnTitle = null; } });
 document.documentElement.classList.toggle('calm', reduceMotion());
 const SUIT = {s:'♠', h:'♥', d:'♦', c:'♣'};
 const avColor = n => { let x = 2166136261; for(const ch of key(n)) x = Math.imul(x ^ ch.charCodeAt(0), 16777619) >>> 0; return 'hsl(' + (x % 360) + ' 58% 40%)'; };
@@ -2327,6 +2338,31 @@ function musicStep(){
     A.next += spb;
   }
 }
+// room ambience: low murmur of a card room, the odd glass clink and chip shuffle
+function setAmbience(on){
+  try{
+    const A = audioBus(), ctx = A.ctx; if(ctx.state === 'suspended') ctx.resume();
+    if(!A.amb){
+      A.amb = ctx.createGain(); A.amb.gain.value = 0; A.amb.connect(A.fx);
+      const len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0); let last = 0;
+      for(let i = 0; i < len; i++){ last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+      const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420; const g = ctx.createGain(); g.gain.value = .5;
+      src.connect(lp); lp.connect(g); g.connect(A.amb); src.start();
+      A.ambTimer = setInterval(() => {
+        if(!P.ambience || document.hidden || $('#view-play').hidden) return;
+        const t = ctx.currentTime + Math.random() * .8, r = Math.random();
+        if(r < .55) for(let k = 0; k < 3 + Math.random() * 4; k++) aNoise(A.amb, t + k * (.09 + Math.random() * .12), .08 + Math.random() * .1, {f:350 + Math.random() * 600, q:3, vol:.05 + Math.random() * .05});   // distant chatter
+        else if(r < .7) aTone(A.amb, 2600 + Math.random() * 1800, t, .5, {type:'sine', vol:.025});   // glass clink
+        else if(r < .85) for(let k = 0; k < 4; k++) aNoise(A.amb, t + k * .035, .03, {f:4200, q:5, vol:.05});   // chips shuffled at another table
+      }, 1400);
+    }
+    A.amb.gain.setTargetAtTime(on && !document.hidden ? .9 : 0, ctx.currentTime, .8);
+  }catch(e){}
+}
+P.ambience = store('pokerAmbience') !== '0';
+document.addEventListener('pointerdown', () => { if(P.ambience && !$('#view-play').hidden && $('.room') && !(AU.amb)) setAmbience(true); }, true);
+document.addEventListener('visibilitychange', () => { if(AU.amb) setAmbience(P.ambience && !$('#view-play').hidden); });
 function setMusic(on){
   P.music = on; store('pokerMusic', on ? '1' : '0');
   try{
@@ -2440,6 +2476,27 @@ function handWords(name, cards){
   if(n.includes('two pair')) return 'Two pair, ' + RW[g[0]] + ' and ' + RW[g[1]] + kick(g[2]);
   if(n.includes('pair')) return 'Pair of ' + RW[g[0]] + kick(g[1]);
   return RW1[g[0]] + ' high' + kick(g[1]);
+}
+// your best hand right now, from your two cards and the board
+function bestHand(cards){
+  const ord = '23456789TJQKA', val = c => ord.indexOf(c[0]) + 2;
+  const score5 = cs => {
+    const v = cs.map(val).sort((a, b) => b - a), cnt = {}; v.forEach(x => cnt[x] = (cnt[x] || 0) + 1);
+    const groups = Object.entries(cnt).map(([x, n]) => [n, +x]).sort((a, b) => b[0] - a[0] || b[1] - a[1]);
+    const flush = cs.every(c => c[1] === cs[0][1]); const u = [...new Set(v)];
+    let st = 0; if(u.length === 5){ if(u[0] - u[4] === 4) st = u[0]; else if(u.join() === '14,5,4,3,2') st = 5; }
+    const kick = groups.map(g => g[1]);
+    if(st && flush) return [8, st]; if(groups[0][0] === 4) return [7, ...kick]; if(groups[0][0] === 3 && groups[1][0] === 2) return [6, ...kick];
+    if(flush) return [5, ...v]; if(st) return [4, st]; if(groups[0][0] === 3) return [3, ...kick]; if(groups[0][0] === 2 && groups[1][0] === 2) return [2, ...kick];
+    if(groups[0][0] === 2) return [1, ...kick]; return [0, ...v];
+  };
+  if(cards.length < 5){ const v = cards.map(val); return v.length === 2 && v[0] === v[1] ? {name:'Pair', cards} : null; }
+  let best = null, bc = null;
+  const better = (x, y) => { for(let i = 0; i < Math.max(x.length, y.length); i++){ if((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; };
+  const pick = (start, acc) => { if(acc.length === 5){ const sc = score5(acc); if(!best || better(sc, best)){ best = sc; bc = acc.slice(); } return; } for(let i = start; i <= cards.length - (5 - acc.length); i++){ acc.push(cards[i]); pick(i + 1, acc); acc.pop(); } };
+  pick(0, []);
+  const names = ['High card', 'Pair', 'Two pair', 'Three of a kind', 'Straight', 'Flush', 'Full house', 'Four of a kind', 'Straight flush'];
+  return best ? {name:names[best[0]], cards:bc} : null;
 }
 function cardEl(c, cls){
   const el = h('div', {class:'pc ' + (cls || '')});
@@ -2658,11 +2715,14 @@ function settingsSheet(){
     d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Settings'}), h('p', {class:'sub', style:'margin:0', text:'Table, sound and display'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Sound'}),
         sw('🎵', 'Lounge music', 'Soft jazz while you play', P.music, on => setMusic(on)),
+        sw('🍸', 'Room ambience', 'Murmurs, clinking glasses, chips at other tables', P.ambience, on => { P.ambience = on; store('pokerAmbience', on ? '1' : '0'); setAmbience(on); }),
+        sw('📳', 'Vibrate', 'Buzz on your turn, big cards and wins', store('pokerBuzz') !== '0', on => { store('pokerBuzz', on ? '1' : '0'); if(on) buzz(40); }),
         sw('🔊', 'Sound effects', 'Chips, cards and cheers', P.sound, on => { P.sound = on; store('pokerSound', on ? '1' : '0'); if(on) sfx('chip'); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Display'}),
         sw('⛶', 'Table fills the screen', 'Hides the site header and tabs', !!$('.room.full'), on => { toggleFull(on); close(); }),
         sw('🙈', 'See my cards after I fold', 'Faded, only you can see them, until the next deal', store('pokerKeepFolded') !== '0', on => { store('pokerKeepFolded', on ? '1' : '0'); const b = $('#pHand'); if(b) b.dataset.k = ''; if(P.s) renderMyHand(P.s, P.showdown && Date.now() < P.showdown.until ? P.showdown : null); }),
         sw('🐢', 'Reduce motion', 'Turns off dealing and table animations', reduceMotion(), on => { store('pokerCalm', on ? '1' : '0'); document.documentElement.classList.toggle('calm', on); }),
+        sw('🧠', 'Show what I have', 'Names your best hand while you look at your cards', store('pokerRead') !== '0', on => { store('pokerRead', on ? '1' : '0'); updateRead(P.s); }),
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
         seg('⏱', 'Turn time', 'How long each player gets to act', [15, 30, 45, 60, 90], Math.round((s.turnMs || 45000) / 1000), v => psend({t:'rules', turnMs:v * 1000})),
@@ -2870,7 +2930,7 @@ function updateRoom(s){
     const c = cardEl(boardCards[k], 'dealin' + (lvl ? ' lvl' + lvl : ''));
     c.style.setProperty('--fx', (-(k + .6) * 115) + '%'); c.style.animationDelay = dl + 'ms, ' + (dl + flipAt) + 'ms' + (lvl ? ', ' + (dl + flipAt + 300) + 'ms' : ''); c.style.setProperty('--fd', (dl + flipAt) + 'ms');
     slots[k].replaceChildren(c); setTimeout(() => sfx('deal'), dl); setTimeout(() => sfx('card'), dl + flipAt + 60);
-    if(lvl){ setTimeout(() => { sfx(lvl === 2 ? 'swell' : 'heart'); const sc = $('#pScene'); if(sc){ sc.classList.remove('suspense', 'suspense2'); void sc.offsetWidth; sc.classList.add(lvl === 2 ? 'suspense2' : 'suspense'); } }, dl); }
+    if(lvl){ setTimeout(() => { if(P.gl && lvl === 2) try{ P.gl.cue('tense'); }catch(e){} buzz(lvl === 2 ? [40, 60, 40] : 25); sfx(lvl === 2 ? 'swell' : 'heart'); const sc = $('#pScene'); if(sc){ sc.classList.remove('suspense', 'suspense2'); void sc.offsetWidth; sc.classList.add(lvl === 2 ? 'suspense2' : 'suspense'); } }, dl); }
   }
   P.boardShown = boardCards.length;
   // rabbit hunt: the cards that would have come, shown faded
@@ -2908,7 +2968,7 @@ function updateRoom(s){
   else if(!h_ && s.nextHandAt){ const sec = Math.max(0, Math.ceil((s.nextHandAt - (Date.now() + P.skew)) / 1000)); cm.replaceChildren(h('span', {class:'count', text:'Next hand in ' + sec})); cm.className = 'center-msg show soft'; }
   else if(!h_){ const n = s.seats.filter(x => x && (x.stack > 0 || x.pendingRebuy)).length; cm.replaceChildren(h('span', {text:n < 2 ? 'Waiting for one more player…' : 'Ready when you are'})); cm.className = 'center-msg show soft'; }
   else { cm.className = 'center-msg'; cm.replaceChildren(); }
-  renderMyHand(s, sd); renderActions(s);
+  renderMyHand(s, sd); updateRead(s); renderActions(s);
   { const mbx = (P.meEl || $('#pMe')), side = $('#pHand .hole-side'), scene = $('#pScene');
     if(mbx){ if(side && !side.contains(mbx)) side.prepend(mbx); else if(!side && scene && mbx.parentNode !== scene) scene.append(mbx); mbx.classList.toggle('inhand', !!side); } }
   const tk = $('#pTicker'); const atEnd = tk.scrollHeight - tk.scrollTop - tk.clientHeight < 30;
@@ -2940,14 +3000,23 @@ function renderMyHand(s, sd){
     wrap.addEventListener('touchstart', e => { e.preventDefault(); peek(true); }, {passive:false}); wrap.addEventListener('touchend', stop); wrap.addEventListener('touchcancel', stop);
     const tog = h('button', {type:'button', class:'eye', text:P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'});
     tog.addEventListener('click', () => { P.showCards = !P.showCards; store('pokerShowCards', P.showCards ? '1' : '0'); wrap.classList.toggle('faceup', P.showCards); tog.textContent = P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'; });
-    box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:folded ? 'Folded. Only you see these.' : P.showCards ? 'Your cards' : 'Press and hold to peek'}), folded ? null : tog));
+    box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:folded ? 'Folded. Only you see these.' : P.showCards ? 'Your cards' : 'Press and hold to peek'}), h('div', {class:'my-read', id:'pRead'}), folded ? null : tog));
     if(P.dealAnim){ wrap.classList.add('dealt'); P.dealAnim = false; }
   }
+}
+function updateRead(s){
+  const el = $('#pRead'); if(!el) return;
+  const me = s && s.me >= 0 ? s.seats[s.me] : null, h_ = s && s.hand, w = $('#pHole');
+  const cards = me && me.cards && me.cards[0] !== '??' ? me.cards : null, board = h_ ? h_.board : (s.lastHand && s.lastHand.board) || [];
+  const visible = w && (w.classList.contains('faceup') || w.classList.contains('peek'));
+  const r = cards && visible && store('pokerRead') !== '0' ? bestHand(cards.concat(board)) : null;
+  const txt = r ? (r.cards.length < 5 ? 'Pocket ' + RW[r.cards[0][0]] : handWords(r.name, r.cards)) : '';
+  if(el.textContent !== txt){ el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; if(txt) el.classList.add('pop'); }
 }
 function peek(on){
   const w = $('#pHole'); if(!w || w.classList.contains('faceup')) return;
   if(w.classList.contains('peek') === on) return;
-  w.classList.toggle('peek', on); if(on) sfx('card');
+  w.classList.toggle('peek', on); if(on){ sfx('card'); buzz(12); } updateRead(P.s);
   psend({t:'peek', on});
 }
 function seatPeek(seat, on){ const el = P.seatEls && P.seatEls[seat]; if(el) el.classList.toggle('peeking', on); if(P.gl) P.gl.peek(seat, on); }
@@ -2968,7 +3037,7 @@ function renderActions(s){
   }
   if(me.sitOut){ const b = h('button', {type:'button', class:'btn btn-red', text:'I’m back, deal me in'}); b.addEventListener('click', () => psend({t:'sitout', on:false})); bar.append(h('div', {class:'act-msg', text:'You’re sitting out.'}), b); return; }
   if(o){
-    bar.classList.add('myturn'); sfx('turn');
+    bar.classList.add('myturn'); sfx('turn'); buzz([35, 50, 35]); turnAlert(true);
     const fold = h('button', {type:'button', class:'abtn fold', text:'Fold'}); fold.addEventListener('click', () => doAct({type:'fold'}));
     const cc = h('button', {type:'button', class:'abtn call', text:o.canCheck ? 'Check' : 'Call ' + peso(o.toCall) + (o.toCall >= me.stack ? ' (all in)' : '')});
     cc.addEventListener('click', () => doAct({type:o.canCheck ? 'check' : 'call'}));
@@ -2981,7 +3050,7 @@ function renderActions(s){
     if(o.canRaise && P.raiseOpen) bar.append(raisePanel(s, o));
     return;
   }
-  bar.classList.remove('myturn'); P.raiseOpen = false;
+  bar.classList.remove('myturn'); P.raiseOpen = false; turnAlert(false);
   const lh = s.lastHand;
   const wonLast = lh && (lh.winners || []).some(w => w.seat === s.me);
   if(!s.hand && !s.result && lh && lh.players.includes(s.me) && !(lh.shown || {})[s.me] && P.mucked !== lh.no && (wonLast || (lh.showdown && !(lh.folded || []).includes(s.me)))){
@@ -3164,7 +3233,7 @@ function handleEvent(ev, prev, s){
     P.showdown = {no:lh.no, until:Date.now() + (ev.late && s.hand ? 3500 : 5500), shown:lh.shown || {}, winners:ev.winners || [], board:lh.board || [], best:ev.showdown && ev.winners && ev.winners[0] ? ev.winners[0].cards || [] : []};
     if(!P.gl) (ev.winners || []).forEach((w, n) => { for(let c = 0; c < 5; c++) fly([50, 58], seatXY(w.seat), chipEl(), 600, 350 + c * 60 + n * 200); });
     setTimeout(() => sfx('win'), 300); flash('win');
-    if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)) setTimeout(() => confetti(true), 500);
+    if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)){ setTimeout(() => confetti(true), 500); buzz([60, 40, 60, 40, 120]); }
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
   } else if(ev.type === 'kicked'){ ptoast(ev.name + ' was cashed out by a table vote');
   } else if(ev.type === 'kickvote'){ if(seat !== s.me && ev.by !== (s.seats[s.me] || {}).name) ptoast(ev.by + ' voted to cash out ' + ev.name + ' (' + ev.votes + '/' + ev.need + ')');
@@ -3705,7 +3774,17 @@ function makeGL(T, host){
   const camWorld = new T.Vector3();
   function express(a, name, ms){ a.expr = name; a.exprUntil = performance.now() + (ms || 2200); }
   function action(a, name, ms){ a.act = name; a.actT = performance.now(); a.actDur = ms || 1200; }
+  const camFx = {lean:0, look:0, tLook:0, lookUntil:0, shake:0, push:0, tPush:0};
+  function cue(kind, seat){
+    const a = avs[seat];
+    if(kind === 'win' && a && seat !== (P.s && P.s.me)){ camFx.tLook = a.g.position.x * .35; camFx.lookUntil = performance.now() + 3200; }
+    if(kind === 'allin') camFx.shake = Math.max(camFx.shake, .9);
+    if(kind === 'tense'){ camFx.tPush = 1; setTimeout(() => { camFx.tPush = 0; }, 2400); }
+    if(kind === 'mywin'){ camFx.shake = Math.max(camFx.shake, .35); }
+  }
   function react(seat, type, ev){
+    if(type === 'win') (ev.winners || []).forEach(w => cue(w.seat === (P.s && P.s.me) ? 'mywin' : 'win', w.seat));
+    if((type === 'bet' || type === 'raise' || type === 'call') && ev.allIn) cue('allin', seat);
     const a = avs[seat];
     // everyone else glances at whoever just acted
     for(const [k, o] of Object.entries(avs)) if(+k !== seat){ o.glance = seat; o.glanceUntil = performance.now() + 1400 + Math.random() * 600; }
@@ -4109,7 +4188,14 @@ function makeGL(T, host){
     // camera: your head moves a little
     par.x += (par.tx - par.x) * .06; par.y += (par.ty - par.y) * .06;
     if(entering) entering(t);
-    else{ cam.position.set(base.x + par.x * .22, base.y - par.y * .1, base.z); cam.lookAt(look.x + par.x * .05, look.y, look.z); }
+    else{
+      camFx.lean += ((meTurn ? 1 : 0) - camFx.lean) * .04; camFx.push += (camFx.tPush - camFx.push) * .03;
+      if(t > camFx.lookUntil) camFx.tLook = 0; camFx.look += (camFx.tLook - camFx.look) * .03;
+      camFx.shake *= .9; const sh = camFx.shake > .01 ? camFx.shake * .012 : 0;
+      const breathe = Math.sin(t / 1900) * .004, lean = camFx.lean * .6 + camFx.push;
+      cam.position.set(base.x + par.x * .22 + (Math.random() - .5) * sh, base.y - par.y * .1 - lean * .05 + breathe + (Math.random() - .5) * sh, base.z - lean * .16);
+      cam.lookAt(look.x + par.x * .05 + camFx.look, look.y - lean * .02, look.z);
+    }
     R.render(scene, cam);
     // keep the name plates and chip labels on top of the 3D people and stacks
     if(P.seatEls) for(const [i, el] of Object.entries(P.seatEls)){ const a = avs[i]; if(!a) continue; place(el, a.g.position.x, (a.real !== undefined ? 1.5 : 1.47) + a.inner.position.y, a.g.position.z);
@@ -4127,7 +4213,7 @@ function makeGL(T, host){
     R.dispose(); if(cv.parentNode) cv.remove(); if(P.gl && P.gl.canvas === cv) P.gl = null;
   }
   resize();
-  return {canvas:cv, sync, fly, peek, enter, dispose, react, mood:i => avs[i] && avs[i].mood, debug:() => ({W, H, portrait, avs:Object.keys(avs).length, board:board.length, calls:R.info.render.calls})};
+  return {canvas:cv, sync, fly, peek, enter, dispose, react, cue, mood:i => avs[i] && avs[i].mood, debug:() => ({W, H, portrait, avs:Object.keys(avs).length, board:board.length, calls:R.info.render.calls})};
 }
 
 // ===== Routing & boot =====
@@ -4137,6 +4223,7 @@ function route(){
   for(const v of ['schedule', 'settle', 'board', 'play']) $('#view-' + v).hidden = v !== tab;
   if(tab === 'play'){ pconnect(); renderPlay(); }
   if(AU.music) AU.music.gain.setTargetAtTime(tab === 'play' && P.music ? MUSIC_VOL : 0, AU.ctx.currentTime, .4);
+  if(AU.amb) setAmbience(tab === 'play' && P.ambience);
   document.querySelectorAll('.tabs a').forEach(a => { if(a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
 }
 function renderAll(){
