@@ -646,7 +646,8 @@
   .hole .hc.d0{transform:rotate(-9deg) translateY(6px)} .hole .hc.d1{transform:rotate(7deg) translateX(-22px)}
   .hole .cover{transform-origin:50% 100%; transition:transform .28s cubic-bezier(.3,.9,.3,1.2); z-index:2; box-shadow:0 6px 16px rgba(0,0,0,.45)}
 
-  .hole.peek .cover{transform:rotateX(42deg)}   /* a small peek: just enough to read the corner */
+  .hole.peek .cover{transform:rotateX(42deg)}
+  .hole .pc .idx{display:flex; align-items:center; gap:3cqw; top:4%; left:6%} .hole .pc .idx.b{top:auto; left:auto} .hole .pc .idx .su{margin-top:0}   /* a small peek: just enough to read the corner */
   .hole.peek .hc.d0 .cover{transition-delay:0s} .hole.peek .hc.d1 .cover{transition-delay:.05s}
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
   .hole.peek{cursor:grabbing}
@@ -2907,7 +2908,7 @@ function seatPeek(seat, on){ const el = P.seatEls && P.seatEls[seat]; if(el) el.
 // ---------- actions ----------
 function renderActions(s){
   const bar = $('#pAct'); const me = s.me >= 0 ? s.seats[s.me] : null; const o = s.options;
-  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen, s.lastHand && [s.lastHand.no, Object.keys(s.lastHand.shown || {}).length, !!s.lastHand.rabbit], P.mucked]);
+  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen, s.lastHand && [s.lastHand.no, Object.keys(s.lastHand.shown || {}).length, !!s.lastHand.rabbit], s.hold, P.mucked]);
   if(bar.dataset.k === k) return; bar.dataset.k = k; bar.replaceChildren();
   const emotes = h('div', {class:'emotes'}, ['😂', '🔥', '😱', '👏', '😎', '🙏'].map(e => { const b = h('button', {type:'button', class:'emo', text:e, 'aria-label':'React ' + e}); b.addEventListener('click', () => psend({t:'emote', e})); return b; }));
   if(!me){
@@ -2957,8 +2958,11 @@ function renderActions(s){
   if(me.stack === 0 && !me.pendingRebuy){ const b = h('button', {type:'button', class:'btn btn-red', text:'Cash in again'}); b.addEventListener('click', () => rebuySheet(false)); bar.append(h('div', {class:'act-msg', text:'You’re out of chips.'}), b); return; }
   const lhr = s.lastHand, rb = lhr && lhr.board.length < 5 && !lhr.rabbit ? h('button', {type:'button', class:'btn btn-ghost btn-sm rabbit-btn', text:'🐇 Rabbit hunt', title:'See what the rest of the board would have been'}) : null;
   if(rb) rb.addEventListener('click', () => { rb.disabled = true; psend({t:'rabbit'}); });
+  if(s.hold){ const b = h('button', {type:'button', class:'btn btn-red', text:'▶ Continue'}); b.addEventListener('click', () => { b.disabled = true; psend({t:'ready'}); });
+    bar.append(h('div', {class:'act-msg', text:'✋ ' + (s.hold === (me && me.name) ? 'You’re' : s.hold + ' is') + ' holding the table. Take your time.'}), h('div', {class:'btn-row'}, b, rb), emotes); return; }
   if(s.canDeal && !s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-red btn-lg deal-btn', text:'🃏 Deal the cards'}); b.addEventListener('click', () => psend({t:'deal'})); bar.append(b, rb, emotes); return; }
-  if(s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Pause after this'}); b.addEventListener('click', () => psend({t:'pause'})); bar.append(h('div', {class:'act-msg', text:'Next hand coming up…'}), h('div', {class:'btn-row'}, b, rb), emotes); return; }
+  if(s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Pause after this'}); b.addEventListener('click', () => psend({t:'pause'})); const hb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'✋ Hold', title:'Stop the next deal until you’re ready'}); hb.addEventListener('click', () => { hb.disabled = true; psend({t:'hold'}); });
+    bar.append(h('div', {class:'act-msg', text:'Next hand coming up…'}), h('div', {class:'btn-row'}, hb, b, rb), emotes); return; }
   const inv = h('button', {type:'button', class:'btn btn-ghost', text:'Copy invite for Messenger'}); inv.addEventListener('click', () => copyText('♥ I’m at the online poker table, come sit down:\n' + location.href.split('#')[0].split('?')[0] + '#play', inv));
   bar.append(h('div', {class:'act-msg', text:'Waiting for one more player…'}), inv);
 }
@@ -3089,6 +3093,8 @@ function handleEvent(ev, prev, s){
     setTimeout(() => sfx('win'), 300); flash('win');
     if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)) setTimeout(() => confetti(true), 500);
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
+  } else if(ev.type === 'hold'){ if(seat !== s.me) ptoast(ev.name + ' is holding the table ✋');
+  } else if(ev.type === 'ready'){ ptoast(ev.name + ' is ready. Dealing soon.');
   } else if(ev.type === 'rabbit'){ ptoast(ev.name + ' rabbit hunted 🐇'); updateRoom(s);
   } else if(ev.type === 'cashin'){
     const host = seat === s.me ? (P.meEl || $('#pMe')) : P.seatEls[seat]; if(host){ const el = h('span', {class:'emote-s plus', style:'font-size:1rem', text:'+' + peso(ev.amount)}); host.append(el); setTimeout(() => el.remove(), 1600); } sfx('chip');
@@ -3816,6 +3822,8 @@ function makeGL(T, host){
     let st = stacks[i]; if(!st){ st = stacks[i] = {g:null, amount:-1, want:0, pos:new T.Vector3()}; }
     st.want = amount; st.pos.set(wx(x), TY + .001, wz(y));
     { const px = st.pos.x, pz = st.pos.z, len = Math.hypot(px, pz) || 1; st.pos.x = px - pz / len * .17; st.pos.z = pz + px / len * .17; }
+    { // keep every stack on the felt, inside the rail
+      const e = Math.hypot(st.pos.x / RX, st.pos.z / RZ), lim = .74; if(e > lim){ st.pos.x *= lim / e; st.pos.z *= lim / e; } }
     if(st.g) st.g.position.copy(st.pos);
     if((stackHold[i] || 0) > performance.now()) return;
     applyStack(i);
