@@ -641,8 +641,19 @@
   .seg-b{flex:1 1 0; min-width:44px; border:1.5px solid #E2DBCF; background:#FBFAF6; color:var(--ink); border-radius:999px; padding:7px 0; font-weight:800; cursor:pointer}
   .seg-b[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   html.calm *, html.calm *::before, html.calm *::after{animation-duration:.001ms !important; animation-delay:0s !important; transition-duration:.001ms !important}
-  .my-read{font-family:var(--display); font-weight:700; color:var(--gold-l); font-size:.95rem; min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6)}
+  .my-read{white-space:pre-line; line-height:1.25; font-family:var(--display); font-weight:700; color:var(--gold-l); font-size:.95rem; min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6)}
   .my-read.pop{animation:readPop .45s cubic-bezier(.3,1.6,.5,1)} @keyframes readPop{from{transform:scale(.7); opacity:0}}
+  .throw-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin:6px 0 12px}
+  .throw-b{display:grid; justify-items:center; gap:2px; border:1.5px solid #E2DBCF; background:#FBFAF6; border-radius:14px; padding:10px 4px; cursor:pointer; font:inherit}
+  .throw-b span{font-size:2rem; line-height:1} .throw-b small{font-weight:700; font-size:.72rem; color:var(--ink-2)}
+  .throw-b:active{transform:scale(.92)}
+  .thrown{position:absolute; left:0; top:0; z-index:30; font-size:2.2rem; pointer-events:none; margin:-1.1rem 0 0 -1.1rem; filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+  .splat{position:absolute; z-index:30; pointer-events:none; font-size:3rem; transform:translate(-50%,-50%); animation:splat 1.5s ease-out forwards}
+  @keyframes splat{0%{transform:translate(-50%,-50%) scale(.4)} 15%{transform:translate(-50%,-50%) scale(1.6) rotate(-8deg)} 30%{transform:translate(-50%,-50%) scale(1.2) rotate(4deg)} 80%{opacity:1} 100%{transform:translate(-50%,-30%) scale(1.1); opacity:0}}
+  .seat.hit .plate, .mebar.hit{animation:hitShake .5s} @keyframes hitShake{20%{translate:-6px 0} 40%{translate:5px 0} 60%{translate:-3px 0} 80%{translate:2px 0}}
+  .street-banner{position:absolute; left:50%; top:30%; transform:translate(-50%,-50%); z-index:12; pointer-events:none; font-family:var(--display); font-weight:700; font-size:clamp(1.3rem,5vw,2rem); color:#FFF4E0; background:rgba(20,6,10,.72); border:1.5px solid rgba(243,216,145,.6); padding:6px 22px; border-radius:999px; text-shadow:0 2px 10px rgba(0,0,0,.6); animation:streetIn 1.9s ease-out forwards}
+  @keyframes streetIn{0%{opacity:0; transform:translate(-50%,-30%) scale(.8)} 15%{opacity:1; transform:translate(-50%,-50%) scale(1.05)} 25%{transform:translate(-50%,-50%) scale(1)} 80%{opacity:1} 100%{opacity:0; transform:translate(-50%,-60%)}}
+  .ticker div.street{color:var(--gold-l); font-weight:800; border-top:1px solid rgba(243,216,145,.2); margin-top:4px; padding-top:3px}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media all{
@@ -689,7 +700,7 @@
   .rpanel .rrow{display:flex; align-items:center; gap:14px} .rpanel .rval{font-family:var(--display); font-size:1.6rem; width:5.2em; text-align:center; border:1.5px solid #E2DBCF; border-radius:12px; background:#fff; color:var(--ink); padding:4px 6px}
   .presets .chipbtn{display:grid; justify-items:center; line-height:1.1; padding:6px 12px} .presets .chipbtn small{font-size:.7rem; opacity:.7; font-weight:700} .presets .chipbtn.on{background:var(--ink); color:var(--paper); border-color:var(--ink)} .presets .chipbtn.allin{border-color:var(--suit); color:var(--suit)} .presets .chipbtn.allin.on{background:var(--suit); color:#fff}
   .rpanel .cc-b{width:42px; height:42px}
-  .presets{flex-wrap:nowrap; overflow-x:auto; max-width:100%; scrollbar-width:none; padding:2px} .presets::-webkit-scrollbar{display:none} .presets .chipbtn{flex:none}
+  .presets{display:grid !important; grid-template-columns:repeat(auto-fill, minmax(64px, 1fr)); gap:6px; width:100%; padding:2px; box-sizing:border-box} .presets .chipbtn{min-width:0; padding:6px 4px}
   .rpanel .btn{position:sticky; bottom:0; z-index:1; box-shadow:0 -8px 12px var(--paper)}
   .actbar{max-height:calc(100dvh - 120px); overflow-y:auto; overscroll-behavior:contain}
   .emotes{display:flex; gap:4px; flex-wrap:wrap; justify-content:center}
@@ -2231,6 +2242,16 @@ const tableRoom = () => (new URLSearchParams(location.search).get('room') || '')
 // motion is the game's own setting (some phones turn animations off system-wide, which hid the dealing)
 const reduceMotion = () => store('pokerCalm') === '1';
 // phone buzz, if the phone allows it
+// the dealer calls the action out loud
+function dealerSay(text, urgent){
+  try{
+    if(store('pokerVoice') === '0' || !window.speechSynthesis || document.hidden || $('#view-play').hidden) return;
+    const u = new SpeechSynthesisUtterance(text); u.rate = urgent ? 1.12 : 1.02; u.pitch = .85; u.volume = .9;
+    const vs = speechSynthesis.getVoices(), pick = vs.find(x => /en(-|_)(GB|AU|US)/i.test(x.lang) && /male|daniel|google uk|arthur|george/i.test(x.name)) || vs.find(x => /^en/i.test(x.lang));
+    if(pick) u.voice = pick;
+    if(urgent) speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
 function buzz(p){ try{ if(store('pokerBuzz') !== '0' && navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 // when it's your turn and you're in another tab, the tab title blinks
 let turnTitle = null;
@@ -2387,7 +2408,7 @@ function pconnect(){
     if(m.t === 'state') onTableState(m.s);
     else if(m.t === 'error'){ ptoast(m.error, 'err'); P.pendingEnter = false; }
     else if(m.t === 'peek') seatPeek(m.seat, m.on);
-    else if(m.t === 'emote') floatEmote(m.seat, m.e);
+    else if(m.t === 'emote'){ if(m.to != null) throwAt(m.seat, m.to, m.e); else floatEmote(m.seat, m.e); }
     else if(m.t === 'rtc') onRtc(m).catch(e => console.warn('call', e));
   };
   ws.onclose = () => { P.open = false; P.ws = null; renderPlay();
@@ -2715,6 +2736,7 @@ function settingsSheet(){
     d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Settings'}), h('p', {class:'sub', style:'margin:0', text:'Table, sound and display'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Sound'}),
         sw('🎵', 'Lounge music', 'Soft jazz while you play', P.music, on => setMusic(on)),
+        sw('🗣', 'Dealer voice', 'Calls out the flop, turn, river, all-ins and winners', store('pokerVoice') !== '0', on => { store('pokerVoice', on ? '1' : '0'); if(on) dealerSay('Good luck, everyone.'); }),
         sw('🍸', 'Room ambience', 'Murmurs, clinking glasses, chips at other tables', P.ambience, on => { P.ambience = on; store('pokerAmbience', on ? '1' : '0'); setAmbience(on); }),
         sw('📳', 'Vibrate', 'Buzz on your turn, big cards and wins', store('pokerBuzz') !== '0', on => { store('pokerBuzz', on ? '1' : '0'); if(on) buzz(40); }),
         sw('🔊', 'Sound effects', 'Chips, cards and cheers', P.sound, on => { P.sound = on; store('pokerSound', on ? '1' : '0'); if(on) sfx('chip'); })),
@@ -2872,8 +2894,7 @@ function updateRoom(s){
         h('div', {class:'av', style:'--c:' + avColor(x.name)}, h('span', {class:'ini', text:initials(x.name)}), h('i', {class:'ring'})),
         h('div', {class:'plate'}, h('div', {class:'nm', text:x.name}), h('div', {class:'stk num'})),
         h('div', {class:'scards'}), h('div', {class:'bubble'}), h('div', {class:'tag'}));
-      if(x.bot) el.addEventListener('click', async () => { if(await confirmBox('Remove ' + x.name + '?', 'Their chips are cashed out like any player leaving.', 'Remove bot', true, 'Keep')) psend({t:'kickbot', seat:i}); });
-      else el.addEventListener('click', async () => { const y = P.s && P.s.seats[i]; if(!y || i === P.s.me || (y.connected && !y.sitOut)) return;
+      el.addEventListener('click', async () => { const y = P.s && P.s.seats[i]; if(!y || i === P.s.me) return; if(y.bot || (y.connected && !y.sitOut)){ throwSheet(i); return; }
         if(await confirmBox('Vote to cash out ' + y.name + '?', y.name + ' left and hasn’t come back. If most of the table agrees, their ' + peso(y.stack) + ' is cashed out for them, like they left normally.', 'Vote to cash out', true, 'Not yet')) psend({t:'votekick', seat:i}); });
       layer.append(el); P.seatEls[i] = el;
       setTimeout(() => el.classList.remove('arrive'), 900);
@@ -2973,7 +2994,7 @@ function updateRoom(s){
     if(mbx){ if(side && !side.contains(mbx)) side.prepend(mbx); else if(!side && scene && mbx.parentNode !== scene) scene.append(mbx); mbx.classList.toggle('inhand', !!side); } }
   const tk = $('#pTicker'); const atEnd = tk.scrollHeight - tk.scrollTop - tk.clientHeight < 30;
   const key = s.log.length + '|' + (s.log.length ? s.log[s.log.length - 1].t : '');
-  if(tk.dataset.k !== key){ tk.dataset.k = key; tk.replaceChildren(...s.log.map(l => h('div', {class:/ wins /.test(l.text) ? 'win' : /^Hand #/.test(l.text) ? 'hand' : '', text:l.text}))); if(atEnd || !tk.dataset.seen){ tk.scrollTop = tk.scrollHeight; tk.dataset.seen = '1'; } }
+  if(tk.dataset.k !== key){ tk.dataset.k = key; tk.replaceChildren(...s.log.map(l => h('div', {class:/ wins /.test(l.text) ? 'win' : /^Hand #/.test(l.text) ? 'hand' : /^(Flop|Turn|River):/.test(l.text) ? 'street' : '', text:l.text}))); if(atEnd || !tk.dataset.seen){ tk.scrollTop = tk.scrollHeight; tk.dataset.seen = '1'; } }
   if(P.gl) P.gl.sync(s, sd);
   rtcSync(s); callButtons();
 }
@@ -3004,13 +3025,36 @@ function renderMyHand(s, sd){
     if(P.dealAnim){ wrap.classList.add('dealt'); P.dealAnim = false; }
   }
 }
+// what you're drawing to, how high it would be, and how many cards help
+function drawsFor(hole, board, made){
+  const ord = '23456789TJQKA', v = c => ord.indexOf(c[0]) + 2, all = hole.concat(board), out = [];
+  let outs = 0;
+  if(!/flush|full|four|straight flush/i.test(made)){
+    for(const su of 'shdc'){ const mine = hole.filter(c => c[1] === su); if(mine.length && all.filter(c => c[1] === su).length === 4){
+      const hi = Math.max(...mine.map(v)), boardHi = board.filter(c => c[1] === su).map(v);
+      const nut = hi === 14 || (hi === 13 && boardHi.includes(14));
+      out.push('Flush draw' + (nut ? ' to the nuts' : ', ' + RW1[ord[hi - 2]] + ' high' + (hi <= 10 ? ' (weak)' : ''))); outs += 9; } }
+  }
+  if(!/straight|flush|full|four/i.test(made)){
+    const have = new Set(all.map(v)); if(have.has(14)) have.add(1); const mineV = new Set(hole.map(v).flatMap(x => x === 14 ? [14, 1] : [x]));
+    const miss = new Map();
+    for(let top = 5; top <= 14; top++){ const need = [0, 1, 2, 3, 4].map(k => top - k), gone = need.filter(x => !have.has(x));
+      if(gone.length === 1 && need.some(x => mineV.has(x))){ const m = gone[0] === 1 ? 14 : gone[0]; miss.set(m, Math.max(miss.get(m) || 0, top)); } }
+    if(miss.size){
+      const kind = miss.size >= 2 ? 'Open-ended straight draw' : 'Gutshot';
+      const ways = [...miss.entries()].sort((x, y) => x[0] - y[0]).map(([m, top]) => 'a ' + RW1[ord[m - 2]] + ' makes ' + RW1[ord[top - 2]] + ' high');
+      out.push(kind + ': ' + ways.join(', ')); outs += miss.size * 4 - (out.length > 1 ? 2 : 0); }
+  }
+  return out.length ? '+ ' + out.join(', ') + ' (' + outs + ' outs)' : '';
+}
 function updateRead(s){
   const el = $('#pRead'); if(!el) return;
   const me = s && s.me >= 0 ? s.seats[s.me] : null, h_ = s && s.hand, w = $('#pHole');
   const cards = me && me.cards && me.cards[0] !== '??' ? me.cards : null, board = h_ ? h_.board : (s.lastHand && s.lastHand.board) || [];
   const visible = w && (w.classList.contains('faceup') || w.classList.contains('peek'));
   const r = cards && visible && store('pokerRead') !== '0' ? bestHand(cards.concat(board)) : null;
-  const txt = r ? (r.cards.length < 5 ? 'Pocket ' + RW[r.cards[0][0]] : handWords(r.name, r.cards)) : '';
+  let txt = r ? (r.cards.length < 5 ? 'Pocket ' + RW[r.cards[0][0]] : handWords(r.name, r.cards)) : '';
+  if(r && cards && visible && board.length >= 3 && board.length < 5 && h_){ const dr = drawsFor(cards, board, r.name); if(dr) txt += '\n' + dr; }
   if(el.textContent !== txt){ el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; if(txt) el.classList.add('pop'); }
 }
 function peek(on){
@@ -3198,6 +3242,35 @@ function fly(from, to, el, ms, delay){
 }
 const chipEl = () => h('span', {class:'fchip'}, h('i'), h('i'), h('i'));
 function bubble(seat, text, cls){ const el = P.seatEls && P.seatEls[seat]; if(!el) return; const b = el.querySelector('.bubble'); b.textContent = text; b.className = 'bubble show ' + (cls || ''); clearTimeout(b._t); b._t = setTimeout(() => b.className = 'bubble', 1800); }
+const THROWS = [['🍅', 'Tomato'], ['🌹', 'Rose'], ['🍺', 'Beer'], ['💋', 'Kiss'], ['🧻', 'Tissue'], ['🎉', 'Party'], ['🐟', 'Fish'], ['👑', 'Crown']];
+function throwSheet(i){
+  const s = P.s, x = s && s.seats[i]; if(!x) return;
+  openSheet((d, close) => {
+    const grid = h('div', {class:'throw-grid'}, THROWS.map(([e, l]) => { const b = h('button', {type:'button', class:'throw-b'}, h('span', {text:e}), h('small', {text:l})); b.addEventListener('click', () => { psend({t:'emote', e, to:i}); close(); }); return b; }));
+    const rm = x.bot ? h('button', {type:'button', class:'btn btn-ghost', text:'Remove ' + x.name}) : null;
+    if(rm) rm.addEventListener('click', async () => { close(); if(await confirmBox('Remove ' + x.name + '?', 'Their chips are cashed out like any player leaving.', 'Remove bot', true, 'Keep')) psend({t:'kickbot', seat:i}); });
+    d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Throw something at ' + x.name}), h('p', {class:'sub', style:'margin:0', text:'Everyone at the table sees it land'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})), grid, rm);
+  });
+}
+function throwAt(from, to, e){
+  const sc = $('#pScene'); if(!sc) return;
+  const elOf = i => P.s && i === P.s.me ? (P.meEl || $('#pMe')) : P.seatEls && P.seatEls[i];
+  const a = elOf(from), b = elOf(to); if(!b) return;
+  const R0 = sc.getBoundingClientRect(), rb = b.getBoundingClientRect(), ra = a ? a.getBoundingClientRect() : {left:R0.left + R0.width / 2, top:R0.bottom, width:0, height:0};
+  const x0 = ra.left - R0.left + ra.width / 2, y0 = ra.top - R0.top + ra.height / 2, x1 = rb.left - R0.left + rb.width / 2, y1 = rb.top - R0.top + rb.height / 2;
+  const fl = h('span', {class:'thrown', text:e}); sc.append(fl);
+  const peak = Math.min(y0, y1) - 90, spin = (Math.random() < .5 ? -1 : 1) * 540;
+  const anim = fl.animate([{transform:`translate(${x0}px,${y0}px) rotate(0deg) scale(.6)`}, {transform:`translate(${(x0 + x1) / 2}px,${peak}px) rotate(${spin / 2}deg) scale(1.3)`}, {transform:`translate(${x1}px,${y1}px) rotate(${spin}deg) scale(1)`}], {duration:reduceMotion() ? 1 : 700, easing:'cubic-bezier(.3,.1,.5,1)', fill:'forwards'});
+  sfx('fold');
+  anim.onfinish = () => {
+    fl.remove();
+    const splat = h('span', {class:'splat', text:e}); splat.style.left = x1 + 'px'; splat.style.top = y1 + 'px'; sc.append(splat); setTimeout(() => splat.remove(), 1500);
+    if(e === '🍅' || e === '🐟'){ sfx('fold'); sfx('check'); } else if(e === '🍺' || e === '👑') sfx('clack'); else sfx('pop');
+    if(b){ b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); }
+    if(P.gl) try{ P.gl.react(to, 'emote', {e}); }catch(x){}
+    if(P.s && to === P.s.me) buzz([30, 30, 60]);
+  };
+}
 function floatEmote(seat, e){ if(P.gl) try{ P.gl.react(seat, 'emote', {e}); }catch(x){} const host = P.s && seat === P.s.me ? (P.meEl || $('#pMe')) : P.seatEls && P.seatEls[seat]; if(!host) return; const el = h('span', {class:'emote-s', text:e}); host.append(el); setTimeout(() => el.remove(), 2200); }
 function handleEvent(ev, prev, s){
   if(!$('#pTable')) return;
@@ -3214,6 +3287,7 @@ function handleEvent(ev, prev, s){
   const seat = ev.seat;
   if(ev.type === 'bet' || ev.type === 'raise' || ev.type === 'call'){
     { const was = prev && prev.seats[seat] ? prev.seats[seat].bet : 0, now = s.seats[seat] ? s.seats[seat].bet : 0; P.flyAmt = Math.max(0, now - was) || ev.amount || 0; fly(seatXY(seat), betXY(seat), chipEl(), 420); P.flyAmt = 0; } sfx(ev.allIn ? 'allin' : ev.type === 'raise' ? 'raise' : 'chip');
+    if(ev.allIn) dealerSay(ev.name + ' is all in!', true);
     bubble(seat, ev.allIn ? 'ALL IN!' : ev.type === 'call' ? 'Call' : ev.type === 'bet' ? 'Bet ' + peso(ev.amount) : 'Raise ' + peso(ev.amount), ev.allIn ? 'hot' : ev.type === 'raise' ? 'warm' : '');
     if(ev.allIn){ flash('allin'); const t = $('#pScene'); t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); }
   } else if(ev.type === 'check'){ bubble(seat, 'Check'); sfx('check'); const el = P.seatEls[seat]; if(el){ el.classList.remove('knock'); void el.offsetWidth; el.classList.add('knock'); } }
@@ -3221,6 +3295,11 @@ function handleEvent(ev, prev, s){
     if(seat === s.me){ const hole = $('#pHole'); if(hole && !reduceMotion()){ const r = hole.getBoundingClientRect(), c = hole.cloneNode(true); c.removeAttribute('id'); c.classList.add('muck-fly'); Object.assign(c.style, {position:'fixed', left:r.left + 'px', top:r.top + 'px', width:r.width + 'px', height:r.height + 'px', margin:0, zIndex:80, pointerEvents:'none'}); document.body.append(c); setTimeout(() => c.remove(), 800); } }
     if(!P.gl) fly(seatXY(seat), [50, 50], h('span', {class:'fcards'}, cardEl('??', 'sm'), cardEl('??', 'sm')), 500); }
   else if(ev.type === 'street' && prev){
+    { const st = ev.street, b = ev.board || []; const card = c => (c[0] === 'T' ? 'ten' : {A:'ace', K:'king', Q:'queen', J:'jack'}[c[0]] || c[0]) + ' of ' + {s:'spades', h:'hearts', d:'diamonds', c:'clubs'}[c[1]];
+      { const sc = $('#pScene'); if(sc){ const bn = h('div', {class:'street-banner', text:({flop:'The flop', turn:'The turn', river:'The river'})[st] || ''}); sc.append(bn); setTimeout(() => bn.remove(), 1900); } }
+      if(st === 'flop') setTimeout(() => dealerSay('The flop. ' + b.slice(0, 3).map(card).join(', ')), 900);
+      else if(st === 'turn') setTimeout(() => dealerSay('Turn card, ' + card(b[3])), 700);
+      else if(st === 'river') setTimeout(() => dealerSay('And the river, ' + card(b[4])), 700); }
     if(!P.gl) prev.seats.forEach((x, i) => { if(x && x.bet > 0) fly(betXY(i), [50, 60], chipEl(), 380); });
     sfx('chip');
   } else if(ev.type === 'deal'){
@@ -3233,6 +3312,7 @@ function handleEvent(ev, prev, s){
     P.showdown = {no:lh.no, until:Date.now() + (ev.late && s.hand ? 3500 : 5500), shown:lh.shown || {}, winners:ev.winners || [], board:lh.board || [], best:ev.showdown && ev.winners && ev.winners[0] ? ev.winners[0].cards || [] : []};
     if(!P.gl) (ev.winners || []).forEach((w, n) => { for(let c = 0; c < 5; c++) fly([50, 58], seatXY(w.seat), chipEl(), 600, 350 + c * 60 + n * 200); });
     setTimeout(() => sfx('win'), 300); flash('win');
+    { const ws = ev.winners || []; if(ws.length > 1) dealerSay('Split pot!'); else if(ws[0]) dealerSay((ws[0].seat === s.me ? 'You win' : ws[0].name + ' wins') + ' ' + ws[0].amount + ' pesos' + (ws[0].hand ? ', with ' + ws[0].hand.toLowerCase() : '')); }
     if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)){ setTimeout(() => confetti(true), 500); buzz([60, 40, 60, 40, 120]); }
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
   } else if(ev.type === 'kicked'){ ptoast(ev.name + ' was cashed out by a table vote');
@@ -3419,12 +3499,71 @@ function avatarKit(T, {col, hash, M}){
   const blushM = new T.MeshBasicMaterial({color:0xff6f8a, transparent:true, opacity:.72, depthWrite:false});
   const IRIS = ['#5B3A1E', '#3B6FB6', '#3E8A55', '#7A4FB0', '#2A2A2A', '#B5722A'];
   const mouthM = new T.MeshStandardMaterial({color:0x5a1520, roughness:.5});
+  // soft cel shading: three tones, like an animated film
+  const toonGrad = (() => { const d = new Uint8Array([90, 90, 90, 255, 175, 175, 175, 255, 255, 255, 255, 255]); const t = new T.DataTexture(d, 3, 1, T.RGBAFormat); t.minFilter = t.magFilter = T.NearestFilter; t.needsUpdate = true; return t; })();
+  const toon = (c, extra) => new T.MeshToonMaterial(Object.assign({color:c, gradientMap:toonGrad}, extra || {}));
+  const inkLine = new T.MeshBasicMaterial({color:0x1a0c10, side:T.BackSide});
+  // the face is painted, not built: big glossy eyes, brows, mouth and blush drawn on a canvas
+  const FW = 512, FH = 384;
+  function rr(g, x, y, w, h, r){ g.beginPath(); g.ellipse(x, y, w, h, 0, 0, Math.PI * 2); }
+  function drawFace(g, f){
+    g.clearRect(0, 0, FW, FH);
+    const ex = f.ex, eyeY = 196, gap = 90, ew = 43, eh = 55;
+    // blush
+    for(const sx of [-1, 1]){ const cx = FW / 2 + sx * 128, cy = 262; const gr = g.createRadialGradient(cx, cy, 2, cx, cy, 44); gr.addColorStop(0, 'rgba(255,110,140,.55)'); gr.addColorStop(1, 'rgba(255,110,140,0)'); g.fillStyle = gr; g.beginPath(); g.ellipse(cx, cy, 46, 28, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = 'rgba(230,80,110,.45)'; g.lineWidth = 3; g.lineCap = 'round'; for(let k = -1; k <= 1; k++){ g.beginPath(); g.moveTo(cx + k * 14 - 5, cy + 6); g.lineTo(cx + k * 14 + 5, cy - 6); g.stroke(); } }
+    // eyes
+    const lids = f.lids, closed = f.blink < .25 || ex === 'happy';
+    for(const sx of [-1, 1]){
+      const cx = FW / 2 + sx * gap, cy = eyeY;
+      if(closed){
+        g.strokeStyle = '#2a1418'; g.lineWidth = 9; g.lineCap = 'round'; g.beginPath();
+        if(ex === 'happy') g.arc(cx, cy + 14, ew * .9, Math.PI * 1.15, Math.PI * 1.85); else g.arc(cx, cy - 16, ew * .95, Math.PI * .2, Math.PI * .8);
+        g.stroke(); if(ex !== 'happy'){ g.lineWidth = 5; g.beginPath(); g.moveTo(cx + sx * ew * .8, cy + 4); g.lineTo(cx + sx * (ew + 10), cy - 6); g.stroke(); }
+        continue;
+      }
+      const open = Math.max(.25, Math.min(1.15, lids * f.blink)), h = eh * open;
+      g.save(); rr(g, cx, cy, ew, h); g.clip();
+      g.fillStyle = '#FFFFFF'; g.fillRect(cx - ew, cy - h, ew * 2, h * 2);
+      // iris with a gradient, pupil, then shine
+      const ix = cx + f.gx * 12, iy = cy + f.gy * 8 + 4, ir = ex === 'shock' ? 20 : 29;
+      const ig = g.createLinearGradient(0, iy - ir * 1.3, 0, iy + ir * 1.3); ig.addColorStop(0, f.iris2); ig.addColorStop(.55, f.iris); ig.addColorStop(1, f.iris3);
+      g.fillStyle = ig; g.beginPath(); g.ellipse(ix, iy, ir, ir * 1.28, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#140a0c'; g.beginPath(); g.ellipse(ix, iy + 2, ir * .48, ir * .62, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.95)'; g.beginPath(); g.ellipse(ix + 10, iy - 14, 10, 12, -.4, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(ix - 9, iy + 13, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.ellipse(ix, iy + ir * .9, ir * .6, ir * .25, 0, 0, Math.PI * 2); g.fill();
+      // upper lid shadow
+      const sh = g.createLinearGradient(0, cy - h, 0, cy - h + 22); sh.addColorStop(0, 'rgba(60,20,30,.35)'); sh.addColorStop(1, 'rgba(60,20,30,0)'); g.fillStyle = sh; g.fillRect(cx - ew, cy - h, ew * 2, 24);
+      g.restore();
+      // lash line and a flick at the outer corner
+      g.strokeStyle = '#1e0e12'; g.lineCap = 'round'; g.lineWidth = 8; g.beginPath(); g.ellipse(cx, cy, ew + 1, h + 1, 0, Math.PI * 1.08, Math.PI * 1.92); g.stroke();
+      g.lineWidth = 6; g.beginPath(); g.moveTo(cx + sx * (ew - 2), cy - h * .55); g.quadraticCurveTo(cx + sx * (ew + 10), cy - h * .8, cx + sx * (ew + 16), cy - h * .95); g.stroke();
+      g.lineWidth = 3; g.strokeStyle = 'rgba(30,14,18,.5)'; g.beginPath(); g.ellipse(cx, cy, ew - 1, h - 1, 0, Math.PI * .2, Math.PI * .8); g.stroke();
+    }
+    // brows
+    g.strokeStyle = f.hair; g.lineWidth = 11; g.lineCap = 'round';
+    const by = ex === 'shock' ? 112 : ex === 'happy' ? 120 : ex === 'fierce' ? 134 : 126;
+    for(const sx of [-1, 1]){ const cx = FW / 2 + sx * gap;
+      const tilt = ex === 'fierce' ? 14 : ex === 'sad' || ex === 'worried' ? -14 : ex === 'smug' ? (sx > 0 ? -10 : 4) : ex === 'think' ? (sx > 0 ? 8 : -4) : 0;
+      g.beginPath(); g.moveTo(cx - 30, by + sx * -tilt * .5 - 2); g.quadraticCurveTo(cx, by - 10 + (ex === 'sad' ? 4 : 0), cx + 30, by + sx * tilt * .5 - 2); g.stroke(); }
+    // mouth
+    const mo = f.mouth, mx = FW / 2, my = 300;
+    g.lineCap = 'round'; g.strokeStyle = '#4a1420'; g.lineWidth = 7;
+    if(mo === 'grin' || mo === 'open'){ g.fillStyle = '#7a1c2c'; g.beginPath(); g.moveTo(mx - 34, my - 8); g.quadraticCurveTo(mx, my + 46, mx + 34, my - 8); g.closePath(); g.fill(); g.stroke(); g.fillStyle = '#FF8DA1'; g.beginPath(); g.ellipse(mx, my + 18, 16, 9, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#fff'; g.fillRect(mx - 22, my - 7, 44, 7); }
+    else if(mo === 'o'){ g.fillStyle = '#7a1c2c'; g.beginPath(); g.ellipse(mx, my + 6, 15, ex === 'yawn' ? 26 : 19, 0, 0, Math.PI * 2); g.fill(); g.stroke(); }
+    else if(mo === 'frown'){ g.beginPath(); g.arc(mx, my + 26, 22, Math.PI * 1.2, Math.PI * 1.8); g.stroke(); }
+    else if(mo === 'flat'){ g.beginPath(); g.moveTo(mx - 16, my + 4); g.lineTo(mx + 16, my + 4); g.stroke(); }
+    else if(mo === 'smirk'){ g.beginPath(); g.moveTo(mx - 18, my + 6); g.quadraticCurveTo(mx + 6, my + 12, mx + 22, my - 4); g.stroke(); }
+    else { g.lineWidth = 8; g.beginPath(); g.arc(mx, my - 14, 28, Math.PI * .2, Math.PI * .8); g.stroke(); g.lineWidth = 4; g.beginPath(); g.arc(mx - 24, my - 4, 6, Math.PI * 1.1, Math.PI * 1.6); g.stroke(); g.beginPath(); g.arc(mx + 24, my - 4, 6, Math.PI * 1.4, Math.PI * 1.9); g.stroke(); }
+  }
+  const IRIS3 = {'#5B3A1E':['#8a5a2e', '#2e1a0c'], '#3B6FB6':['#6fa4ec', '#1d3a6a'], '#3E8A55':['#74c48a', '#1d4a2a'], '#7A4FB0':['#ad86e6', '#3d2266'], '#2A2A2A':['#5a5a5a', '#101010'], '#B5722A':['#e6a35a', '#5e3510']};
   function makeAvatar(name, color, look){
     const hsh = look ? look >>> 0 : hash(name), mood = MOODS[hsh % MOODS.length];
     const g = new T.Group(); const inner = new T.Group(); g.add(inner);
-    const cloth = new T.MeshStandardMaterial({color:col(color), roughness:.7});
-    const skin = new T.MeshStandardMaterial({color:new T.Color(SKIN[(hsh >>> 4) % SKIN.length]), roughness:.55});
-    const hairM = new T.MeshStandardMaterial({color:new T.Color(HAIR[(hsh >>> 7) % HAIR.length]), roughness:.7});
+    const cloth = toon(col(color));
+    const skin = toon(new T.Color(SKIN[(hsh >>> 4) % SKIN.length]));
+    const hairC = HAIR[(hsh >>> 7) % HAIR.length], hairM = toon(new T.Color(hairC));
     const irisM = new T.MeshStandardMaterial({color:new T.Color(IRIS[(hsh >>> 17) % IRIS.length]), roughness:.2});
     const acc = new T.MeshStandardMaterial({color:new T.Color('hsl(' + ((hsh >>> 9) % 360) + ', 70%, 55%)'), roughness:.5});
     const mesh = (geo, mat, parent, x, y, z) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); m.castShadow = true; (parent || inner).add(m); return m; };
@@ -3435,6 +3574,7 @@ function avatarKit(T, {col, hash, M}){
     // round little body
     const body = new T.Group(); body.position.set(0, .52, 0); inner.add(body);
     const torso = mesh(new T.SphereGeometry(.16, 28, 20), cloth, body, 0, .18, 0); torso.scale.set(1, 1.12, .92);
+    const to2 = new T.Mesh(torso.geometry, inkLine); to2.position.copy(torso.position); to2.scale.set(1.04, 1.12 * 1.04, .92 * 1.04); body.add(to2);
     // arms pivot at the shoulders so they can wave, clap and tap
     const arms = [];
     for(const sx of [-1, 1]){
@@ -3446,6 +3586,14 @@ function avatarKit(T, {col, hash, M}){
     // big round head
     const head = new T.Group(); head.position.set(0, .6, .02); body.add(head); head.scale.setScalar(1.22);
     const skull = mesh(new T.SphereGeometry(.21, 32, 24), skin, head); skull.scale.set(1.08, .98, 1);
+    const sk2 = new T.Mesh(skull.geometry, inkLine); sk2.scale.set(1.08 * 1.035, .98 * 1.035, 1.035); head.add(sk2);
+    const fc = document.createElement('canvas'); fc.width = FW; fc.height = FH; const fg = fc.getContext('2d');
+    const faceTex = new T.CanvasTexture(fc); faceTex.colorSpace = T.SRGBColorSpace; faceTex.anisotropy = 4;
+    const face = new T.Mesh(new T.SphereGeometry(.2112, 48, 36, Math.PI / 2 - 1.2, 2.4, .7, 1.8), new T.MeshBasicMaterial({map:faceTex, transparent:true, depthWrite:false, toneMapped:false}));
+    face.scale.copy(skull.scale); face.renderOrder = 2; head.add(face);
+    const irisC = IRIS[(hsh >>> 17) % IRIS.length], irisX = IRIS3[irisC] || ['#999', '#333'];
+    const faceState = {key:'', f:{iris:irisC, iris2:irisX[0], iris3:irisX[1], hair:hairC}};
+    const paintFace = st => { const key = [st.ex, st.mouth, Math.round(st.lids * 4), st.blink < .25 ? 0 : Math.round(st.blink * 3), st.gx, st.gy].join(); if(key === faceState.key) return; faceState.key = key; drawFace(fg, Object.assign(faceState.f, st)); faceTex.needsUpdate = true; };
     for(const sx of [-1, 1]) mesh(new T.SphereGeometry(.045, 12, 10), skin, head, sx * .215, 0, 0);
     // eyes: white, pupil, shine; lids for blinking and moods
     const eyes = [];
@@ -3461,7 +3609,7 @@ function avatarKit(T, {col, hash, M}){
       eyes.push({eg, w, pu, arc, sx});
     }
     const brows = [-1, 1].map(sx => { const b = mesh(new T.CapsuleGeometry(.007, .04, 4, 8), hairM, head, sx * .085, .1, .19); b.rotation.z = Math.PI / 2; b.userData.sx = sx; return b; });
-    for(const sx of [-1, 1]){ const bl = new T.Mesh(new T.CircleGeometry(.045, 20), blushM); bl.position.set(sx * .135, -.075, .168); bl.rotation.y = sx * .6; bl.scale.y = .7; head.add(bl); }
+    if(false) for(const sx of [-1, 1]){ const bl = new T.Mesh(new T.CircleGeometry(.045, 20), blushM); bl.position.set(sx * .135, -.075, .168); bl.rotation.y = sx * .6; bl.scale.y = .7; head.add(bl); }
     const smile = mesh(new T.TorusGeometry(.028, .008, 8, 20, Math.PI), mouthM, head, 0, -.095, .198); smile.rotation.z = Math.PI;
     const oMouth = mesh(new T.SphereGeometry(.024, 14, 10), mouthM, head, 0, -.1, .195); oMouth.scale.set(1, 1.2, .4); oMouth.visible = false;
     // hair
@@ -3483,7 +3631,9 @@ function avatarKit(T, {col, hash, M}){
     const ring = new T.Mesh(new T.RingGeometry(.24, .27, 48), new T.MeshBasicMaterial({color:0xF3D891, transparent:true, opacity:0, toneMapped:false, side:T.DoubleSide, depthWrite:false}));
     ring.rotation.x = -Math.PI / 2; ring.position.set(0, .01, .05); g.add(ring);
     const hole = new T.Group();
-    return {g, inner, body, head, torso, cloth, skin, ring, hole, arms, eyes, brows, smile, oMouth, mood, name, color,
+    eyes.forEach(e => { e.eg.visible = false; }); brows.forEach(b => { b.visible = false; }); smile.visible = false; oMouth.visible = false; smile.userData.hidden = true;
+    paintFace({ex:'idle', mouth:mood.mouth, lids:mood.lids, blink:1, gx:0, gy:0});
+    return {paintFace, g, inner, body, head, torso, cloth, skin, ring, hole, arms, eyes, brows, smile, oMouth, mood, name, color,
       born:performance.now(), seed:(hsh % 1000) / 100, pos:null, holeKey:null, expr:'happy', exprUntil:performance.now() + 2600, act:'wave', actT:performance.now() + 500, actDur:1700, nextBlink:performance.now() + 1000 + Math.random() * 3000, blinkT:0, glance:null};
   }
   return {makeAvatar, MOODS, SKIN};
@@ -3870,6 +4020,7 @@ function makeGL(T, host){
     const lids = ex === 'shock' ? 1.25 : ex === 'smug' ? .55 : ex === 'fierce' ? .7 : ex === 'yawn' ? .05 : (ex === 'idle' || ex === 'meh') ? md.lids : 1;
     const closed = ex === 'happy';
     a.eyes.forEach(e => {
+      if(a.paintFace) return;
       e.w.visible = e.pu.visible = !closed; e.arc.visible = closed;
       e.eg.scale.y = lerp(e.eg.scale.y, Math.max(.06, lids * blink), .35);
       const ps = ex === 'shock' ? .7 : 1; e.pu.scale.set(ps, ps, 1);
@@ -3879,10 +4030,11 @@ function makeGL(T, host){
     a.brows.forEach(b => { const sx = b.userData.sx;
       const rz = ex === 'fierce' ? -sx * .45 : ex === 'sad' || ex === 'worried' ? sx * .4 : ex === 'smug' ? (sx > 0 ? .3 : -.1) : ex === 'think' ? (sx > 0 ? -.25 : .1) : 0;
       const by = ex === 'shock' ? .125 : ex === 'happy' ? .11 : ex === 'fierce' ? .085 : .098;
-      b.rotation.z = lerp(b.rotation.z, rz, .2); b.position.y = lerp(b.position.y, by, .2); });
+      b.rotation.z = lerp(b.rotation.z, Math.PI / 2 + rz, .2); b.position.y = lerp(b.position.y, by, .2); });
     // mouth
     const mo = ex === 'shock' || ex === 'yawn' ? 'o' : ex === 'happy' ? 'grin' : ex === 'sad' ? 'frown' : ex === 'smug' ? 'smirk' : ex === 'fierce' || ex === 'think' || ex === 'meh' || ex === 'worried' ? 'flat' : ex === 'calm' ? 'smile' : md.mouth;
-    a.oMouth.visible = mo === 'o' || mo === 'open'; a.smile.visible = !a.oMouth.visible || mo === 'open';
+    if(a.paintFace){ a.paintFace({ex, mouth:mo, lids, blink, gx:Math.round(Math.max(-1, Math.min(1, pdx / .008))), gy:Math.round(Math.max(-1, Math.min(1, pdy / .012)))}); }
+    a.oMouth.visible = !a.paintFace && (mo === 'o' || mo === 'open'); a.smile.visible = !a.paintFace && (!a.oMouth.visible || mo === 'open');
     if(mo === 'open'){ a.oMouth.scale.set(.8, .7, .4); a.smile.visible = false; }
     else if(mo === 'o') a.oMouth.scale.set(1, ex === 'yawn' ? 1.8 : 1.3, .4);
     a.smile.rotation.z = mo === 'frown' ? 0 : Math.PI + (mo === 'smirk' ? .35 : 0);
