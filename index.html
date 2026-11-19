@@ -651,6 +651,20 @@
   .splat{position:absolute; z-index:30; pointer-events:none; font-size:3rem; transform:translate(-50%,-50%); animation:splat 1.5s ease-out forwards}
   @keyframes splat{0%{transform:translate(-50%,-50%) scale(.4)} 15%{transform:translate(-50%,-50%) scale(1.6) rotate(-8deg)} 30%{transform:translate(-50%,-50%) scale(1.2) rotate(4deg)} 80%{opacity:1} 100%{transform:translate(-50%,-30%) scale(1.1); opacity:0}}
   .seat.hit .plate, .mebar.hit{animation:hitShake .5s} @keyframes hitShake{20%{translate:-6px 0} 40%{translate:5px 0} 60%{translate:-3px 0} 80%{translate:2px 0}}
+  .shuffle{position:absolute; z-index:14; width:0; height:0; pointer-events:none}
+  .shuffle .sc{position:absolute; width:46px; height:64px; margin:-32px 0 0 -23px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,.35);
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), #9E1A2D; border:2px solid #fff;
+    animation:riffle 1.15s cubic-bezier(.4,.1,.3,1) both; animation-delay:calc(var(--i) * 0s)}
+  .shuffle .sc.l{--sx:-1} .shuffle .sc.r{--sx:1}
+  @keyframes riffle{
+    0%{transform:translate(0, calc(var(--i) * -1px)) rotate(0deg); opacity:0}
+    10%{opacity:1}
+    30%{transform:translate(calc(var(--sx) * 34px), calc(var(--i) * -1px)) rotate(calc(var(--sx) * -12deg))}
+    55%{transform:translate(calc(var(--sx) * 26px), calc(var(--i) * -1px - 10px)) rotate(calc(var(--sx) * -22deg))}
+    75%{transform:translate(0, calc(var(--i) * -1px)) rotate(calc(var(--sx) * 2deg))}
+    85%{transform:translate(0, calc(var(--i) * -1px - 6px))}
+    100%{transform:translate(0, calc(var(--i) * -1px)) rotate(0deg); opacity:1}}
+  .shuffle.done{animation:deckAway 2.4s ease-in forwards} @keyframes deckAway{0%, 70%{opacity:1} 100%{opacity:0; transform:translateY(-20px)}}
   .street-banner{position:absolute; left:50%; top:30%; transform:translate(-50%,-50%); z-index:12; pointer-events:none; font-family:var(--display); font-weight:700; font-size:clamp(1.3rem,5vw,2rem); color:#FFF4E0; background:rgba(20,6,10,.72); border:1.5px solid rgba(243,216,145,.6); padding:6px 22px; border-radius:999px; text-shadow:0 2px 10px rgba(0,0,0,.6); animation:streetIn 1.9s ease-out forwards}
   @keyframes streetIn{0%{opacity:0; transform:translate(-50%,-30%) scale(.8)} 15%{opacity:1; transform:translate(-50%,-50%) scale(1.05)} 25%{transform:translate(-50%,-50%) scale(1)} 80%{opacity:1} 100%{opacity:0; transform:translate(-50%,-60%)}}
   .ticker div.street{color:var(--gold-l); font-weight:800; border-top:1px solid rgba(243,216,145,.2); margin-top:4px; padding-top:3px}
@@ -678,7 +692,7 @@
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
   .hole.peek{cursor:grabbing}
   .hole.folded{opacity:.55; filter:grayscale(.7); cursor:default} .hole.folded .hc{transition:transform .3s} .hole.folded .hc.d1{transform:rotate(12deg) translateX(-30px)}
-  @media all{ .hole.dealt .hc{animation:dealUp .75s cubic-bezier(.2,.9,.3,1.15) both} .hole.dealt .hc.d1{animation-delay:.18s} @keyframes dealUp{from{translate:30vw -60vh; rotate:-540deg; scale:.35; opacity:0} 30%{opacity:1} 85%{translate:0 -6px; rotate:4deg; scale:1.06} to{translate:0 0; rotate:0deg; scale:1}} }
+  @media all{ .hole.dealt .hc{animation:dealUp .75s cubic-bezier(.2,.9,.3,1.15) both; animation-delay:var(--dd, 0s)} .hole.dealt .hc.d1{animation-delay:calc(var(--dd, 0s) + .18s)} @keyframes dealUp{from{translate:8vw -45vh; rotate:-540deg; scale:.35; opacity:0} 30%{opacity:1} 85%{translate:0 -6px; rotate:4deg; scale:1.06} to{translate:0 0; rotate:0deg; scale:1}} }
   .hole-side{display:grid; gap:8px; justify-items:start}
   .peek-hint{color:var(--on-back-2); font-weight:700; font-size:.88rem}
   .eye{border:1.5px solid rgba(255,244,242,.3); background:rgba(25,3,7,.45); color:var(--paper); border-radius:999px; padding:6px 12px; font-weight:700; cursor:pointer; font-size:.85rem}
@@ -2834,12 +2848,13 @@ function buildRoom(root){
   const botB = h('button', {type:'button', class:'rbtn', id:'pBot', text:'🤖 Add bot', title:'Add a practice bot (test tables only)'}); botB.addEventListener('click', () => psend({t:'addbot'}));
   botB.hidden = tableRoom() === 'main';
   const fs = h('button', {type:'button', class:'rbtn', id:'pFull', title:'Full screen', 'aria-label':'Full screen', text:'⛶'});
+  const endB = h('button', {type:'button', class:'rbtn gear', id:'pEnd', 'aria-label':'End session', title:'End session', text:'🏁'}); endB.addEventListener('click', () => endSession());
   const gear = h('button', {type:'button', class:'rbtn gear', id:'pGear', 'aria-label':'Settings', title:'Settings', text:'⚙️'}); gear.addEventListener('click', settingsSheet);
   fs.addEventListener('click', () => toggleFull());
   if(store('pokerLayout') !== 'page') setTimeout(() => toggleFull(true, true), 0);   // the table takes the whole screen by default
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
-    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, fs, gear, leave)),
+    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, fs, endB, gear, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
       h('div', {class:'mebar', id:'pMe', hidden:true}, h('div', {class:'av'}, h('span', {class:'ini'}), h('i', {class:'ring'})), h('b', {class:'nm'}), h('span', {class:'stk num'}), h('span', {class:'tag'})),
       h('div', {class:'ptable', id:'pTable'},
@@ -3022,7 +3037,11 @@ function renderMyHand(s, sd){
     const tog = h('button', {type:'button', class:'eye', text:P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'});
     tog.addEventListener('click', () => { P.showCards = !P.showCards; store('pokerShowCards', P.showCards ? '1' : '0'); wrap.classList.toggle('faceup', P.showCards); tog.textContent = P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'; });
     box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:folded ? 'Folded. Only you see these.' : P.showCards ? 'Your cards' : 'Press and hold to peek'}), h('div', {class:'my-read', id:'pRead'}), folded ? null : tog));
-    if(P.dealAnim){ wrap.classList.add('dealt'); P.dealAnim = false; }
+    if(P.dealAnim || (s.hand && P.dealtNo !== s.hand.no && me && me.cards && !folded && !sd)){
+      // your cards arrive after the shuffle and after everyone before you
+      const n = s.seats.filter(x => x && x.inHand).length, dd = P.dealAnim && P.dealDelay ? P.dealDelay : (reduceMotion() ? 0 : 1150) + n * 2 * 95 + 150;
+      wrap.classList.add('dealt'); wrap.style.setProperty('--dd', (dd / 1000) + 's'); P.dealAnim = false; }
+    if(s.hand) P.dealtNo = s.hand.no;
   }
 }
 // what you're drawing to, how high it would be, and how many cards help
@@ -3243,6 +3262,15 @@ function fly(from, to, el, ms, delay){
 const chipEl = () => h('span', {class:'fchip'}, h('i'), h('i'), h('i'));
 function bubble(seat, text, cls){ const el = P.seatEls && P.seatEls[seat]; if(!el) return; const b = el.querySelector('.bubble'); b.textContent = text; b.className = 'bubble show ' + (cls || ''); clearTimeout(b._t); b._t = setTimeout(() => b.className = 'bubble', 1800); }
 const THROWS = [['🍅', 'Tomato'], ['🌹', 'Rose'], ['🍺', 'Beer'], ['💋', 'Kiss'], ['🧻', 'Tissue'], ['🎉', 'Party'], ['🐟', 'Fish'], ['👑', 'Crown']];
+function shuffleDeck(ms){
+  const sc = $('#pScene'), bd = $('#pBoard'); if(!sc || !bd || !ms) return;
+  const R0 = sc.getBoundingClientRect(), rb = bd.getBoundingClientRect();
+  const deck = h('div', {class:'shuffle'}); deck.style.left = (rb.left - R0.left + rb.width / 2) + 'px'; deck.style.top = (rb.top - R0.top + rb.height / 2) + 'px';
+  for(let i = 0; i < 14; i++){ const c = h('div', {class:'sc ' + (i % 2 ? 'r' : 'l')}); c.style.setProperty('--i', i); deck.append(c); }
+  sc.append(deck);
+  [120, 260, 380, 500, 620, 740].forEach(t => setTimeout(() => sfx('card'), t)); setTimeout(() => sfx('clack'), 900);
+  setTimeout(() => deck.classList.add('done'), ms + 50); setTimeout(() => deck.remove(), ms + 2600);
+}
 function throwSheet(i){
   const s = P.s, x = s && s.seats[i]; if(!x) return;
   openSheet((d, close) => {
@@ -3305,7 +3333,11 @@ function handleEvent(ev, prev, s){
   } else if(ev.type === 'deal'){
     P.showdown = null; P.dealAnim = true; P.boardShown = 0; for(const sl of $('#pBoard').querySelectorAll(':scope > .slot')) sl.replaceChildren();
     const players = s.seats.map((x, i) => x && x.inHand ? i : -1).filter(i => i >= 0);
-    let k = 0; for(let r = 0; r < 2; r++) for(const i of players){ fly([50, 44], seatXY(i), cardEl('??', 'sm'), 360, (k++) * 70); } sfx('deal');
+    // shuffle the deck first, then pitch the cards round the table one at a time
+    const SH = reduceMotion() ? 0 : 1150; P.dealDelay = SH + players.length * 2 * 95 + 150;
+    shuffleDeck(SH);
+    let k = 0; for(let r = 0; r < 2; r++) for(const i of players){ const d = SH + (k++) * 95; fly([50, 44], seatXY(i), cardEl('??', 'sm'), 380, d); setTimeout(() => sfx('card'), d); }
+    setTimeout(() => sfx('deal'), SH);
     updateRoom(s);
   } else if(ev.type === 'win'){
     const lh = s.lastHand || {};
@@ -3541,6 +3573,17 @@ function avatarKit(T, {col, hash, M}){
       g.lineWidth = 6; g.beginPath(); g.moveTo(cx + sx * (ew - 2), cy - h * .55); g.quadraticCurveTo(cx + sx * (ew + 10), cy - h * .8, cx + sx * (ew + 16), cy - h * .95); g.stroke();
       g.lineWidth = 3; g.strokeStyle = 'rgba(30,14,18,.5)'; g.beginPath(); g.ellipse(cx, cy, ew - 1, h - 1, 0, Math.PI * .2, Math.PI * .8); g.stroke();
     }
+    // eyewear
+    if(f.acc){
+      for(const sx of [-1, 1]){ const cx = FW / 2 + sx * gap, cy = eyeY;
+        if(f.acc === 'shades'){ g.fillStyle = '#121014'; g.beginPath(); g.roundRect(cx - ew - 12, cy - 40, (ew + 12) * 2, 78, [14, 14, 30, 30]); g.fill();
+          const sh = g.createLinearGradient(cx - ew, cy - 40, cx + ew, cy + 30); sh.addColorStop(0, 'rgba(255,255,255,.35)'); sh.addColorStop(.35, 'rgba(255,255,255,0)'); g.fillStyle = sh; g.beginPath(); g.roundRect(cx - ew - 8, cy - 36, (ew + 8) * 2, 70, [12, 12, 26, 26]); g.fill();
+          g.strokeStyle = '#000'; g.lineWidth = 6; g.beginPath(); g.moveTo(cx + sx * (ew + 12), cy - 30); g.lineTo(cx + sx * (ew + 70), cy - 36); g.stroke(); }
+        else { g.strokeStyle = '#3a2416'; g.lineWidth = 7; g.beginPath(); g.ellipse(cx, cy + 2, ew + 12, eh + 4, 0, 0, Math.PI * 2); g.stroke();
+          g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 4; g.beginPath(); g.arc(cx - 14, cy - 20, 22, Math.PI * 1.1, Math.PI * 1.45); g.stroke();
+          g.strokeStyle = '#3a2416'; g.lineWidth = 6; g.beginPath(); g.moveTo(cx + sx * (ew + 12), cy - 6); g.lineTo(cx + sx * (ew + 66), cy - 12); g.stroke(); } }
+      g.strokeStyle = f.acc === 'shades' ? '#121014' : '#3a2416'; g.lineWidth = 7; g.beginPath(); g.moveTo(FW / 2 - gap + ew + 10, eyeY - 18); g.quadraticCurveTo(FW / 2, eyeY - 32, FW / 2 + gap - ew - 10, eyeY - 18); g.stroke();
+    }
     // brows
     g.strokeStyle = f.hair; g.lineWidth = 11; g.lineCap = 'round';
     const by = ex === 'shock' ? 112 : ex === 'happy' ? 120 : ex === 'fierce' ? 134 : 126;
@@ -3622,8 +3665,8 @@ function avatarKit(T, {col, hash, M}){
     if(style === 5) mesh(new T.SphereGeometry(.2, 20, 14), hairM, head, 0, -.03, -.08).scale.set(1.12, 1.15, .8);
     // accessories
     const accK = mood.shades ? 0 : (hsh >>> 14) % 6;
-    if(accK === 0){ for(const sx of [-1, 1]) mesh(new T.BoxGeometry(.085, .055, .02), inkM, head, sx * .075, .02, .22); mesh(new T.BoxGeometry(.06, .012, .01), inkM, head, 0, .035, .22); }
-    if(accK === 1){ for(const sx of [-1, 1]){ const r = mesh(new T.TorusGeometry(.045, .007, 8, 20), M.trim, head, sx * .075, .015, .215); } mesh(new T.BoxGeometry(.04, .008, .008), M.trim, head, 0, .02, .215); }
+    // glasses and shades are painted on the face so they always sit on the eyes
+    faceState.f.acc = accK === 0 ? 'shades' : accK === 1 ? 'glasses' : null;
     if(accK === 2){ mesh(new T.CylinderGeometry(.2, .22, .08, 24), acc, head, 0, .17, -.01); const brim = mesh(new T.CylinderGeometry(.16, .16, .015, 24), acc, head, 0, .135, .14); brim.scale.z = .8; }
     if(accK === 3){ const band = mesh(new T.TorusGeometry(.225, .018, 8, 24, Math.PI), M.dark, head, 0, 0, 0); for(const sx of [-1, 1]) mesh(new T.CylinderGeometry(.065, .065, .05, 16), acc, head, sx * .225, -.01, 0).rotation.z = Math.PI / 2; }
     if(accK === 4){ for(const sx of [-1, 1]){ const c = mesh(new T.ConeGeometry(.05, .09, 10), acc, head, sx * .055, .2, .04); c.rotation.z = sx * Math.PI / 2; } mesh(new T.SphereGeometry(.025, 10, 8), acc, head, 0, .2, .04); }
