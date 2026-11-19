@@ -130,7 +130,7 @@
   .inlist li.m{border-style:dashed; color:var(--on-back-2); background:transparent}
   .hero .btn-red{background:var(--paper); color:var(--ink)}
   .hero .btn-red:hover{background:var(--gold-l)}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .deal{animation:deal .75s cubic-bezier(.2,.9,.25,1.15) both}
     @keyframes deal{from{opacity:0; transform:translate(160px,-120px) rotate(24deg) scale(.9)} 70%{opacity:1} to{transform:rotate(-3deg)}}
   }
@@ -237,7 +237,7 @@
   .ptiles{align-items:start; display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%,240px), 1fr)); gap:12px; margin-top:18px}
   .ptile{align-content:start; background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; gap:12px; min-width:0}
   .ptile.flash{animation:none}
-  @media (prefers-reduced-motion:no-preference){ .ptile.flash{animation:flash .6s ease-out} @keyframes flash{from{background:#FFF1C9}} }
+  @media all{ .ptile.flash{animation:flash .6s ease-out} @keyframes flash{from{background:#FFF1C9}} }
   .pt-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
   .pt-name{font-weight:800; font-size:1.08rem; overflow-wrap:anywhere}
   .pt-tot{font-family:var(--display); font-weight:700; font-size:1.55rem; line-height:1}
@@ -380,7 +380,7 @@
   .sync.saving,.sync.retry{color:#1B1A1F; background:var(--gold-l)}
   .sync.retry{background:#FFB4BD}
   .sync.saving::before,.sync.retry::before{content:""; width:10px; height:10px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent}
-  @media (prefers-reduced-motion:no-preference){ .sync.saving::before,.sync.retry::before{animation:spin .8s linear infinite} @keyframes spin{to{transform:rotate(360deg)}} }
+  @media all{ .sync.saving::before,.sync.retry::before{animation:spin .8s linear infinite} @keyframes spin{to{transform:rotate(360deg)}} }
   .livebar .sync{margin-bottom:3px}
   .orow.editing{grid-template-columns:minmax(0,1fr) auto; align-items:start}
   .orow.editing .eo{grid-column:1 / -1}
@@ -388,7 +388,7 @@
   .orow.editing .co-row{grid-template-columns:minmax(0,1fr) auto auto}
   .orow.editing input{background:#fff}
   .spot{outline:3px solid var(--gold); outline-offset:3px}
-  @media (prefers-reduced-motion:no-preference){ .spot{animation:spot 1.6s ease-out forwards} @keyframes spot{0%,60%{outline-color:var(--gold)} 100%{outline-color:transparent}} }
+  @media all{ .spot{animation:spot 1.6s ease-out forwards} @keyframes spot{0%,60%{outline-color:var(--gold)} 100%{outline-color:transparent}} }
   .qlab{font-size:.8rem; font-weight:700; color:var(--ink-2); margin-bottom:-6px}
   .sh-hint{font-size:.88rem; color:var(--ink-2); margin:0 0 8px; text-align:center}
   .pad-lab{font-size:.8rem; font-weight:700; color:var(--ink-2); text-align:center; margin-top:4px}
@@ -398,7 +398,7 @@
     margin:auto auto 0; border-radius:22px 22px 0 0; background:var(--paper); color:var(--ink); box-shadow:0 -20px 60px -10px rgba(10,0,3,.7)}
   @media (min-width:700px){ dialog.sheet{margin:auto; border-radius:22px} }
   dialog.sheet::backdrop{background:rgba(30,3,8,.62)}
-  @media (prefers-reduced-motion:no-preference){ dialog.sheet[open]{animation:sheetUp .22s ease-out} @keyframes sheetUp{from{transform:translateY(40px); opacity:0}} }
+  @media all{ dialog.sheet[open]{animation:sheetUp .22s ease-out} @keyframes sheetUp{from{transform:translateY(40px); opacity:0}} }
   .sh-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
   .sh-head h2{font-family:var(--display); font-weight:700; font-size:1.45rem; margin:0}
   .sh-res{font-size:.92rem; color:var(--ink-2); margin-top:2px}
@@ -461,7 +461,7 @@
   .tabs a .tcount{display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--gold); color:var(--ink); font-size:.72rem; font-weight:800; margin-left:2px; line-height:1}
   .tabs a .tcount.live{background:#5FC08A}
   .tabs a .tcount.live::after{content:""; width:6px; height:6px; border-radius:50%; background:#1B1A1F; margin-left:3px; display:inline-block}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .tabs a .tcount.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)} @keyframes pop{0%{transform:scale(.4)} 100%{transform:scale(1)}}
     .tabs a .tcount.live::after{animation:blink 1.4s infinite} @keyframes blink{50%{opacity:.2}}
   }
@@ -472,7 +472,7 @@
   .mini-felt{position:absolute; inset:14% 10%; border-radius:999px; background:radial-gradient(ellipse at 50% 40%, #A1203A, #5E0F1C 70%); box-shadow:0 0 0 8px #3A2416, 0 0 0 10px #D9A93A55, 0 18px 30px -10px rgba(0,0,0,.6); display:grid; place-items:center; color:rgba(255,255,255,.18); font-size:2rem}
   .mini-seat{position:absolute; width:34px; height:34px; margin:-17px 0 0 -17px; border-radius:50%; background:var(--c); color:#fff; font-weight:800; font-size:.75rem; display:grid; place-items:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,.35)}
   .mini-seat.empty{background:transparent; border:2px dashed #C9C2B6; box-shadow:none}
-  @media (prefers-reduced-motion:no-preference){ .mini-seat:not(.empty){animation:seatIn .5s cubic-bezier(.3,1.5,.5,1) both} @keyframes seatIn{from{transform:scale(0)}} }
+  @media all{ .mini-seat:not(.empty){animation:seatIn .5s cubic-bezier(.3,1.5,.5,1) both} @keyframes seatIn{from{transform:scale(0)}} }
   .lobby-line{text-align:center; color:var(--ink-2); font-weight:600; margin:4px 0 6px}
   .lobby-line.live::before{content:"●"; color:#1E7A49; margin-right:6px}
   .lobby .chips{margin-top:6px}
@@ -563,7 +563,7 @@
   .seat .bubble{position:absolute; top:-30px; left:50%; transform:translate(-50%,6px) scale(.8); background:var(--paper); color:var(--ink); font-weight:800; font-size:.78rem; border-radius:999px; padding:3px 10px; white-space:nowrap; opacity:0; transition:all .2s; z-index:4; box-shadow:0 4px 10px rgba(0,0,0,.35)}
   .seat .bubble.show{opacity:1; transform:translate(-50%,0) scale(1)}
   .seat .bubble.hot{background:var(--suit); color:#fff} .seat .bubble.warm{background:var(--gold-l)} .seat .bubble.cold{background:#C9C2B6}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .seat.arrive{animation:arrive .7s cubic-bezier(.3,1.4,.5,1) both} @keyframes arrive{from{opacity:0; transform:translate(-50%,-60%) rotateX(calc(-1 * var(--tilt))) scale(.4)}}
     .seat.depart{animation:depart .5s ease-in forwards} @keyframes depart{to{opacity:0; transform:translate(-50%,-160%) rotateX(calc(-1 * var(--tilt))) scale(.6)}}
     .seat.sitdown .av{animation:sitdown .9s cubic-bezier(.3,1.5,.5,1)} @keyframes sitdown{0%{transform:translateY(-90px) scale(1.4)} 60%{transform:translateY(6px) scale(.95)} 100%{transform:none}}
@@ -584,7 +584,7 @@
   .mebar .tag{font-size:.62rem; font-weight:900; background:var(--ink); color:var(--paper); border-radius:999px; padding:1px 6px} .mebar .tag:empty{display:none}
   .mebar .meemo{position:absolute; left:50%; bottom:100%}
   .seat .emote-s{position:absolute; left:50%; top:-10px; font-size:2.2rem; transform:translate(-50%,0); z-index:8; pointer-events:none}
-  @media (prefers-reduced-motion:no-preference){ .seat .emote-s, .mebar .emote-s{animation:floatUp 2.1s ease-out forwards} }
+  @media all{ .seat .emote-s, .mebar .emote-s{animation:floatUp 2.1s ease-out forwards} }
   .mebar .emote-s{position:absolute; left:20px; bottom:30px; font-size:2.2rem; pointer-events:none}
   .bet{position:absolute; transform-origin:50% 100%; transform:translate(-50%,-100%) rotateX(calc(-1 * var(--tilt))); display:flex; align-items:center; gap:4px; background:rgba(0,0,0,.35); color:var(--paper); border-radius:999px; padding:2px 8px 2px 3px; font-size:.75rem; font-weight:800; white-space:nowrap}
   .chips3,.fchip{display:inline-block; position:relative; width:18px; height:18px}
@@ -595,7 +595,7 @@
   .fx .fcards{display:flex} .fx .fcards .pc{width:24px; margin-left:-8px}
   .fx .emote{font-size:2rem; z-index:7}
   .fx .plus{font-weight:900; color:#8FD9AE; font-size:1rem; text-shadow:0 2px 6px rgba(0,0,0,.6)}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .fx .emote{animation:floatUp 2.1s ease-out forwards} @keyframes floatUp{0%{transform:translate(-50%,-50%) scale(.3)} 20%{transform:translate(-50%,-80%) scale(1.3)} 100%{transform:translate(-50%,-260%) scale(1); opacity:0}}
     .fx .plus{animation:floatUp 1.5s ease-out forwards}
   }
@@ -626,9 +626,9 @@
   .ptable-wrap::after{content:''; position:absolute; inset:0; pointer-events:none; z-index:2; opacity:0; background:radial-gradient(ellipse at 50% 55%, transparent 25%, rgba(0,0,0,.75) 85%)}
   .ptable-wrap.suspense::after{animation:suspense 1.6s ease-out} .ptable-wrap.suspense2::after{animation:suspense 2.4s ease-out}
   @keyframes suspense{0%{opacity:0} 25%, 60%{opacity:1} 100%{opacity:0}}
-  @media (prefers-reduced-motion:reduce){ .pboard .pc.dealin.lvl1, .pboard .pc.dealin.lvl2{animation:none} .ptable-wrap::after{display:none} }
+  @media not all{ .pboard .pc.dealin.lvl1, .pboard .pc.dealin.lvl2{animation:none} .ptable-wrap::after{display:none} }
   @keyframes dealBack{0%, 49%{opacity:1} 50%, 100%{opacity:0}}
-  @media (prefers-reduced-motion:reduce){ .pboard .pc.dealin, .pboard .pc.dealin::before{animation:none} .pboard .pc.dealin::before{display:none} }
+  @media not all{ .pboard .pc.dealin, .pboard .pc.dealin::before{animation:none} .pboard .pc.dealin::before{display:none} }
   .pboard .pc.rabbit{opacity:.72; filter:saturate(.6); outline:2px dashed rgba(243,216,145,.85); outline-offset:-3px}
   .pboard .pc.rabbit::after{content:'🐇'; position:absolute; right:3px; bottom:2px; font-size:.8rem; line-height:1}
   .pshown{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:max-content; max-width:min(92vw, 640px); z-index:4; pointer-events:none}
@@ -640,9 +640,10 @@
   .set-row.set-seg{grid-template-columns:28px 1fr; row-gap:8px; cursor:default} .set-seg .seg{grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap}
   .seg-b{flex:1 1 0; min-width:44px; border:1.5px solid #E2DBCF; background:#FBFAF6; color:var(--ink); border-radius:999px; padding:7px 0; font-weight:800; cursor:pointer}
   .seg-b[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  html.calm *, html.calm *::before, html.calm *::after{animation-duration:.001ms !important; animation-delay:0s !important; transition-duration:.001ms !important}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .pc.flipin{animation:flipin .55s cubic-bezier(.3,.8,.3,1) both} @keyframes flipin{0%{transform:translateY(-40px) rotateY(180deg) scale(.6); opacity:0} 50%{opacity:1} 100%{transform:none}}
   }
 
@@ -664,7 +665,7 @@
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
   .hole.peek{cursor:grabbing}
   .hole.folded{opacity:.55; filter:grayscale(.7); cursor:default} .hole.folded .hc{transition:transform .3s} .hole.folded .hc.d1{transform:rotate(12deg) translateX(-30px)}
-  @media (prefers-reduced-motion:no-preference){ .hole.dealt .hc{animation:dealUp .75s cubic-bezier(.2,.9,.3,1.15) both} .hole.dealt .hc.d1{animation-delay:.18s} @keyframes dealUp{from{translate:30vw -60vh; rotate:-540deg; scale:.35; opacity:0} 30%{opacity:1} 85%{translate:0 -6px; rotate:4deg; scale:1.06} to{translate:0 0; rotate:0deg; scale:1}} }
+  @media all{ .hole.dealt .hc{animation:dealUp .75s cubic-bezier(.2,.9,.3,1.15) both} .hole.dealt .hc.d1{animation-delay:.18s} @keyframes dealUp{from{translate:30vw -60vh; rotate:-540deg; scale:.35; opacity:0} 30%{opacity:1} 85%{translate:0 -6px; rotate:4deg; scale:1.06} to{translate:0 0; rotate:0deg; scale:1}} }
   .hole-side{display:grid; gap:8px; justify-items:start}
   .peek-hint{color:var(--on-back-2); font-weight:700; font-size:.88rem}
   .eye{border:1.5px solid rgba(255,244,242,.3); background:rgba(25,3,7,.45); color:var(--paper); border-radius:999px; padding:6px 12px; font-weight:700; cursor:pointer; font-size:.85rem}
@@ -683,7 +684,8 @@
   .rpanel input[type=range]{width:100%; accent-color:var(--suit)}
   .presets{display:flex; flex-wrap:wrap; gap:6px; justify-content:center}
   .rpanel .btn{width:100%}
-  .rpanel .rrow{display:flex; align-items:center; gap:14px} .rpanel .rval{font-family:var(--display); font-size:1.6rem; min-width:4.5em; text-align:center}
+  .rpanel .rrow{display:flex; align-items:center; gap:14px} .rpanel .rval{font-family:var(--display); font-size:1.6rem; width:5.2em; text-align:center; border:1.5px solid #E2DBCF; border-radius:12px; background:#fff; color:var(--ink); padding:4px 6px}
+  .presets .chipbtn{display:grid; justify-items:center; line-height:1.1; padding:6px 12px} .presets .chipbtn small{font-size:.7rem; opacity:.7; font-weight:700} .presets .chipbtn.on{background:var(--ink); color:var(--paper); border-color:var(--ink)} .presets .chipbtn.allin{border-color:var(--suit); color:var(--suit)} .presets .chipbtn.allin.on{background:var(--suit); color:#fff}
   .rpanel .cc-b{width:42px; height:42px}
   .presets{flex-wrap:nowrap; overflow-x:auto; max-width:100%; scrollbar-width:none; padding:2px} .presets::-webkit-scrollbar{display:none} .presets .chipbtn{flex:none}
   .rpanel .btn{position:sticky; bottom:0; z-index:1; box-shadow:0 -8px 12px var(--paper)}
@@ -858,7 +860,7 @@
   .seat .tag{left:50%; right:auto; transform:translateX(-50%); white-space:nowrap; font-size:.68rem; padding:2px 8px; box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .gl .seat .tag{top:auto; bottom:calc(100% + 2px)}
   .gl .seat .bubble{top:auto; bottom:calc(100% + 30px)}
-  @media (prefers-reduced-motion:no-preference){
+  @media all{
     .pot b{display:inline-block} .pot b.bump{animation:potBump .5s cubic-bezier(.3,1.6,.5,1)} @keyframes potBump{40%{transform:scale(1.18); color:var(--gold-l)}}
     .gl .seat.turn .plate, .gl .seat.acting .plate{animation:turnGlow 1.4s ease-in-out infinite} @keyframes turnGlow{50%{box-shadow:0 0 0 2px var(--gold-l), 0 0 22px rgba(243,216,145,.7)}}
     .center-msg.show.win .wbox{animation:winPop .55s cubic-bezier(.2,1.4,.4,1) both} @keyframes winPop{from{transform:scale(.6) translateY(20px); opacity:0}}
@@ -930,7 +932,7 @@
     .tabs .seg{max-width:none}
     .tabs a{font-size:.84rem; gap:4px; padding:9px 2px}
   }
-  @media (prefers-reduced-motion:no-preference){ .btn,.tri button,.chipbtn{transition:background .15s, border-color .15s, color .15s} }
+  @media all{ .btn,.tri button,.chipbtn{transition:background .15s, border-color .15s, color .15s} }
 </style>
 </head>
 <body>
@@ -2224,7 +2226,9 @@ const P = {ws:null, s:null, prev:null, lastEv:0, open:false, tries:0, token:'', 
   showCards:store('pokerShowCards') === '1', sound:store('pokerSound') !== '0', showdown:null, rebuyFor:-1, status:null, pendingEnter:false, err:''};
 P.token = store('pokerSeatToken') || (() => { const t = 'k' + Math.random().toString(36).slice(2) + Date.now().toString(36); store('pokerSeatToken', t); return t; })();
 const tableRoom = () => (new URLSearchParams(location.search).get('room') || '').replace(/[^a-z0-9-]/gi, '') || ((S.test || /[?&]test\b/.test(location.search)) ? 'test' : 'main');
-const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+// motion is the game's own setting (some phones turn animations off system-wide, which hid the dealing)
+const reduceMotion = () => store('pokerCalm') === '1';
+document.documentElement.classList.toggle('calm', reduceMotion());
 const SUIT = {s:'♠', h:'♥', d:'♦', c:'♣'};
 const avColor = n => { let x = 2166136261; for(const ch of key(n)) x = Math.imul(x ^ ch.charCodeAt(0), 16777619) >>> 0; return 'hsl(' + (x % 360) + ' 58% 40%)'; };
 const initials = n => n.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -2653,6 +2657,7 @@ function settingsSheet(){
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Display'}),
         sw('⛶', 'Table fills the screen', 'Hides the site header and tabs', !!$('.room.full'), on => { toggleFull(on); close(); }),
         sw('🙈', 'See my cards after I fold', 'Faded, only you can see them, until the next deal', store('pokerKeepFolded') !== '0', on => { store('pokerKeepFolded', on ? '1' : '0'); const b = $('#pHand'); if(b) b.dataset.k = ''; if(P.s) renderMyHand(P.s, P.showdown && Date.now() < P.showdown.until ? P.showdown : null); }),
+        sw('🐢', 'Reduce motion', 'Turns off dealing and table animations', reduceMotion(), on => { store('pokerCalm', on ? '1' : '0'); document.documentElement.classList.toggle('calm', on); }),
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
         seg('⏱', 'Turn time', 'How long each player gets to act', [15, 30, 45, 60, 90], Math.round((s.turnMs || 45000) / 1000), v => psend({t:'rules', turnMs:v * 1000})),
@@ -3009,15 +3014,25 @@ function renderActions(s){
 function doAct(move){ P.raiseOpen = false; if(psend({t:'act', move})){ const bar = $('#pAct'); bar.querySelectorAll('button').forEach(b => b.disabled = true); } }
 function raisePanel(s, o){
   let to = o.minTo; const step = s.blinds.bb;
-  const val = h('div', {class:'rval num'}); const rng = h('input', {type:'range', min:o.minTo, max:o.maxTo, step:1, 'aria-label':'Raise amount'}); rng.value = to;
+  const val = h('input', {class:'rval num', type:'text', inputMode:'numeric', 'aria-label':'Amount'});
+  val.addEventListener('focus', () => val.select());
+  val.addEventListener('input', () => { const v = +String(val.value).replace(/[^0-9]/g, ''); if(v){ to = v; rng.value = Math.max(o.minTo, Math.min(o.maxTo, v)); go.textContent = (v >= o.maxTo ? 'All in ' : (o.currentBet ? 'Raise to ' : 'Bet ')) + peso(Math.max(o.minTo, Math.min(o.maxTo, v))); } });
+  val.addEventListener('change', () => paint()); const rng = h('input', {type:'range', min:o.minTo, max:o.maxTo, step:1, 'aria-label':'Raise amount'}); rng.value = to;
   const go = h('button', {type:'button', class:'btn btn-red'});
-  const paint = () => { to = Math.max(o.minTo, Math.min(o.maxTo, Math.round(to))); rng.value = to; val.textContent = peso(to); go.textContent = (to >= o.maxTo ? 'All in ' : (o.currentBet ? 'Raise to ' : 'Bet ')) + peso(to); };
+  const paint = () => { to = Math.max(o.minTo, Math.min(o.maxTo, Math.round(to))); rng.value = to; if(document.activeElement !== val) val.value = peso(to); pr.querySelectorAll('.chipbtn').forEach(b => b.classList.toggle('on', +b.dataset.v === to)); go.textContent = (to >= o.maxTo ? 'All in ' : (o.currentBet ? 'Raise to ' : 'Bet ')) + peso(to); };
   rng.addEventListener('input', () => { to = +rng.value; paint(); });
   const pot = o.pot + o.toCall;
-  const presets = [['Min', o.minTo], ['½ pot', o.currentBet + Math.round(pot / 2)], ['¾ pot', o.currentBet + Math.round(pot * .75)], ['Pot', o.currentBet + pot], ['All in', o.maxTo]];
-  const pr = h('div', {class:'presets'}, presets.map(([l, v]) => { const b = h('button', {type:'button', class:'chipbtn', text:l}); b.addEventListener('click', () => { to = v; paint(); sfx('chip'); }); return b; }));
+  const bb = s.blinds.bb, cb = o.currentBet, pre = s.hand && s.hand.street === 'preflop', unopened = pre && cb <= bb;
+  const potFrac = f => cb + Math.round(pot * f);
+  const presets = unopened ? [['Min', o.minTo], ['2x', 2 * bb], ['2.5x', Math.round(2.5 * bb)], ['3x', 3 * bb], ['4x', 4 * bb], ['5x', 5 * bb], ['Pot', potFrac(1)]]
+    : cb > 0 ? [['Min', o.minTo], ['2x', 2 * cb], ['2.5x', Math.round(2.5 * cb)], ['3x', 3 * cb], ['4x', 4 * cb], ['½ pot', potFrac(.5)], ['¾ pot', potFrac(.75)], ['Pot', potFrac(1)]]
+    : [['Min', o.minTo], ['⅓ pot', potFrac(1 / 3)], ['½ pot', potFrac(.5)], ['⅔ pot', potFrac(2 / 3)], ['¾ pot', potFrac(.75)], ['Pot', potFrac(1)], ['1.5x pot', potFrac(1.5)], ['2x pot', potFrac(2)]];
+  const seenV = new Set();
+  const list = presets.map(([l, v]) => [l, Math.max(o.minTo, Math.min(o.maxTo, v))]).filter(([l, v]) => v < o.maxTo && !seenV.has(v) && seenV.add(v)).concat([['All in', o.maxTo]]);
+  const pr = h('div', {class:'presets'}, list.map(([l, v]) => { const b = h('button', {type:'button', class:'chipbtn' + (l === 'All in' ? ' allin' : ''), 'data-v':v}, h('b', {text:l}), l === 'All in' || l === 'Min' ? null : h('small', {text:peso(v)})); b.addEventListener('click', () => { to = v; val.blur(); paint(); sfx('chip'); }); return b; }));
   const minus = h('button', {type:'button', class:'cc-b', text:'−', 'aria-label':'Less'}); minus.addEventListener('click', () => { to -= step; paint(); });
   const plus = h('button', {type:'button', class:'cc-b', text:'+', 'aria-label':'More'}); plus.addEventListener('click', () => { to += step; paint(); });
+  go.addEventListener('click', () => { paint(); }, true);
   go.addEventListener('click', () => doAct(to >= o.maxTo ? {type:'allin'} : {type:'raise', to}));
   paint();
   return h('div', {class:'rpanel'}, h('div', {class:'rrow'}, minus, val, plus), rng, pr, go);
