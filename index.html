@@ -2640,7 +2640,7 @@ function settingsSheet(){
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
         seg('⏱', 'Turn time', 'How long each player gets to act', [15, 30, 45, 60, 90], Math.round((s.turnMs || 45000) / 1000), v => psend({t:'rules', turnMs:v * 1000})),
-        seg('⏭', 'Time between hands', 'How long the result stays up before the next deal', [3, 5, 8, 12, 20], Math.round((s.nextMs || 8000) / 1000), v => psend({t:'rules', nextMs:v * 1000})),
+        seg('⏭', 'Next hand countdown', 'Seconds the “Next hand in…” timer runs after each hand', [3, 5, 8, 12, 20, 30], Math.round((s.nextMs || 8000) / 1000), v => psend({t:'rules', nextMs:v * 1000})),
         sw('🃏', 'Show all hands at showdown', 'House rule. All-in hands are always shown.', s.showAll, on => psend({t:'rules', showAll:on})),
         act('🎲', 'New random look', 'Everyone sees your new character', () => { if(psend({t:'look'})) ptoast('New look!'); close(); }),
         act('📒', 'Session and blinds', 'Who’s in for how much, change blinds, finish the game', () => { close(); sessionSheet(); }),
