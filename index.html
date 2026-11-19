@@ -611,8 +611,23 @@
   .pc.back{background:repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), #9E1A2D; border:2px solid #fff}
   .pc.sm{width:30px}
   .pboard .pc{width:100%}
+  .pboard .pc.dealin{animation:dealSlide .45s cubic-bezier(.2,.8,.3,1) backwards, dealFlip .42s cubic-bezier(.3,.7,.3,1.2) backwards}
+  .pboard .pc.dealin::before{content:''; position:absolute; inset:0; z-index:3; border-radius:inherit; background:repeating-linear-gradient(45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.22) 0 1.5px, transparent 1.5px 6px), #9E1A2D; box-shadow:inset 0 0 0 2px #fff; opacity:0; pointer-events:none; animation:dealBack .42s linear backwards; animation-delay:var(--fd, 0ms)}
+  @keyframes dealSlide{from{translate:var(--fx, -200%) -30%; rotate:-14deg; scale:.75; opacity:0} 25%{opacity:1} to{translate:0 0; rotate:0deg; scale:1; opacity:1}}
+  @keyframes dealFlip{from{transform:rotateY(180deg)} to{transform:rotateY(0deg)}}
+  @keyframes dealBack{0%, 49%{opacity:1} 50%, 100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){ .pboard .pc.dealin, .pboard .pc.dealin::before{animation:none} .pboard .pc.dealin::before{display:none} }
   .pboard .pc.rabbit{opacity:.72; filter:saturate(.6); outline:2px dashed rgba(243,216,145,.85); outline-offset:-3px}
   .pboard .pc.rabbit::after{content:'🐇'; position:absolute; right:3px; bottom:2px; font-size:.8rem; line-height:1}
+  .pshown{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:max-content; max-width:92vw; z-index:4; pointer-events:none}
+  .pshown .sh{display:grid; justify-items:center; gap:3px; background:rgba(20,6,10,.82); border:1.5px solid rgba(255,244,242,.18); border-radius:12px; padding:6px 8px 5px; box-shadow:0 8px 18px rgba(0,0,0,.45)}
+  .pshown .sh.won{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 8px 22px rgba(243,216,145,.35)}
+  .pshown .sh-c{display:flex; gap:3px} .pshown .pc{width:clamp(34px,9vw,46px)}
+  .pshown b{color:var(--paper); font-size:.78rem; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pshown .sh.won b{color:var(--gold-l)} .pshown span{color:#E7DED0; font-size:.68rem; max-width:12em; text-align:center; line-height:1.2}
+  .set-row.set-seg{grid-template-columns:28px 1fr; row-gap:8px; cursor:default} .set-seg .seg{grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap}
+  .seg-b{flex:1 1 0; min-width:44px; border:1.5px solid #E2DBCF; background:#FBFAF6; color:var(--ink); border-radius:999px; padding:7px 0; font-weight:800; cursor:pointer}
+  .seg-b[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media (prefers-reduced-motion:no-preference){
@@ -631,7 +646,7 @@
   .hole .hc.d0{transform:rotate(-9deg) translateY(6px)} .hole .hc.d1{transform:rotate(7deg) translateX(-22px)}
   .hole .cover{transform-origin:50% 100%; transition:transform .28s cubic-bezier(.3,.9,.3,1.2); z-index:2; box-shadow:0 6px 16px rgba(0,0,0,.45)}
 
-  .hole.peek .cover{transform:rotateX(78deg) translateY(-4px)}
+  .hole.peek .cover{transform:rotateX(42deg)}   /* a small peek: just enough to read the corner */
   .hole.peek .hc.d0 .cover{transition-delay:0s} .hole.peek .hc.d1 .cover{transition-delay:.05s}
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
   .hole.peek{cursor:grabbing}
@@ -711,6 +726,8 @@
   .gl .seat .av, .gl .seat .scards{display:none}
   .gl .seat .scards.reveal{display:flex; position:absolute; top:100%; left:50%; transform:translate(-50%, 6px); gap:3px; z-index:4}
   .gl .seat .scards.reveal .pc{width:42px; margin:0}
+  .gl .seat .scards.reveal{display:none}
+  .pboard .pshown .pc{opacity:1 !important; filter:none !important; transform:none}
   .seat .scards .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 16px rgba(243,216,145,.9)}
   .seat.winner::before{content:'🏆 Winner'; position:absolute; left:50%; bottom:100%; transform:translate(-50%, -4px); background:linear-gradient(#F7DE8B, #D9A93A); color:#3A2400; font-weight:900; font-size:.75rem; padding:3px 10px; border-radius:999px; white-space:nowrap; box-shadow:0 4px 14px rgba(217,169,58,.7); z-index:6; animation:winBadge 1s ease-in-out infinite}
   @keyframes winBadge{50%{transform:translate(-50%, -10px) scale(1.06)}}
@@ -857,7 +874,9 @@
   .center-msg .wrow{display:grid; grid-template-columns:1fr auto; column-gap:8px; align-items:center; border-top:1px solid rgba(243,216,145,.25); padding-top:6px}
   .center-msg .wrow b{font-size:1rem !important} .center-msg .wrow span{grid-column:1; font-size:.8rem}
   .center-msg .wrow .wcards{grid-row:1 / span 2; grid-column:2}
-  .center-msg .wcards{display:flex; gap:4px; justify-content:center} .center-msg .wcards .pc{width:30px}
+  .center-msg .wcards{display:flex; gap:5px; justify-content:center} .center-msg .wcards .pc{width:clamp(40px,10vw,52px)}
+  .center-msg .winline .pc span{color:inherit; display:revert} .center-msg .winline .pc .big{font-size:58cqw} .center-msg .winline .pc .idx .r{font-size:26cqw} .center-msg .winline .pc .idx .su{font-size:20cqw}
+  .center-msg .winline .pc .idx{display:grid}
   .gl .center-msg .winline.wbox{grid-template-columns:1fr; padding:10px 14px}
   .center-msg .wbeat{font-size:.78rem; color:#CFC5B6; text-align:center}
   .gl .center-msg .winline.split b{font-size:clamp(1rem,3.4vw,1.5rem)}
@@ -2603,14 +2622,23 @@ function settingsSheet(){
       return h('label', {class:'set-row'}, h('span', {class:'set-ic', text:icon}), h('span', {class:'set-tx'}, h('b', {text:label}), note ? h('small', {text:note}) : null), inp, h('span', {class:'sw', 'aria-hidden':'true'}));
     };
     const act = (icon, label, note, fn, hide) => { if(hide) return null; const b = h('button', {type:'button', class:'set-row set-btn'}, h('span', {class:'set-ic', text:icon}), h('span', {class:'set-tx'}, h('b', {text:label}), note ? h('small', {text:note}) : null), h('span', {class:'set-go', text:'›'})); b.addEventListener('click', () => fn(b)); return b; };
+    const seg = (icon, label, note, opts, cur, fn) => {
+      const row = h('div', {class:'seg'});
+      const paint = v => row.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === v)));
+      opts.forEach(v => { const b = h('button', {type:'button', class:'seg-b', 'data-v':v, text:v + 's'}); b.addEventListener('click', () => { paint(v); fn(v); sfx('chip'); }); row.append(b); });
+      paint(cur);
+      return h('div', {class:'set-row set-seg'}, h('span', {class:'set-ic', text:icon}), h('span', {class:'set-tx'}, h('b', {text:label}), note ? h('small', {text:note}) : null), row);
+    };
     d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Settings'}), h('p', {class:'sub', style:'margin:0', text:'Table, sound and display'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Sound'}),
         sw('🎵', 'Lounge music', 'Soft jazz while you play', P.music, on => setMusic(on)),
         sw('🔊', 'Sound effects', 'Chips, cards and cheers', P.sound, on => { P.sound = on; store('pokerSound', on ? '1' : '0'); if(on) sfx('chip'); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Display'}),
-        sw('⛶', 'Full screen', 'Just the table, nothing else', !!$('.room.full'), on => { toggleFull(on); close(); }),
+        sw('⛶', 'Table fills the screen', 'Hides the site header and tabs', !!$('.room.full'), on => { toggleFull(on); close(); }),
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
+        seg('⏱', 'Turn time', 'How long each player gets to act', [15, 30, 45, 60, 90], Math.round((s.turnMs || 45000) / 1000), v => psend({t:'rules', turnMs:v * 1000})),
+        seg('⏭', 'Time between hands', 'How long the result stays up before the next deal', [3, 5, 8, 12, 20], Math.round((s.nextMs || 8000) / 1000), v => psend({t:'rules', nextMs:v * 1000})),
         sw('🃏', 'Show all hands at showdown', 'House rule. All-in hands are always shown.', s.showAll, on => psend({t:'rules', showAll:on})),
         act('🎲', 'New random look', 'Everyone sees your new character', () => { if(psend({t:'look'})) ptoast('New look!'); close(); }),
         act('📒', 'Session and blinds', 'Who’s in for how much, change blinds, finish the game', () => { close(); sessionSheet(); }),
@@ -2620,18 +2648,19 @@ function settingsSheet(){
 }
 
 // ---------- full screen table ----------
-function toggleFull(force){
+function toggleFull(force, layoutOnly){
   const room = $('.room'); if(!room) return;
   const on = force != null ? force : !room.classList.contains('full');
+  if(!layoutOnly) store('pokerLayout', on ? 'full' : 'page');
   room.classList.toggle('full', on); document.body.classList.toggle('table-full', on);
   const b = $('#pFull'); if(b){ b.textContent = on ? '✕' : '⛶'; b.title = on ? 'Exit full screen' : 'Full screen'; }
   try{
-    if(on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(() => {});
+    if(on && !layoutOnly && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(() => {});
     if(!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
   }catch(e){}
 }
 document.addEventListener('selectstart', e => { if(e.target.closest && e.target.closest('.room') && !e.target.closest('input,textarea')) e.preventDefault(); });
-document.addEventListener('fullscreenchange', () => { if(!document.fullscreenElement && $('.room.full')) toggleFull(false); });
+
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('.room.full') && !document.fullscreenElement) toggleFull(false); });
 
 // ---------- main render ----------
@@ -2696,6 +2725,7 @@ function buildRoom(root){
   const fs = h('button', {type:'button', class:'rbtn', id:'pFull', title:'Full screen', 'aria-label':'Full screen', text:'⛶'});
   const gear = h('button', {type:'button', class:'rbtn gear', id:'pGear', 'aria-label':'Settings', title:'Settings', text:'⚙️'}); gear.addEventListener('click', settingsSheet);
   fs.addEventListener('click', () => toggleFull());
+  if(store('pokerLayout') !== 'page') setTimeout(() => toggleFull(true, true), 0);   // the table takes the whole screen by default
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
     h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, fs, gear, leave)),
@@ -2790,11 +2820,13 @@ function updateRoom(s){
   // board
   const lhb = s.lastHand, rab = !h_ && lhb && lhb.rabbit ? lhb.rabbit : null;
   const boardCards = h_ ? h_.board : sd ? sd.board : rab ? lhb.board : [];
-  const slots = $('#pBoard').children;
+  const slots = $('#pBoard').querySelectorAll(':scope > .slot');
   if(boardCards.length < P.boardShown) { for(const sl of slots) sl.replaceChildren(); P.boardShown = 0; }
   for(let k = P.boardShown; k < boardCards.length; k++){
-    const c = cardEl(boardCards[k], 'flipin'); c.style.animationDelay = ((k - P.boardShown) * 160) + 'ms';
-    slots[k].replaceChildren(c); setTimeout(() => sfx('card'), (k - P.boardShown) * 160);
+    // slide each card out from the deck face down, then flip it over
+    const n = k - P.boardShown, dl = n * 280, c = cardEl(boardCards[k], 'dealin');
+    c.style.setProperty('--fx', (-(k + .6) * 115) + '%'); c.style.animationDelay = dl + 'ms, ' + (dl + 430) + 'ms'; c.style.setProperty('--fd', (dl + 430) + 'ms');
+    slots[k].replaceChildren(c); setTimeout(() => sfx('deal'), dl); setTimeout(() => sfx('card'), dl + 500);
   }
   P.boardShown = boardCards.length;
   // rabbit hunt: the cards that would have come, shown faded
@@ -2802,6 +2834,16 @@ function updateRoom(s){
   else if(P.rabbitNo){ P.rabbitNo = 0; for(let k = boardCards.length; k < 5; k++) slots[k].replaceChildren(); }
   for(const sl of slots){ const c = sl.firstChild; if(c) c.classList.toggle('win', !!(sd && sd.best && sd.best.includes(c.dataset.c))); }
   $('#pBoard').classList.toggle('has-win', !!(sd && sd.best && sd.best.length));
+  // everyone's shown hands, flat and readable, right under the board
+  { const bd = $('#pBoard'); let row = $('#pShown'); if(!row){ row = h('div', {class:'pshown', id:'pShown'}); bd.append(row); }
+    const lh = s.lastHand, shown = h_ ? null : sd ? sd.shown : lh ? lh.shown : null, wins = (sd ? sd.winners : lh && lh.winners) || [];
+    const ids = shown ? Object.keys(shown).map(Number).filter(i => i !== s.me && s.seats[i] && !(sd && wins.some(w => w.seat === i))) : [];   // the banner already shows the winner
+    const key = ids.map(i => i + ':' + shown[i].join('')).join('|') + '/' + wins.map(w => w.seat).join();
+    if(row.dataset.k !== key){ row.dataset.k = key;
+      row.replaceChildren(...ids.map(i => { const w = wins.find(x => x.seat === i);
+        return h('div', {class:'sh' + (w ? ' won' : '')}, h('div', {class:'sh-c'}, shown[i].map(c => { const e = cardEl(c, 'flipin'); if(w && w.cards && w.cards.includes(c)) e.classList.add('win'); return e; })),
+          h('b', {text:(w ? '🏆 ' : '') + s.seats[i].name}), w && w.hand ? h('span', {text:handWords(w.hand, w.cards)}) : null); }));
+      row.hidden = !ids.length; } }
   // pot
   const pot = h_ ? h_.pot - s.seats.reduce((a, x) => a + (x ? x.bet : 0), 0) : 0;
   const potEl = $('#pPot'); potEl.hidden = !(h_ && h_.pot > 0); { const pv = h_ ? h_.pot : 0, pb = potEl.querySelector('b'); if(+potEl.dataset.v < pv){ pb.classList.remove('bump'); void pb.offsetWidth; pb.classList.add('bump'); } potEl.dataset.v = pv; pb.textContent = 'Pot ' + peso(pv); }
@@ -3036,7 +3078,7 @@ function handleEvent(ev, prev, s){
     if(!P.gl) prev.seats.forEach((x, i) => { if(x && x.bet > 0) fly(betXY(i), [50, 60], chipEl(), 380); });
     sfx('chip');
   } else if(ev.type === 'deal'){
-    P.showdown = null; P.dealAnim = true; P.boardShown = 0; for(const sl of $('#pBoard').children) sl.replaceChildren();
+    P.showdown = null; P.dealAnim = true; P.boardShown = 0; for(const sl of $('#pBoard').querySelectorAll(':scope > .slot')) sl.replaceChildren();
     const players = s.seats.map((x, i) => x && x.inHand ? i : -1).filter(i => i >= 0);
     let k = 0; for(let r = 0; r < 2; r++) for(const i of players){ fly([50, 44], seatXY(i), cardEl('??', 'sm'), 360, (k++) * 70); } sfx('deal');
     updateRoom(s);
