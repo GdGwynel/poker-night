@@ -3004,7 +3004,10 @@ function updateRoom(s){
   const cm = $('#pMsg');
   if(sd){
     const ws = sd.winners, nm = w => w.seat === s.me ? 'You' : w.name, total = ws.reduce((t, w) => t + w.amount, 0);
-    const desc = w => w.hand ? handWords(w.hand, w.cards) : (w.seat === s.me ? 'Everyone folded to you 🙌' : 'Everyone else folded');
+    const shownWith = w => { const c = sd.shown && sd.shown[w.seat]; if(!c) return null; const b = sd.board || [];
+      if(b.length >= 3){ const r = bestHand(c.concat(b)); return r ? handWords(r.name, r.cards) : null; }
+      return c[0][0] === c[1][0] ? 'Pocket ' + RW[c[0][0]] : RW1[c[0][0]] + ' ' + RW1[c[1][0]] + (c[0][1] === c[1][1] ? ' suited' : ''); };
+    const desc = w => w.hand ? handWords(w.hand, w.cards) : (w.seat === s.me ? 'Everyone folded to you 🙌' : 'Everyone else folded') + (shownWith(w) ? '. Showed ' + shownWith(w) : '');
     const holes = w => { const c = sd.shown && sd.shown[w.seat]; return c ? h('div', {class:'wcards'}, c.map(x => { const e = cardEl(x, 'sm'); if(w.cards && w.cards.includes(x)) e.classList.add('win'); return e; })) : null; };
     const split = ws.length > 1, sameHand = split && ws.every(w => w.hand && desc(w) === desc(ws[0]));
     const head = split ? h('div', {class:'whead'}, h('div', {class:'trophy', text:'🤝'}), h('b', {text:'Split pot ' + peso(total)}), h('span', {text:sameHand ? 'Same best hand, so the pot is shared' : 'The pot was split between ' + ws.length + ' players'}))
