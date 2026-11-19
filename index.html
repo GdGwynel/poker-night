@@ -4098,7 +4098,12 @@ function makeGL(T, host){
     for(const [k, o] of Object.entries(avs)) if(+k !== seat){ o.glance = seat; o.glanceUntil = performance.now() + 1400 + Math.random() * 600; }
     if(type === 'win'){
       const from = new T.Vector3(0, TY + .03, pot ? pot.position.z : wz(64)); if(pot) pot.visible = false;
-      (ev.winners || []).forEach((w, n) => { const x = avs[w.seat]; if(!x) return;
+      const pile = flying.filter(c => c.pot && !c.home), ws = ev.winners || [];
+      if(pile.length && ws.length){ pile.forEach((c, k) => { const w = ws[k % ws.length], x = avs[w.seat], st = stacks[w.seat];
+          c.home = st ? st.pos.clone().setY(TY + .02) : x ? new T.Vector3(x.g.position.x, TY + .01, x.g.position.z) : new T.Vector3(0, TY, 2); c.hold = 1200 + k * 18; c.stay = false; if(!c.rest) c.rest = performance.now(); });
+        ws.forEach(w => { stackHold[w.seat] = performance.now() + 1200 + pile.length * 18 + 900; }); }
+      midChips = false;
+      if(!pile.length) (ev.winners || []).forEach((w, n) => { const x = avs[w.seat]; if(!x) return;
         const st = stacks[w.seat], home = st ? st.pos.clone().setY(TY + .02) : new T.Vector3(x.g.position.x, TY + .01, x.g.position.z), land = from.clone().lerp(home, .55); land.y = TY;
         stackHold[w.seat] = performance.now() + 250 + n * 350 + 3400;
         const cnt = Math.max(8, Math.min(22, Math.round(Math.sqrt(w.amount || 10) * 2.2)));
@@ -4317,13 +4322,14 @@ function makeGL(T, host){
     const spot = new T.Vector3(wx(x), TY + .001, wz(y));
     // chips thrown for this bet stay on the felt; when the round ends they slide into the pot
     const near = flying.filter(c => !c.home && c.dest && c.dest.distanceTo(spot) < .22);
-    if(amount <= 0){ const to = new T.Vector3(0, TY + .02, pot ? pot.position.z : wz(64)); near.forEach((c, k) => { c.home = to.clone().add(new T.Vector3(rnd(-.05, .05), 0, rnd(-.05, .05))); c.hold = 150 + k * 25; if(!c.rest) c.rest = performance.now(); }); }
-    if(amount > 0){ const g = makeStack(amount); g.position.copy(spot); g.visible = !near.length && !(b && b.thrown); scene.add(g); bets[i] = {g, amount, thrown:!g.visible}; }
+    if(amount <= 0 && !midChips){ const to = new T.Vector3(0, TY + .02, pot ? pot.position.z : wz(64)); near.forEach((c, k) => { c.home = to.clone().add(new T.Vector3(rnd(-.05, .05), 0, rnd(-.05, .05))); c.hold = 150 + k * 25; if(!c.rest) c.rest = performance.now(); }); }
+    if(amount > 0){ const g = makeStack(amount); g.position.copy(spot); g.visible = !midChips && !near.length && !(b && b.thrown); scene.add(g); bets[i] = {g, amount, thrown:!g.visible}; }
   }
+  let midChips = false;
   function setPot(amount){
     if(amount === potAmt) return; potAmt = amount;
     if(pot){ scene.remove(pot); pot = null; }
-    if(amount > 0){ pot = makeStack(amount, true); pot.position.set(0, TY + .001, wz(64)); scene.add(pot); }
+    if(amount > 0){ pot = makeStack(amount, true); pot.position.set(0, TY + .001, wz(64)); pot.visible = !midChips; scene.add(pot); }
   }
 
   // ---------- flights (chips / cards moving across the felt) ----------
@@ -4331,7 +4337,13 @@ function makeGL(T, host){
     const a = new T.Vector3(wx(from[0]), TY + .02, wz(from[1])), b = new T.Vector3(wx(to[0]), TY + .02, wz(to[1]));
     const fixMe = (v, p) => { if(P.s && p[1] > 100){ v.y = TY + .25; } };
     fixMe(a, from); fixMe(b, to);
-    if(kind === 'chip'){ const vals = P.flyAmt ? breakdown(P.flyAmt).slice(0, 16) : null; throwChips(a, b, ms, delay, vals && vals.length ? {vals, n:vals.length, gap:22} : null); for(const k in bets) if(bets[k].g.position.distanceTo(b) < .22){ bets[k].g.visible = false; bets[k].thrown = true; } return; }
+    if(kind === 'chip'){
+      const vals = P.flyAmt ? breakdown(P.flyAmt).slice(0, 16) : null;
+      if(P.flyAmt){ // a bet: into the middle, landing somewhere on the pile
+        const an = Math.random() * Math.PI * 2, rr = .04 + Math.random() * .16, mid = new T.Vector3(Math.cos(an) * rr * 1.3, TY, wz(60) + Math.sin(an) * rr);
+        throwChips(a, mid, Math.max(ms, 520), delay, Object.assign({spread:.09, pot:true}, vals && vals.length ? {vals, n:vals.length, gap:22} : {}));
+        midChips = true; for(const k in bets){ bets[k].g.visible = false; bets[k].thrown = true; } if(pot) pot.visible = false; return; }
+      throwChips(a, b, ms, delay, vals && vals.length ? {vals, n:vals.length, gap:22} : null); return; }
     const o = makeCard(null);
     o.rotation.set(FACEDOWN, 0, rnd(-1, 1));
     o.visible = false; scene.add(o);
@@ -4349,7 +4361,7 @@ function makeGL(T, host){
       const start = a.clone().add(new T.Vector3(rnd(-.03, .03), .04 + k * .012, rnd(-.03, .03)));
       const Tt = T0 * rnd(.85, 1.15), g = 9.8 * .35;
       const vel = new T.Vector3((tgt.x - start.x) / Tt, (tgt.y - start.y + .5 * g * Tt * Tt) / Tt, (tgt.z - start.z) / Tt);
-      flying.push({m, p:start, v:vel, w:new T.Vector3(rnd(-12, 12), rnd(-6, 6), rnd(-12, 12)), g, t0:performance.now() + (delay || 0) + k * (o.gap || 35), rest:0, bounces:0, hold:o.hold || 0, home:o.home || null, stay:!o.home, dest:tgt});
+      flying.push({m, p:start, v:vel, w:new T.Vector3(rnd(-12, 12), rnd(-6, 6), rnd(-12, 12)), g, t0:performance.now() + (delay || 0) + k * (o.gap || 35), rest:0, bounces:0, hold:o.hold || 0, home:o.home || null, stay:!o.home, dest:tgt, pot:!!o.pot});
     }
   }
   function stepChips(t, dt){
@@ -4437,8 +4449,11 @@ function makeGL(T, host){
 
   // ---------- sync with the game state ----------
   const last = {s:null, sd:null};
+  let syncHandNo = null;
   function sync(s, sd, instant){
     last.s = s; last.sd = sd;
+    // a fresh hand: sweep away anything left lying on the felt
+    if(s.hand && s.hand.no !== syncHandNo){ syncHandNo = s.hand.no; for(let i = flying.length - 1; i >= 0; i--) if(flying[i].pot && flying[i].rest){ scene.remove(flying[i].m); flying.splice(i, 1); } midChips = false; }
     const meI = s.me, h_ = s.hand; const seen = new Set();
     if(meI >= 0 && s.seats[meI]) setMe(s.seats[meI]);
     s.seats.forEach((x, i) => {
