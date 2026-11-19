@@ -551,7 +551,8 @@
   .seat .tag:empty{display:none}
   .seat.allin .tag{background:var(--suit); color:#fff}
   .seat.folded{opacity:.55; filter:grayscale(.6)}
-  .seat.away{opacity:.6} .seat.away .av{filter:grayscale(1)}
+  .seat.away{opacity:.6; cursor:pointer} .seat.away .av{filter:grayscale(1)}
+  .kickbar{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; background:#FFF3D6; border:1.5px solid #E7C66A; border-radius:12px; padding:6px 10px; font-weight:700; font-size:.88rem; width:100%; box-sizing:border-box}
   .seat.busted .av{filter:grayscale(1) brightness(.8)}
   .seat.winner .av{box-shadow:0 0 0 4px var(--gold), 0 0 40px 12px rgba(243,216,145,.75)}
   .seat .scards{position:absolute; top:-14px; left:50%; transform:translateX(-10%); display:flex; z-index:0}
@@ -651,6 +652,7 @@
   .hole.peek .hc.d0 .cover{transition-delay:0s} .hole.peek .hc.d1 .cover{transition-delay:.05s}
   .hole.faceup .cover{transform:rotateY(180deg); opacity:0; transition:transform .5s, opacity .2s .15s}
   .hole.peek{cursor:grabbing}
+  .hole.folded{opacity:.55; filter:grayscale(.7); cursor:default} .hole.folded .hc{transition:transform .3s} .hole.folded .hc.d1{transform:rotate(12deg) translateX(-30px)}
   @media (prefers-reduced-motion:no-preference){ .hole.dealt .hc{animation:dealUp .6s cubic-bezier(.3,1.3,.5,1) both} .hole.dealt .hc.d1{animation-delay:.12s} @keyframes dealUp{from{transform:translateY(-120px) rotate(30deg) scale(.4); opacity:0}} }
   .hole-side{display:grid; gap:8px; justify-items:start}
   .peek-hint{color:var(--on-back-2); font-weight:700; font-size:.88rem}
@@ -2637,6 +2639,7 @@ function settingsSheet(){
         sw('🔊', 'Sound effects', 'Chips, cards and cheers', P.sound, on => { P.sound = on; store('pokerSound', on ? '1' : '0'); if(on) sfx('chip'); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Display'}),
         sw('⛶', 'Table fills the screen', 'Hides the site header and tabs', !!$('.room.full'), on => { toggleFull(on); close(); }),
+        sw('🙈', 'See my cards after I fold', 'Faded, only you can see them, until the next deal', store('pokerKeepFolded') !== '0', on => { store('pokerKeepFolded', on ? '1' : '0'); const b = $('#pHand'); if(b) b.dataset.k = ''; if(P.s) renderMyHand(P.s, P.showdown && Date.now() < P.showdown.until ? P.showdown : null); }),
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
         seg('⏱', 'Turn time', 'How long each player gets to act', [15, 30, 45, 60, 90], Math.round((s.turnMs || 45000) / 1000), v => psend({t:'rules', turnMs:v * 1000})),
@@ -2786,6 +2789,8 @@ function updateRoom(s){
         h('div', {class:'plate'}, h('div', {class:'nm', text:x.name}), h('div', {class:'stk num'})),
         h('div', {class:'scards'}), h('div', {class:'bubble'}), h('div', {class:'tag'}));
       if(x.bot) el.addEventListener('click', async () => { if(await confirmBox('Remove ' + x.name + '?', 'Their chips are cashed out like any player leaving.', 'Remove bot', true, 'Keep')) psend({t:'kickbot', seat:i}); });
+      else el.addEventListener('click', async () => { const y = P.s && P.s.seats[i]; if(!y || i === P.s.me || (y.connected && !y.sitOut)) return;
+        if(await confirmBox('Vote to cash out ' + y.name + '?', y.name + ' left and hasn’t come back. If most of the table agrees, their ' + peso(y.stack) + ' is cashed out for them, like they left normally.', 'Vote to cash out', true, 'Not yet')) psend({t:'votekick', seat:i}); });
       layer.append(el); P.seatEls[i] = el;
       setTimeout(() => el.classList.remove('arrive'), 900);
     }
@@ -2879,13 +2884,17 @@ function updateRoom(s){
 // ---------- your cards: face down, hold to peek ----------
 function renderMyHand(s, sd){
   const box = $('#pHand'); const me = s.me >= 0 ? s.seats[s.me] : null;
-  const cards = me && me.cards && !me.folded ? me.cards : (sd && s.me >= 0 && sd.shown[s.me]) || null;
-  const k = cards ? cards.join() + (me && me.folded ? 'f' : '') : '';
+  // after folding you can still look at your cards (setting), until the next deal
+  const keep = store('pokerKeepFolded') !== '0';
+  let cards = me && me.cards && (!me.folded || keep) ? me.cards : (sd && s.me >= 0 && sd.shown[s.me]) || null, folded = !!(me && me.folded && cards === me.cards);
+  if(cards && s.hand) P.myLast = {no:s.hand.no, cards, folded};
+  if(!cards && keep && !s.hand && P.myLast && s.lastHand && P.myLast.no === s.lastHand.no && P.myLast.folded){ cards = P.myLast.cards; folded = true; }
+  const k = cards ? cards.join() + (folded ? 'f' : '') : '';
   if(box.dataset.k !== k){
     box.dataset.k = k; box.replaceChildren();
     if(!cards){ box.classList.remove('has'); return; }
     box.classList.add('has');
-    const wrap = h('div', {class:'hole' + (P.showCards || !(me && me.cards && !me.folded) ? ' faceup' : ''), id:'pHole', role:'button', tabIndex:0, 'aria-label':'Your cards. Press and hold to peek.'});
+    const wrap = h('div', {class:'hole' + (folded ? ' faceup folded' : P.showCards || !(me && me.cards && !me.folded) ? ' faceup' : ''), id:'pHole', role:'button', tabIndex:0, 'aria-label':'Your cards. Press and hold to peek.'});
     cards.forEach((c, i) => wrap.append(h('div', {class:'hc d' + i}, cardEl(c, 'face'), cardEl('??', 'cover'))));
     const start = e => { e.preventDefault(); peek(true); };
     const stop = () => peek(false);
@@ -2894,7 +2903,7 @@ function renderMyHand(s, sd){
     wrap.addEventListener('touchstart', e => { e.preventDefault(); peek(true); }, {passive:false}); wrap.addEventListener('touchend', stop); wrap.addEventListener('touchcancel', stop);
     const tog = h('button', {type:'button', class:'eye', text:P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'});
     tog.addEventListener('click', () => { P.showCards = !P.showCards; store('pokerShowCards', P.showCards ? '1' : '0'); wrap.classList.toggle('faceup', P.showCards); tog.textContent = P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'; });
-    box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:P.showCards ? 'Your cards' : 'Press and hold to peek'}), tog));
+    box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:folded ? 'Folded. Only you see these.' : P.showCards ? 'Your cards' : 'Press and hold to peek'}), folded ? null : tog));
     if(P.dealAnim){ wrap.classList.add('dealt'); P.dealAnim = false; }
   }
 }
@@ -2909,8 +2918,12 @@ function seatPeek(seat, on){ const el = P.seatEls && P.seatEls[seat]; if(el) el.
 // ---------- actions ----------
 function renderActions(s){
   const bar = $('#pAct'); const me = s.me >= 0 ? s.seats[s.me] : null; const o = s.options;
-  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen, s.lastHand && [s.lastHand.no, Object.keys(s.lastHand.shown || {}).length, !!s.lastHand.rabbit], s.hold, P.mucked]);
+  const k = JSON.stringify([s.hand && s.hand.toAct, o, me && me.stack, me && me.sitOut, s.canDeal, !!s.nextHandAt, s.me, P.raiseOpen, s.lastHand && [s.lastHand.no, Object.keys(s.lastHand.shown || {}).length, !!s.lastHand.rabbit], s.hold, P.mucked, s.kick]);
   if(bar.dataset.k === k) return; bar.dataset.k = k; bar.replaceChildren();
+  // a vote to cash out someone who left
+  if(s.kick && me && s.kick.seat !== s.me){ const voted = s.kick.by.includes(me.name), vb = h('button', {type:'button', class:'btn btn-sm ' + (voted ? 'btn-ghost' : 'btn-red'), text:voted ? 'You voted' : 'Vote yes', disabled:voted});
+    vb.addEventListener('click', () => { vb.disabled = true; psend({t:'votekick', seat:s.kick.seat}); });
+    bar.append(h('div', {class:'kickbar'}, h('span', {text:'🗳 Cash out ' + s.kick.name + '? ' + s.kick.by.length + ' of ' + s.kick.need + ' votes'}), vb)); }
   const emotes = h('div', {class:'emotes'}, ['😂', '🔥', '😱', '👏', '😎', '🙏'].map(e => { const b = h('button', {type:'button', class:'emo', text:e, 'aria-label':'React ' + e}); b.addEventListener('click', () => psend({t:'emote', e})); return b; }));
   if(!me){
     const sit = h('button', {type:'button', class:'btn btn-red', text:'Take a seat'}); sit.addEventListener('click', () => { P.watching = false; renderPlay(); });
@@ -3094,6 +3107,8 @@ function handleEvent(ev, prev, s){
     setTimeout(() => sfx('win'), 300); flash('win');
     if(s.me >= 0 && (ev.winners || []).some(w => w.seat === s.me)) setTimeout(() => confetti(true), 500);
     updateRoom(s); setTimeout(() => { if(P.s && !P.s.hand) updateRoom(P.s); }, 5300);
+  } else if(ev.type === 'kicked'){ ptoast(ev.name + ' was cashed out by a table vote');
+  } else if(ev.type === 'kickvote'){ if(seat !== s.me && ev.by !== (s.seats[s.me] || {}).name) ptoast(ev.by + ' voted to cash out ' + ev.name + ' (' + ev.votes + '/' + ev.need + ')');
   } else if(ev.type === 'hold'){ if(seat !== s.me) ptoast(ev.name + ' is holding the table ✋');
   } else if(ev.type === 'ready'){ ptoast(ev.name + ' is ready. Dealing soon.');
   } else if(ev.type === 'rabbit'){ ptoast(ev.name + ' rabbit hunted 🐇'); updateRoom(s);
