@@ -678,6 +678,12 @@
   .rank-row .rk{color:var(--suit); font-family:var(--display)} .rk-c{display:flex; gap:2px} .rk-c .pc{width:26px} .rk-t{display:grid} .rk-t small{opacity:.7; font-size:.75rem}
   .coach{display:grid; justify-items:center; text-align:center; gap:8px; padding:6px 4px 4px} .coach-ic{font-size:3rem} .coach h2{margin:0} .coach p{margin:0; max-width:32em; color:var(--ink-2)}
   .coach-dots{display:flex; gap:6px; margin:6px 0} .coach-dots i{width:8px; height:8px; border-radius:50%; background:#E2DBCF} .coach-dots i.on{background:var(--suit)}
+  .emo-wrap{position:relative; display:inline-flex} .emo-wrap .emotes{position:absolute; bottom:calc(100% + 6px); right:0; display:none; background:var(--paper); padding:6px; border-radius:999px; box-shadow:0 8px 20px rgba(0,0,0,.3); z-index:8; gap:4px; flex-wrap:nowrap}
+  .emo-wrap .emotes.open{display:flex} .emo-tog{width:38px; height:38px}
+  .wait-row{display:flex; align-items:center; justify-content:center; gap:10px; width:100%}
+  .ticker{cursor:pointer} .ticker:not(.open){max-height:1.9em !important; overflow:hidden !important} .ticker:not(.open) div:not(:last-child){display:none}
+  .ticker:not(.open)::after{content:'▴ history'; position:absolute; right:10px; bottom:6px; font-size:.68rem; opacity:.55}
+  .ticker{position:relative}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media all{
@@ -2877,7 +2883,7 @@ function buildRoom(root){
   setTimeout(uiScale, 0);   // the table takes the whole screen by default
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
-    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, fs, endB, gear, leave)),
+    h('div', {class:'room-top'}, h('div', {class:'rinfo', id:'pInfo'}), h('div', {class:'rbtns'}, vc, endB, gear, leave)),
     h('div', {class:'ptable-wrap fp', id:'pScene'}, h('div', {class:'p-lamp'}), h('div', {class:'center-msg', id:'pMsg'}),
       h('div', {class:'mebar', id:'pMe', hidden:true}, h('div', {class:'av'}, h('span', {class:'ini'}), h('i', {class:'ring'})), h('b', {class:'nm'}), h('span', {class:'stk num'}), h('span', {class:'tag'})),
       h('div', {class:'ptable', id:'pTable'},
@@ -2887,7 +2893,7 @@ function buildRoom(root){
       h('div', {class:'layer', id:'pBets'}), h('div', {class:'layer', id:'pSeats'}), h('div', {class:'layer fx', id:'pFx'}))),
     h('div', {class:'myhand', id:'pHand'}),
     h('div', {class:'actbar', id:'pAct'}),
-    h('div', {class:'ticker', id:'pTicker', 'aria-live':'polite'})));
+    h('div', {class:'ticker', id:'pTicker', 'aria-live':'polite', title:'Tap for the hand history', onclick:e => e.currentTarget.classList.toggle('open')})));
   P.meEl = $('#pMe');
   const scene = $('#pScene');
   glStart(scene);
@@ -3062,7 +3068,8 @@ function renderMyHand(s, sd){
     wrap.addEventListener('touchstart', e => { e.preventDefault(); peek(true); }, {passive:false}); wrap.addEventListener('touchend', stop); wrap.addEventListener('touchcancel', stop);
     const tog = h('button', {type:'button', class:'eye', text:P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'});
     tog.addEventListener('click', () => { P.showCards = !P.showCards; store('pokerShowCards', P.showCards ? '1' : '0'); wrap.classList.toggle('faceup', P.showCards); tog.textContent = P.showCards ? '🙈 Hide my cards' : '👁 Keep face up'; });
-    box.append(wrap, h('div', {class:'hole-side'}, h('div', {class:'peek-hint', text:folded ? 'Folded. Only you see these.' : P.showCards ? 'Your cards' : 'Press and hold to peek'}), h('div', {class:'my-read', id:'pRead'}), folded ? null : tog));
+    const peeks = +store('pokerPeeks') || 0, hintTxt = folded ? 'Folded' : P.showCards ? '' : peeks < 4 ? 'Hold to peek' : '';
+    box.append(wrap, h('div', {class:'hole-side'}, hintTxt ? h('div', {class:'peek-hint', text:hintTxt}) : null, h('div', {class:'my-read', id:'pRead'})));
     if(P.dealAnim || (s.hand && P.dealtNo !== s.hand.no && me && me.cards && !folded && !sd)){
       // your cards arrive after the shuffle and after everyone before you
       const n = s.seats.filter(x => x && x.inHand).length, dd = P.dealAnim && P.dealDelay ? P.dealDelay : (reduceMotion() ? 0 : 1150) + n * 2 * 95 + 150;
@@ -3105,7 +3112,7 @@ function updateRead(s){
 function peek(on){
   const w = $('#pHole'); if(!w || w.classList.contains('faceup')) return;
   if(w.classList.contains('peek') === on) return;
-  w.classList.toggle('peek', on); if(on){ sfx('card'); buzz(12); } updateRead(P.s);
+  w.classList.toggle('peek', on); if(on){ sfx('card'); buzz(12); store('pokerPeeks', (+store('pokerPeeks') || 0) + 1); } updateRead(P.s);
   psend({t:'peek', on});
 }
 function seatPeek(seat, on){ const el = P.seatEls && P.seatEls[seat]; if(el) el.classList.toggle('peeking', on); if(P.gl) P.gl.peek(seat, on); }
@@ -3119,7 +3126,9 @@ function renderActions(s){
   if(s.kick && me && s.kick.seat !== s.me){ const voted = s.kick.by.includes(me.name), vb = h('button', {type:'button', class:'btn btn-sm ' + (voted ? 'btn-ghost' : 'btn-red'), text:voted ? 'You voted' : 'Vote yes', disabled:voted});
     vb.addEventListener('click', () => { vb.disabled = true; psend({t:'votekick', seat:s.kick.seat}); });
     bar.append(h('div', {class:'kickbar'}, h('span', {text:'🗳 Cash out ' + s.kick.name + '? ' + s.kick.by.length + ' of ' + s.kick.need + ' votes'}), vb)); }
-  const emotes = h('div', {class:'emotes'}, ['😂', '🔥', '😱', '👏', '😎', '🙏'].map(e => { const b = h('button', {type:'button', class:'emo', text:e, 'aria-label':'React ' + e}); b.addEventListener('click', () => psend({t:'emote', e})); return b; }));
+  const emoList = h('div', {class:'emotes' + (P.emoOpen ? ' open' : '')}, ['😂', '🔥', '😱', '👏', '😎', '🙏'].map(e => { const b = h('button', {type:'button', class:'emo', text:e, 'aria-label':'React ' + e}); b.addEventListener('click', () => { psend({t:'emote', e}); P.emoOpen = false; emoList.classList.remove('open'); }); return b; }));
+  const emoBtn = h('button', {type:'button', class:'emo emo-tog', text:'😀', 'aria-label':'React', title:'React'}); emoBtn.addEventListener('click', () => { P.emoOpen = !P.emoOpen; emoList.classList.toggle('open', P.emoOpen); });
+  const emotes = h('div', {class:'emo-wrap'}, emoBtn, emoList);
   if(!me){
     const sit = h('button', {type:'button', class:'btn btn-red', text:'Take a seat'}); sit.addEventListener('click', () => { P.watching = false; renderPlay(); });
     bar.append(h('div', {class:'act-msg', text:'You’re watching.'}), sit); return;
@@ -3161,10 +3170,10 @@ function renderActions(s){
   }
   if(s.hand){
     const who = s.hand.toAct >= 0 && s.seats[s.hand.toAct] ? s.seats[s.hand.toAct].name : '';
-    bar.append(h('div', {class:'act-msg', text:me.folded ? 'You folded. Next hand soon.' : me.allIn ? 'You’re all in. Good luck!' : (who ? 'Waiting for ' + who + '…' : '')}), who ? h('div', {class:'turnbar small', id:'pTurnBar'}, h('i'), h('span', {class:'num'})) : null, emotes);
+    bar.append(h('div', {class:'wait-row'}, h('div', {class:'act-msg', text:me.folded ? 'You folded. Next hand soon.' : me.allIn ? 'You’re all in. Good luck!' : (who ? who + ' is thinking…' : '')}), emotes), who ? h('div', {class:'turnbar small', id:'pTurnBar'}, h('i'), h('span', {class:'num'})) : null);
     const ta = s.hand.toAct >= 0 ? s.seats[s.hand.toAct] : null;
     if(ta && !ta.bot && s.hand.toAct !== s.me){
-      const cb = h('button', {type:'button', class:'btn btn-ghost btn-sm clock-btn', id:'pClock', text:'⏱ Call the clock', title:'Give ' + ta.name + ' 20 seconds to decide', disabled:true});
+      const cb = h('button', {type:'button', class:'btn btn-ghost btn-sm clock-btn', id:'pClock', text:'⏱ Hurry ' + ta.name, title:'Give ' + ta.name + ' 20 seconds to decide', disabled:true, hidden:true});
       cb.addEventListener('click', () => { psend({t:'clock'}); cb.disabled = true; });
       bar.append(cb);
     }
@@ -3174,13 +3183,13 @@ function renderActions(s){
   const lhr = s.lastHand, rb = lhr && lhr.board.length < 5 && !lhr.rabbit ? h('button', {type:'button', class:'btn btn-ghost btn-sm rabbit-btn', text:'🐇 Rabbit hunt', title:'See what the rest of the board would have been'}) : null;
   if(rb) rb.addEventListener('click', () => { rb.disabled = true; psend({t:'rabbit'}); });
   if(s.hold){ const b = h('button', {type:'button', class:'btn btn-red', text:'▶ Continue'}); b.addEventListener('click', () => { b.disabled = true; psend({t:'ready'}); });
-    const eb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🏁 End session'}); eb.addEventListener('click', endSession);
-    bar.append(h('div', {class:'act-msg', text:'✋ ' + (s.hold === (me && me.name) ? 'You’re' : s.hold + ' is') + ' holding the table. Take your time.'}), h('div', {class:'btn-row'}, b, rb, eb), emotes); return; }
-  if(s.canDeal && !s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-red btn-lg deal-btn', text:'🃏 Deal the cards'}); b.addEventListener('click', () => psend({t:'deal'})); const eb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🏁 End session'}); eb.addEventListener('click', endSession);
-    bar.append(b, h('div', {class:'btn-row'}, rb, eb), emotes); return; }
-  if(s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'Pause after this'}); b.addEventListener('click', () => psend({t:'pause'})); const eb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'🏁 End session'}); eb.addEventListener('click', endSession);
-    const hb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'✋ Hold', title:'Stop the next deal until you’re ready'}); hb.addEventListener('click', () => { hb.disabled = true; psend({t:'hold'}); });
-    bar.append(h('div', {class:'act-msg', text:'Next hand coming up…'}), h('div', {class:'btn-row'}, hb, b, rb, eb), emotes); return; }
+    bar.append(h('div', {class:'act-msg', text:'✋ ' + (s.hold === (me && me.name) ? 'You’re' : s.hold + ' is') + ' holding the table'}), h('div', {class:'btn-row'}, b, rb, emotes)); return; }
+  if(s.canDeal && !s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-red btn-lg deal-btn', text:'🃏 Deal the cards'}); b.addEventListener('click', () => psend({t:'deal'}));
+    bar.append(b, h('div', {class:'btn-row'}, rb, emotes)); return; }
+  if(s.nextHandAt){ const b = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'⏸ Pause', title:'Stop dealing after this hand'}); b.addEventListener('click', () => psend({t:'pause'}));
+    const hb = h('button', {type:'button', class:'btn btn-ghost btn-sm', text:'✋ Wait', title:'Hold the next deal until you’re ready'}); hb.addEventListener('click', () => { hb.disabled = true; psend({t:'hold'}); });
+    if(rb) rb.textContent = '🐇 Rabbit';
+    bar.append(h('div', {class:'act-msg', text:'Next hand coming up'}), h('div', {class:'btn-row'}, hb, rb, b, emotes)); return; }
   const inv = h('button', {type:'button', class:'btn btn-ghost', text:'Copy invite for Messenger'}); inv.addEventListener('click', () => copyText('♥ I’m at the online poker table, come sit down:\n' + location.href.split('#')[0].split('?')[0] + '#play', inv));
   bar.append(h('div', {class:'act-msg', text:'Waiting for one more player…'}), inv);
 }
@@ -3441,7 +3450,7 @@ setInterval(() => {
   const s = P.s; if(!s || $('#view-play').hidden || !$('#pTable')) return;
   const now = Date.now() + P.skew;
   if(s.hand && s.deadline){ const left = Math.max(0, s.deadline - now); const el = s.hand.toAct === s.me ? (P.meEl || $('#pMe')) : P.seatEls[s.hand.toAct]; const full = Math.max(1000, s.deadline - (s.turnStart || s.deadline - 45000)); if(el) el.style.setProperty('--p', String(left / full));
-    const cb = $('#pClock'); if(cb) cb.disabled = now - (s.turnStart || now) < 10000 || left < 20500;
+    const cb = $('#pClock'); if(cb){ cb.disabled = now - (s.turnStart || now) < 10000 || left < 20500; cb.hidden = cb.disabled; }
     const tb = $('#pTurnBar'); if(tb){ tb.style.setProperty('--p', String(Math.min(1, left / full))); tb.querySelector('span').textContent = Math.ceil(left / 1000) + 's'; tb.classList.toggle('hurry', left < 10000); } if(el) el.classList.toggle('hurry', left < 10000); }
   if(!s.hand && s.nextHandAt){ const c = $('#pMsg .count'); if(c) c.textContent = 'Next hand in ' + Math.max(0, Math.ceil((s.nextHandAt - now) / 1000)); }
   if(P.showdown && Date.now() > P.showdown.until){ P.showdown = null; updateRoom(s); }
@@ -3821,7 +3830,7 @@ function makeGL(T, host){
       g.beginPath(); g.arc(0, 0, 9, 0, Math.PI * 2); g.fill(); g.beginPath(); g.moveTo(0, -60); g.quadraticCurveTo(22, -40, 0, -46); g.quadraticCurveTo(-22, -40, 0, -60); g.fill(); g.restore(); } g.restore(); };
   const wallNorm = normalTex(256, 256, (g, w, h) => { g.fillStyle = '#707070'; g.fillRect(0, 0, w, h); damask(g, w, h, '#b0b0b0'); }, [10, 3], 1.5);
   const wallTex = canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#3B0C16'; g.fillRect(0, 0, w, h); damask(g, w, h, 'rgba(120,30,40,.28)'); g.globalAlpha = .0;
+    g.fillStyle = '#3B0C16'; g.fillRect(0, 0, w, h); damask(g, w, h, 'rgba(110,28,36,.16)'); g.globalAlpha = .0;
     g.strokeStyle = 'rgba(217,169,58,.10)'; g.lineWidth = 2;
     for(let i = -1; i <= 2; i++) for(let j = -1; j <= 2; j++){ const cx = i * 128 + (j % 2 ? 64 : 0), cy = j * 128; g.beginPath(); g.ellipse(cx + 64, cy + 64, 28, 46, 0, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.moveTo(cx + 64, cy + 10); g.lineTo(cx + 64, cy + 118); g.stroke(); }
     noise(g, w, h, 1500, .15);
