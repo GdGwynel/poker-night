@@ -671,6 +671,13 @@
   .seat .bubble.stay{opacity:1; transform:translate(-50%, 0) scale(1)}
   .seat .bubble.tocall{background:#FFD36E; color:#2A1800; animation:toCall 1.2s ease-in-out infinite} @keyframes toCall{50%{box-shadow:0 0 0 3px rgba(255,211,110,.45)}}
   .seat .bubble.cold.stay{opacity:.75}
+  .abtn{display:grid; place-items:center; gap:1px; line-height:1.1} .abtn .ahint{font-size:.66rem; font-weight:600; opacity:.75; white-space:normal}
+  .act-msg .why{display:block; font-size:.72rem; font-weight:600; opacity:.7; font-family:var(--body, inherit)}
+  .room.full .actbar.actbar{position:relative} .act-msg.turn{padding:0 34px} .helpq{position:absolute; right:10px; top:10px; width:28px; height:28px; z-index:2; border-radius:50%; border:1.5px solid #E2DBCF; background:#FBFAF6; font-weight:900; cursor:pointer; color:var(--ink)}
+  .rank-list{display:grid; gap:6px; margin:6px 0} .rank-row{display:grid; grid-template-columns:22px auto 1fr; gap:10px; align-items:center; padding:6px 8px; border-radius:12px; background:#F6F1E8}
+  .rank-row .rk{color:var(--suit); font-family:var(--display)} .rk-c{display:flex; gap:2px} .rk-c .pc{width:26px} .rk-t{display:grid} .rk-t small{opacity:.7; font-size:.75rem}
+  .coach{display:grid; justify-items:center; text-align:center; gap:8px; padding:6px 4px 4px} .coach-ic{font-size:3rem} .coach h2{margin:0} .coach p{margin:0; max-width:32em; color:var(--ink-2)}
+  .coach-dots{display:flex; gap:6px; margin:6px 0} .coach-dots i{width:8px; height:8px; border-radius:50%; background:#E2DBCF} .coach-dots i.on{background:var(--suit)}
   .btn-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
   .pboard .pc.win{box-shadow:0 0 0 3px var(--gold), 0 0 18px rgba(243,216,145,.8)}
   @media all{
@@ -2766,6 +2773,7 @@ function settingsSheet(){
         sw('⛶', 'Table fills the screen', 'Hides the site header and tabs', !!$('.room.full'), on => { toggleFull(on); close(); }),
         sw('🙈', 'See my cards after I fold', 'Faded, only you can see them, until the next deal', store('pokerKeepFolded') !== '0', on => { store('pokerKeepFolded', on ? '1' : '0'); const b = $('#pHand'); if(b) b.dataset.k = ''; if(P.s) renderMyHand(P.s, P.showdown && Date.now() < P.showdown.until ? P.showdown : null); }),
         sw('🐢', 'Reduce motion', 'Turns off dealing and table animations', reduceMotion(), on => { store('pokerCalm', on ? '1' : '0'); document.documentElement.classList.toggle('calm', on); }),
+        sw('🎓', 'Beginner hints', 'Explains each button and why it’s your turn', store('pokerHints') !== '0', on => { store('pokerHints', on ? '1' : '0'); const b = $('#pAct'); if(b) b.dataset.k = ''; if(P.s) renderActions(P.s); }),
         sw('🧠', 'Show what I have', 'Names your best hand while you look at your cards', store('pokerRead') !== '0', on => { store('pokerRead', on ? '1' : '0'); updateRead(P.s); }),
         sw('👁', 'Keep my cards face up', 'Off: press and hold to peek', P.showCards, on => { P.showCards = on; store('pokerShowCards', on ? '1' : '0'); const w = $('#pHole'); if(w) w.classList.toggle('faceup', on); })),
       h('div', {class:'set-group'}, h('div', {class:'set-h', text:'Table'}),
@@ -2774,6 +2782,8 @@ function settingsSheet(){
         sw('🃏', 'Show all hands at showdown', 'House rule. All-in hands are always shown.', s.showAll, on => psend({t:'rules', showAll:on})),
         act('🎲', 'New random look', 'Everyone sees your new character', () => { if(psend({t:'look'})) ptoast('New look!'); close(); }),
         act('🏁', P.s && P.s.finishing ? 'Ending after this hand…' : 'End session', 'Everyone cashes out and it goes to Settle up', () => { close(); endSession(); }),
+        act('❓', 'How to play', 'A one-minute walkthrough', () => { close(); store('pokerCoached', '0'); coach(); }),
+        act('🏆', 'Which hands win', 'Hand rankings with examples', () => { close(); rankingsSheet(); }),
         act('📒', 'Session and blinds', 'Who’s in for how much, change blinds, finish the game', () => { close(); sessionSheet(); }),
         act('🤖', 'Add a bot', 'Practice tables only', () => { psend({t:'addbot'}); close(); }, tableRoom() === 'main')),
       h('p', {class:'set-foot', text:'Tip: tap a bot’s name tag to remove it.'}));
@@ -2863,6 +2873,7 @@ function buildRoom(root){
   const gear = h('button', {type:'button', class:'rbtn gear', id:'pGear', 'aria-label':'Settings', title:'Settings', text:'⚙️'}); gear.addEventListener('click', settingsSheet);
   fs.addEventListener('click', () => toggleFull());
   if(store('pokerLayout') !== 'page') setTimeout(() => toggleFull(true, true), 0);
+  setTimeout(() => { if(P.s && P.s.me >= 0) coach(); }, 1500);
   setTimeout(uiScale, 0);   // the table takes the whole screen by default
   const board = h('div', {class:'pboard', id:'pBoard'}); for(let i = 0; i < 5; i++) board.append(h('div', {class:'slot'}));
   root.replaceChildren(h('div', {class:'room'},
@@ -3116,15 +3127,21 @@ function renderActions(s){
   if(me.sitOut){ const b = h('button', {type:'button', class:'btn btn-red', text:'I’m back, deal me in'}); b.addEventListener('click', () => psend({t:'sitout', on:false})); bar.append(h('div', {class:'act-msg', text:'You’re sitting out.'}), b); return; }
   if(o){
     bar.classList.add('myturn'); sfx('turn'); buzz([35, 50, 35]); turnAlert(true);
-    const fold = h('button', {type:'button', class:'abtn fold', text:'Fold'}); fold.addEventListener('click', () => doAct({type:'fold'}));
-    const cc = h('button', {type:'button', class:'abtn call', text:o.canCheck ? 'Check' : 'Call ' + peso(o.toCall) + (o.toCall >= me.stack ? ' (all in)' : '')});
+    const hint = store('pokerHints') !== '0', sub = t => hint ? h('small', {class:'ahint', text:t}) : null;
+    const fold = h('button', {type:'button', class:'abtn fold'}, h('span', {text:'Fold'}), sub('Give up this hand'));
+    fold.addEventListener('click', async () => {
+      // folding when checking is free is the classic beginner slip
+      if(o.canCheck && !(await confirmBox('Fold for nothing?', 'Nobody has bet, so you can Check and see the next card for free.', 'Fold anyway', true, 'Check instead'))){ doAct({type:'check'}); return; }
+      doAct({type:'fold'}); });
+    const cc = h('button', {type:'button', class:'abtn call'}, h('span', {text:o.canCheck ? 'Check' : 'Call ' + peso(o.toCall) + (o.toCall >= me.stack ? ' (all in)' : '')}), sub(o.canCheck ? 'Pass, it costs nothing' : o.toCall >= me.stack ? 'Bet everything to stay in' : 'Match the bet to stay in'));
     cc.addEventListener('click', () => doAct({type:o.canCheck ? 'check' : 'call'}));
     const row = h('div', {class:'arow'}, fold, cc);
     if(o.canRaise){
-      const rb = h('button', {type:'button', class:'abtn raise', text:(o.currentBet ? 'Raise' : 'Bet') + (P.raiseOpen ? ' ▾' : ' ▸')}); rb.addEventListener('click', () => { P.raiseOpen = !P.raiseOpen; bar.dataset.k = ''; renderActions(s); });
+      const rb = h('button', {type:'button', class:'abtn raise'}, h('span', {text:(o.currentBet ? 'Raise' : 'Bet') + (P.raiseOpen ? ' ▾' : ' ▸')}), sub(o.currentBet ? 'Bet more than them' : 'Put chips in first')); rb.addEventListener('click', () => { P.raiseOpen = !P.raiseOpen; bar.dataset.k = ''; renderActions(s); });
       row.append(rb);
     }
-    bar.append(h('div', {class:'act-msg turn', text:'Your turn' + (o.toCall ? ', ' + peso(o.toCall) + ' to call' : '')}), h('div', {class:'turnbar', id:'pTurnBar'}, h('i'), h('span', {class:'num'})), row);
+    const why = !hint ? '' : o.toCall ? ' (someone bet, match it or fold)' : ' (no bet yet)';
+    bar.append(h('div', {class:'act-msg turn'}, 'Your turn' + (o.toCall ? ', ' + peso(o.toCall) + ' to call' : ''), why ? h('small', {class:'why', text:why}) : null, h('button', {type:'button', class:'helpq', title:'Which hands win?', 'aria-label':'Which hands win?', text:'?', onclick:() => rankingsSheet()})), h('div', {class:'turnbar', id:'pTurnBar'}, h('i'), h('span', {class:'num'})), row);
     if(o.canRaise && P.raiseOpen) bar.append(raisePanel(s, o));
     return;
   }
@@ -3295,6 +3312,32 @@ function shuffleDeck(ms){
   sc.append(deck);
   [120, 260, 380, 500, 620, 740].forEach(t => setTimeout(() => sfx('card'), t)); setTimeout(() => sfx('clack'), 900);
   setTimeout(() => deck.classList.add('done'), ms + 50); setTimeout(() => deck.remove(), ms + 2600);
+}
+function coach(){
+  if(store('pokerCoached') === '1') return; store('pokerCoached', '1');
+  const steps = [
+    ['🃏', 'Your two cards', 'They’re face down so nobody peeks. Press and hold them to look.'],
+    ['🎯', 'The goal', 'Make the best five-card hand using your 2 cards and the 5 shared cards in the middle, or get everyone else to fold.'],
+    ['🔁', 'Each round', 'When it’s your turn you can Check (pass for free), Call (match a bet), Raise (bet more) or Fold (give up). The buttons tell you what each one does.'],
+    ['💰', 'Winning', 'Best hand at the end takes the pot. The game shows you who won and why, so you’ll pick it up fast.'],
+    ['❓', 'Need help?', 'Tap ? on your turn to see which hands win. Tap anyone’s name to throw a tomato at them.']];
+  let k = 0;
+  openSheet((d, close) => {
+    const paint = () => { const [ic, t, x] = steps[k]; d.replaceChildren(h('div', {class:'coach'}, h('div', {class:'coach-ic', text:ic}), h('h2', {text:t}), h('p', {text:x}),
+      h('div', {class:'coach-dots'}, steps.map((_, i) => h('i', {class:i === k ? 'on' : ''}))),
+      h('div', {class:'btn-row'}, h('button', {type:'button', class:'btn btn-ghost', text:'Skip', onclick:close}), h('button', {type:'button', class:'btn btn-red', text:k < steps.length - 1 ? 'Next' : 'Let’s play', onclick:() => { if(k < steps.length - 1){ k++; paint(); } else close(); }})))); };
+    paint();
+  });
+}
+function rankingsSheet(){
+  const rows = [['Royal flush', ['As', 'Ks', 'Qs', 'Js', 'Ts'], 'A, K, Q, J, 10, all one suit'], ['Straight flush', ['9h', '8h', '7h', '6h', '5h'], 'Five in a row, one suit'], ['Four of a kind', ['Qc', 'Qd', 'Qh', 'Qs', '4d'], 'Four of the same card'],
+    ['Full house', ['Kh', 'Kd', 'Kc', '7s', '7h'], 'Three of one, two of another'], ['Flush', ['Ad', 'Jd', '8d', '6d', '2d'], 'Any five of one suit'], ['Straight', ['Tc', '9d', '8h', '7s', '6c'], 'Five in a row, any suits'],
+    ['Three of a kind', ['8s', '8h', '8d', 'Kc', '3s'], 'Three of the same card'], ['Two pair', ['Jh', 'Js', '4c', '4d', 'Ah'], 'Two different pairs'], ['Pair', ['Th', 'Tc', 'Ks', '6d', '3h'], 'Two of the same card'], ['High card', ['Ah', 'Jd', '8c', '5s', '2h'], 'Nothing matches, highest card plays']];
+  openSheet((d, close) => {
+    d.append(h('div', {class:'sh-head'}, h('div', null, h('h2', {text:'Which hands win'}), h('p', {class:'sub', style:'margin:0', text:'Best at the top. You use your 2 cards plus the 5 on the table, and your best 5 count.'})), h('button', {type:'button', class:'sh-x', 'aria-label':'Close', text:'×', onclick:close})),
+      h('div', {class:'rank-list'}, rows.map(([n, cs, t], i) => h('div', {class:'rank-row'}, h('b', {class:'rk', text:String(i + 1)}), h('div', {class:'rk-c'}, cs.map(c => cardEl(c, 'sm'))), h('div', {class:'rk-t'}, h('b', {text:n}), h('small', {text:t}))))),
+      h('p', {class:'sub', text:'Tip: while you hold your cards to peek, the game tells you what you have.'}));
+  });
 }
 function throwSheet(i){
   const s = P.s, x = s && s.seats[i]; if(!x) return;
