@@ -2975,7 +2975,7 @@ function updateRoom(s){
   const db = $('#pDealer');
   if(s.dealer >= 0 && s.seats[s.dealer]){ const [dx, dy] = seatXY(s.dealer, [33, 30]); db.style.left = (dx + 4) + '%'; db.style.top = dy + '%'; db.hidden = false; } else db.hidden = true;
   // board
-  const lhb = s.lastHand, rab = !h_ && lhb && lhb.rabbit ? lhb.rabbit : null;
+  const lhb = s.result || !s.seats.some(Boolean) ? null : s.lastHand, rab = !h_ && lhb && lhb.rabbit ? lhb.rabbit : null;   // a finished game leaves an empty table
   const boardCards = h_ ? h_.board : sd ? sd.board : lhb ? lhb.board : [];
   const slots = $('#pBoard').querySelectorAll(':scope > .slot');
   if(h_) P.handSeen = h_.no;
@@ -3006,7 +3006,7 @@ function updateRoom(s){
   $('#pBoard').classList.toggle('has-win', !!(sd && sd.best && sd.best.length));
   // everyone's shown hands, flat and readable, right under the board
   { const bd = $('#pBoard'); let row = $('#pShown'); if(!row){ row = h('div', {class:'pshown', id:'pShown'}); bd.append(row); }
-    const lh = s.lastHand, shown = h_ ? null : sd ? sd.shown : lh ? lh.shown : null, wins = (sd ? sd.winners : lh && lh.winners) || [];
+    const lh = lhb, shown = h_ ? null : sd ? sd.shown : lh ? lh.shown : null, wins = (sd ? sd.winners : lh && lh.winners) || [];
     const ids = shown ? Object.keys(shown).map(Number).filter(i => i !== s.me && s.seats[i] && !(sd && wins.some(w => w.seat === i))) : [];   // the banner already shows the winner
     const key = ids.map(i => i + ':' + shown[i].join('')).join('|') + '/' + wins.map(w => w.seat).join();
     if(row.dataset.k !== key){ row.dataset.k = key;
