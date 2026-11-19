@@ -619,12 +619,12 @@
   @media (prefers-reduced-motion:reduce){ .pboard .pc.dealin, .pboard .pc.dealin::before{animation:none} .pboard .pc.dealin::before{display:none} }
   .pboard .pc.rabbit{opacity:.72; filter:saturate(.6); outline:2px dashed rgba(243,216,145,.85); outline-offset:-3px}
   .pboard .pc.rabbit::after{content:'🐇'; position:absolute; right:3px; bottom:2px; font-size:.8rem; line-height:1}
-  .pshown{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:max-content; max-width:92vw; z-index:4; pointer-events:none}
+  .pshown{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:max-content; max-width:min(92vw, 640px); z-index:4; pointer-events:none}
   .pshown .sh{display:grid; justify-items:center; gap:3px; background:rgba(20,6,10,.82); border:1.5px solid rgba(255,244,242,.18); border-radius:12px; padding:6px 8px 5px; box-shadow:0 8px 18px rgba(0,0,0,.45)}
   .pshown .sh.won{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 8px 22px rgba(243,216,145,.35)}
   .pshown .sh-c{display:flex; gap:3px} .pshown .pc{width:clamp(34px,9vw,46px)}
-  .pshown b{color:var(--paper); font-size:.78rem; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .pshown .sh.won b{color:var(--gold-l)} .pshown span{color:#E7DED0; font-size:.68rem; max-width:12em; text-align:center; line-height:1.2}
+  .pshown .sh > b{color:var(--paper); font-size:.78rem; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pshown .sh.won > b{color:var(--gold-l)} .pshown .sh > span{color:#E7DED0; font-size:.68rem; max-width:12em; text-align:center; line-height:1.2}
   .set-row.set-seg{grid-template-columns:28px 1fr; row-gap:8px; cursor:default} .set-seg .seg{grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap}
   .seg-b{flex:1 1 0; min-width:44px; border:1.5px solid #E2DBCF; background:#FBFAF6; color:var(--ink); border-radius:999px; padding:7px 0; font-weight:800; cursor:pointer}
   .seg-b[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
@@ -765,7 +765,7 @@
     .room-top .rinfo .conn{display:none}
     .room-top .rinfo b{font-size:.92rem}
   }
-  .room{min-width:0; max-width:100%}
+  .room{min-width:0; max-width:100%; overflow-x:clip}
   .room > *{min-width:0; max-width:100%}
   .myhand{max-width:100%; box-sizing:border-box; padding:0 4px}
   .myhand .hole-side{min-width:0; flex:1 1 auto; max-width:56%}
@@ -864,6 +864,7 @@
   .gl .bet{transform:translate(-50%,0); background:rgba(0,0,0,.55); padding:1px 7px} .gl .bet .chips3{display:none}
   .gl .pot{transform:translate(-50%,0)} .gl .pot .stack{display:none}
   .gl .center-msg.soft{top:40%}
+  .gl .center-msg.soft .count{font-size:.95rem; background:rgba(20,6,10,.7); padding:5px 14px; border-radius:999px; text-shadow:none}
   .gl .center-msg.win{top:28%}
   .gl .center-msg .winline{display:grid; grid-template-columns:auto auto; column-gap:10px; align-items:center; text-align:left; padding:8px 16px}
   .gl .center-msg .winline .trophy{grid-row:span 2; margin:0}
@@ -2820,7 +2821,7 @@ function updateRoom(s){
   if(s.dealer >= 0 && s.seats[s.dealer]){ const [dx, dy] = seatXY(s.dealer, [33, 30]); db.style.left = (dx + 4) + '%'; db.style.top = dy + '%'; db.hidden = false; } else db.hidden = true;
   // board
   const lhb = s.lastHand, rab = !h_ && lhb && lhb.rabbit ? lhb.rabbit : null;
-  const boardCards = h_ ? h_.board : sd ? sd.board : rab ? lhb.board : [];
+  const boardCards = h_ ? h_.board : sd ? sd.board : lhb ? lhb.board : [];
   const slots = $('#pBoard').querySelectorAll(':scope > .slot');
   if(boardCards.length < P.boardShown) { for(const sl of slots) sl.replaceChildren(); P.boardShown = 0; }
   for(let k = P.boardShown; k < boardCards.length; k++){
